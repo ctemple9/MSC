@@ -203,7 +203,7 @@ fn fake_installer_jar() -> &'static Path {
     static JAR: OnceLock<PathBuf> = OnceLock::new();
     JAR.get_or_init(|| {
         let build_dir = std::env::temp_dir().join(format!(
-            "msc2-loader-installer-test-build-{}",
+            "msc-loader-installer-test-build-{}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&build_dir);
@@ -246,7 +246,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "msc2-loader-installer-test-{label}-{}",
+            "msc-loader-installer-test-{label}-{}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&dir);

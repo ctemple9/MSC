@@ -84,27 +84,27 @@ pub fn assets(publication: &Publication) -> Vec<Asset> {
         (
             "minecraft-launcher",
             "Minecraft Launcher",
-            include_str!("../../../docs/msc2/addons/launcher-guides/minecraft-launcher.txt"),
+            include_str!("../../../docs/msc/addons/launcher-guides/minecraft-launcher.txt"),
         ),
         (
             "prism",
             "Prism Launcher",
-            include_str!("../../../docs/msc2/addons/launcher-guides/prism.txt"),
+            include_str!("../../../docs/msc/addons/launcher-guides/prism.txt"),
         ),
         (
             "modrinth-app",
             "Modrinth App",
-            include_str!("../../../docs/msc2/addons/launcher-guides/modrinth-app.txt"),
+            include_str!("../../../docs/msc/addons/launcher-guides/modrinth-app.txt"),
         ),
         (
             "curseforge-app",
             "CurseForge App",
-            include_str!("../../../docs/msc2/addons/launcher-guides/curseforge-app.txt"),
+            include_str!("../../../docs/msc/addons/launcher-guides/curseforge-app.txt"),
         ),
         (
             "sklauncher",
             "SKlauncher",
-            include_str!("../../../docs/msc2/addons/launcher-guides/sklauncher.txt"),
+            include_str!("../../../docs/msc/addons/launcher-guides/sklauncher.txt"),
         ),
     ];
     let mut index = format!(

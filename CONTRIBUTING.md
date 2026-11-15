@@ -6,12 +6,12 @@ description of the behavior and the verification you performed.
 
 ## Where things live
 
-- `crates/` contains the Rust agent, API, domain rules, and platform code.
+- `crates/` contains the Rust engine, API, domain rules, and platform code.
 - `clients/desktop-web/` contains the Svelte desktop interface and its Tauri
   host in `src-tauri/`.
 - `content/help/` contains the handbook shown in the app.
-- `docs/msc2/` contains the product vision, engineering contract, decisions,
-  and current [rolling plan](docs/msc2/rolling-plan.md).
+- `docs/msc/` contains the product vision, engineering contract, decisions,
+  and current [rolling plan](docs/msc/rolling-plan.md).
 - `tools/` and `packaging/` contain development helpers and distribution files.
 
 ## Development setup
@@ -25,7 +25,7 @@ description of the behavior and the verification you performed.
 From the repository root, start the host-local terminal interface with:
 
 ~~~sh
-cargo run -p msc-agent -- tui
+cargo run -p msc-engine -- tui
 ~~~
 
 To launch the desktop app in development, run this from `clients/desktop-web`:
@@ -35,8 +35,8 @@ npx tauri dev
 ~~~
 
 The Tauri development command builds the frontend and prepares a development
-agent through the commands in `src-tauri/tauri.conf.json`. For service setup and
-platform requirements, see the [engineering guide](docs/msc2/msc2-engineering.md).
+engine through the commands in `src-tauri/tauri.conf.json`. For service setup and
+platform requirements, see the [engineering guide](docs/msc/msc-engineering.md).
 
 Useful checks include:
 
@@ -60,7 +60,7 @@ the checks you ran in the pull request.
 ## Licensing contributions
 
 By submitting a contribution for inclusion, you agree it may be distributed
-under Apache-2.0, the same license as MSC 2's original code. You retain
+under Apache-2.0, the same license as MSC's original code. You retain
 copyright in your contribution and confirm that you have the right to submit
 it. Third-party code must retain its own license and notices; do not copy it
-into MSC 2 without documenting its source and terms.
+into MSC without documenting its source and terms.

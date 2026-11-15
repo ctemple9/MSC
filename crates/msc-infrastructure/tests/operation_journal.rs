@@ -1,8 +1,8 @@
 //! Hand-written coverage of `OperationJournal`, in the same style P2.9's
 //! `crates/msc-domain/tests/operation.rs` used for `OperationState`: no
-//! MSC 1 fixture to port from (greenfield MSC 2 construction — see the
+//! MSC 1 fixture to port from (greenfield MSC construction — see the
 //! module docs), so these exercise the implementation directly against
-//! its own written contract (`msc2-engineering.md` §7's "incomplete
+//! its own written contract (`msc-engineering.md` §7's "incomplete
 //! operations are reconciled and their outcome explained rather than
 //! silently forgotten").
 //!
@@ -14,7 +14,7 @@ use msc_infrastructure::fs::FakeFileSystem;
 use msc_infrastructure::operation_journal::{JournalEntry, OperationJournal};
 use std::collections::BTreeMap;
 
-const DIR: &str = "/srv/agent/operations";
+const DIR: &str = "/srv/engine/operations";
 
 fn entry(
     id: &str,
@@ -137,7 +137,7 @@ fn operation_journal_running_entry_is_reconciled_to_failed() {
     assert_eq!(records[0].target.as_deref(), Some("survival2"));
     assert_eq!(records[0].from, OperationState::Running);
     assert_eq!(records[0].to, OperationState::Failed);
-    assert_eq!(records[0].reason, "agent restarted mid-operation");
+    assert_eq!(records[0].reason, "engine restarted mid-operation");
 
     let reconciled = journal
         .load(&running.id)
@@ -148,7 +148,7 @@ fn operation_journal_running_entry_is_reconciled_to_failed() {
         .error
         .expect("a reconciled running entry carries an explanatory error");
     assert_eq!(error.code, "operation_interrupted");
-    assert_eq!(error.message, "agent restarted mid-operation");
+    assert_eq!(error.message, "engine restarted mid-operation");
 }
 
 #[test]

@@ -3,7 +3,7 @@
   "case": "raw-live-folders-only",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "createSlot(name:for:...) reused for Phase 6 reconciliation State 1 (live folders only) — see docs/msc2/worlds/phase6-scope.md §\"State 1 — live folders only\"",
+    "test": "createSlot(name:for:...) reused for Phase 6 reconciliation State 1 (live folders only) — see docs/msc/worlds/phase6-scope.md §\"State 1 — live folders only\"",
     "line": 391
   },
   "input": {

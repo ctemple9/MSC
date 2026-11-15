@@ -3,7 +3,7 @@
 //! primitives every add-on mutation (P8.17), dependency install (P8.15),
 //! and modpack import (P8.18-P8.20) needs.
 //!
-//! `docs/msc2/rolling-plan.md`'s own P8.14 working text: "stage into an
+//! `docs/msc/rolling-plan.md`'s own P8.14 working text: "stage into an
 //! operation-owned temporary area, enforce the publisher hash when
 //! present, reject hostile archive paths/symlinks, preserve executable/
 //! read permission bits where the pack supplies them, and atomically

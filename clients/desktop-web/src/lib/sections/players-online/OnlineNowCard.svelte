@@ -21,7 +21,7 @@
 <Card>
   <div class="header">
     <div class="overline">
-      <span class="msc2-type-overline">Players</span>
+      <span class="msc-type-overline">Players</span>
     </div>
     <div class="header-actions">
       <span class="count">{players.length} online</span>
@@ -57,7 +57,7 @@
         </ul>
       {/if}
       {#if actionsUnsupported && players.length > 0}
-        <p class="empty">Update this agent to use player actions.</p>
+        <p class="empty">Update this engine to use player actions.</p>
       {/if}
     </div>
 
@@ -90,7 +90,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .header-actions {
     display: flex;
@@ -99,7 +99,7 @@
   }
   .count {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .columns {
     display: grid;
@@ -114,17 +114,17 @@
   }
   .column + .column {
     padding-left: 20px;
-    border-left: 1px solid var(--msc2-hairline-subtle);
+    border-left: 1px solid var(--msc-hairline-subtle);
   }
   .label {
     font-size: 11px;
     font-weight: 500;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .empty {
     margin: 4px 0 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .list {
     list-style: none;
@@ -142,17 +142,17 @@
   .presence {
     margin-left: auto;
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .name {
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .name.muted {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .player-action,
   .message-action {
@@ -166,12 +166,12 @@
   }
   .player-action:hover,
   .message-action:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     text-decoration: underline;
   }
   .message-action {
     margin-left: auto;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     padding: 3px;
     display: inline-flex;
   }

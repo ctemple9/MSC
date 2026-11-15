@@ -2,16 +2,16 @@
 //! lifecycle state machine, in-flight progress, and the succeeded/failed
 //! outcome.
 //!
-//! Greenfield MSC 2 construction, not a port — MSC 1 has no
+//! Greenfield MSC construction, not a port — MSC 1 has no
 //! operation-journal concept, so there is no baseline behavior to
 //! characterize and no fixture to extract. The specification is
-//! `docs/msc2/api-contract/operation-model.md` (P2.5), written before this
+//! `docs/msc/api-contract/operation-model.md` (P2.5), written before this
 //! implementation; this module implements its §2 (`OperationDTO`) and §3
 //! (the state machine) as far as pure domain types go.
 //!
 //! Wire serialization (the JSON `OperationDTO` shape, including `id`/
 //! `type`/`target`) is `msc-api`'s job, not this crate's — per
-//! `msc2-engineering.md` §6's module-boundary rule, `msc-domain` carries no
+//! `msc-engineering.md` §6's module-boundary rule, `msc-domain` carries no
 //! I/O and takes on no serde dependency. `OperationOutcome` reuses
 //! `std::result::Result` rather than inventing a parallel type.
 

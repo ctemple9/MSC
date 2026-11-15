@@ -140,7 +140,7 @@ impl<'a> ResourcePackService<'a> {
                 props.insert("require-resource-pack".into(), "false".into());
             }
         }
-        let mut output = String::from("# Modified via MSC 2\n");
+        let mut output = String::from("# Modified via MSC\n");
         for (key, value) in props {
             output.push_str(&format!("{key}={value}\n"));
         }

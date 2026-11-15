@@ -140,7 +140,7 @@
   async function load(): Promise<void> {
     if (!connection) {
       loading = false;
-      errorText = 'Not connected to an agent.';
+      errorText = 'Not connected to an engine.';
       return;
     }
     loading = true;
@@ -551,11 +551,11 @@
     height: 56px;
     border-radius: 10px;
     overflow: hidden;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .icon img {
     width: 100%;
@@ -571,13 +571,13 @@
   .title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .byline,
   .stats {
     margin: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .provider-link {
     display: inline-flex;
@@ -586,7 +586,7 @@
     font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
     background: transparent;
-    border: 1px solid var(--msc2-hairline);
+    border: 1px solid var(--msc-hairline);
     border-radius: 7px;
     padding: 5px 12px;
     margin-bottom: 14px;
@@ -598,15 +598,15 @@
   .notice {
     margin: 0 0 10px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .explain {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .explain.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .link-button {
     background: none;
@@ -614,17 +614,17 @@
     padding: 0;
     font: inherit;
     font-size: 12px;
-    color: var(--msc2-neutral-fill);
+    color: var(--msc-neutral-fill);
     cursor: pointer;
     text-decoration: underline;
   }
   .compat {
     margin: 0 0 14px;
     font-size: 12px;
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .compat.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .section {
     margin-bottom: 18px;
@@ -633,7 +633,7 @@
     margin: 0 0 8px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .section-header {
     display: flex;
@@ -645,7 +645,7 @@
     align-items: center;
     gap: 6px;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .gallery {
     display: flex;
@@ -662,7 +662,7 @@
   .about {
     font-size: 12.5px;
     line-height: 1.6;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .about p {
     margin: 0 0 8px;
@@ -684,7 +684,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 8px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .versions .version-row:first-child {
     border-top: none;
@@ -703,7 +703,7 @@
   }
   .chevron {
     display: inline-flex;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin-top: 3px;
     transition: transform 120ms ease;
   }
@@ -725,29 +725,29 @@
   .version-number {
     font-size: 12px;
     font-weight: 500;
-    font-family: var(--msc2-font-mono, monospace);
-    color: var(--msc2-text-primary);
+    font-family: var(--msc-font-mono, monospace);
+    color: var(--msc-text-primary);
   }
   .version-mc {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .conflict-note {
     margin: 0 0 8px 19px;
     font-size: 11px;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .version-detail {
     margin: 0 0 8px 19px;
     padding: 8px;
     border-radius: 6px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
   }
   .detail-label {
     margin: 0 0 4px;
     font-size: 10px;
     font-weight: 600;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .version-tags {
     display: flex;
@@ -756,27 +756,27 @@
   }
   .tag {
     font-size: 9.5px;
-    font-family: var(--msc2-font-mono, monospace);
+    font-family: var(--msc-font-mono, monospace);
     padding: 2px 5px;
     border-radius: 5px;
     background: rgba(255, 255, 255, 0.08);
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .tag.highlight {
     font-weight: 700;
-    background: var(--msc2-status-ok-tint);
-    color: var(--msc2-status-ok);
+    background: var(--msc-status-ok-tint);
+    color: var(--msc-status-ok);
   }
   .platforms {
     margin: 6px 0 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .added {
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .links {
     display: flex;

@@ -5,7 +5,7 @@
   // P12.16a). The oracle tints each section by kind (purple intro / blue
   // prerequisites / green values / neutral steps and notes) -- dropped for
   // one flat Card per section, matching HandbookBrowser's callout precedent
-  // (docs/msc2/antiAIslop.md rule #1; P12.16's "spend the accent budget on
+  // (docs/msc/antiAIslop.md rule #1; P12.16's "spend the accent budget on
   // a defined system status, not a content classification"). An
   // undetectable local IP is a real system state, not decoration, so it
   // keeps the reserved warning treatment MSC 1 gives it.
@@ -45,7 +45,7 @@
     introExpanded = true;
     notesExpanded = false;
     if (!api) {
-      phase = { kind: 'failed', message: 'Connect to an agent to open a router guide.' };
+      phase = { kind: 'failed', message: 'Connect to an engine to open a router guide.' };
       return;
     }
     try {
@@ -132,10 +132,10 @@
 </script>
 
 <div class="reader">
-  <p class="msc2-type-overline">Step 2 of 3 — Follow the steps</p>
+  <p class="msc-type-overline">Step 2 of 3 — Follow the steps</p>
 
   {#if phase.kind === 'loading'}
-    <p class="msc2-type-meta">Loading guide…</p>
+    <p class="msc-type-meta">Loading guide…</p>
   {:else if phase.kind === 'no-active-server'}
     <EmptyState
       title="Select an active server first"
@@ -152,7 +152,7 @@
   {:else}
     {@const resolved = phase.resolved}
     <div class="head">
-      <h3 class="msc2-type-page">{resolved.guide.displayName}</h3>
+      <h3 class="msc-type-page">{resolved.guide.displayName}</h3>
       <Badge>{confidenceLabel(resolved.guide.review.sourceConfidence)}</Badge>
     </div>
 
@@ -165,14 +165,14 @@
             onclick={() => (introExpanded = !introExpanded)}
             aria-expanded={introExpanded}
           >
-            <span class="msc2-type-overline">{section.title}</span>
+            <span class="msc-type-overline">{section.title}</span>
             <span class="chevron" class:open={introExpanded}>›</span>
           </button>
           {#if introExpanded}
             <div class="section-body">
               {#each section.items as item, index (index)}
                 {#if item.type === 'paragraph'}
-                  <p class="msc2-type-body muted">{item.body}</p>
+                  <p class="msc-type-body muted">{item.body}</p>
                 {/if}
               {/each}
             </div>
@@ -180,10 +180,10 @@
         </Card>
       {:else if section.kind === 'prerequisites'}
         <Card>
-          <p class="msc2-type-overline">{section.title}</p>
+          <p class="msc-type-overline">{section.title}</p>
           {#each section.items as item, index (index)}
             {#if item.type === 'bulletList'}
-              <ul class="msc2-type-body muted">
+              <ul class="msc-type-body muted">
                 {#each item.bullets as bullet (bullet)}
                   <li>{bullet}</li>
                 {/each}
@@ -193,16 +193,16 @@
         </Card>
       {:else if section.kind === 'valueSummary'}
         <Card padding="0">
-          <p class="msc2-type-overline value-summary-title">{section.title}</p>
+          <p class="msc-type-overline value-summary-title">{section.title}</p>
           {#each section.items as item, index (index)}
             {#if item.type === 'bulletList'}
               {#if isUnresolved(resolved, section.id, item.bullets[0] ?? '')}
                 <div class="ip-callout">
-                  <p class="msc2-type-body">Your Mac's local IP could not be detected.</p>
-                  <p class="msc2-type-meta">
+                  <p class="msc-type-body">Your Mac's local IP could not be detected.</p>
+                  <p class="msc-type-meta">
                     This is the most important value you'll enter. To find it manually:
                   </p>
-                  <ol class="msc2-type-meta">
+                  <ol class="msc-type-meta">
                     <li>Open System Settings</li>
                     <li>Go to Network</li>
                     <li>Select your active connection (Wi-Fi or Ethernet)</li>
@@ -215,8 +215,8 @@
                 {@const unresolved = isUnresolved(resolved, section.id, bullet)}
                 <div class="value-row">
                   <div class="value-text">
-                    <span class="msc2-type-meta">{split.label}</span>
-                    <span class="msc2-type-mono" class:muted={unresolved}>{split.value}</span>
+                    <span class="msc-type-meta">{split.label}</span>
+                    <span class="msc-type-mono" class:muted={unresolved}>{split.value}</span>
                   </div>
                   {#if !unresolved}
                     <button type="button" class="copy-btn" onclick={() => copy(split.value)}>
@@ -231,14 +231,14 @@
         </Card>
       {:else if section.kind === 'menuPath'}
         <Card>
-          <p class="msc2-type-overline">{section.title}</p>
+          <p class="msc-type-overline">{section.title}</p>
           {#each section.items as item, index (index)}
             {#if item.type === 'menuPath'}
               {#if item.path.length}
-                <p class="msc2-type-mono breadcrumb">{item.path.join(' › ')}</p>
+                <p class="msc-type-mono breadcrumb">{item.path.join(' › ')}</p>
               {/if}
               {#if item.alternateMenuNames.length}
-                <p class="msc2-type-meta aside">
+                <p class="msc-type-meta aside">
                   Similar labels may include: {item.alternateMenuNames.join(', ')}
                 </p>
               {/if}
@@ -250,7 +250,7 @@
           (item): item is Extract<RouterResolvedItem, { type: 'step' }> => item.type === 'step',
         )}
         <div class="steps-header">
-          <span class="msc2-type-meta">{steps.length} {steps.length === 1 ? 'step' : 'steps'}</span>
+          <span class="msc-type-meta">{steps.length} {steps.length === 1 ? 'step' : 'steps'}</span>
           <Button size="sm" variant="secondary" onclick={() => toggleAllSteps(resolved)}>
             {steps.length > 0 && steps.every((step) => completedStepIds.has(step.id))
               ? 'Reset'
@@ -272,10 +272,10 @@
                   {done ? '✓' : stepIndex + 1}
                 </button>
                 <div class="step-body">
-                  <p class="msc2-type-card" class:muted={done}>{step.title}</p>
-                  <p class="msc2-type-body step-desc muted">{step.body}</p>
+                  <p class="msc-type-card" class:muted={done}>{step.title}</p>
+                  <p class="msc-type-body step-desc muted">{step.body}</p>
                   {#if step.alternateTerms.length}
-                    <p class="msc2-type-meta aside">
+                    <p class="msc-type-meta aside">
                       Also called: {step.alternateTerms.join(', ')}
                     </p>
                   {/if}
@@ -292,15 +292,15 @@
             onclick={() => (notesExpanded = !notesExpanded)}
             aria-expanded={notesExpanded}
           >
-            <span class="msc2-type-overline">{section.title}</span>
+            <span class="msc-type-overline">{section.title}</span>
             <span class="chevron" class:open={notesExpanded}>›</span>
           </button>
           {#if notesExpanded}
             <div class="section-body notes">
               {#each section.items as item, index (index)}
                 {#if item.type === 'note'}
-                  {#if item.title}<p class="msc2-type-overline">{item.title}</p>{/if}
-                  <p class="msc2-type-body muted">{item.body}</p>
+                  {#if item.title}<p class="msc-type-overline">{item.title}</p>{/if}
+                  <p class="msc-type-body muted">{item.body}</p>
                 {/if}
               {/each}
             </div>
@@ -308,10 +308,10 @@
         </Card>
       {:else if section.kind === 'troubleshootingFooter'}
         <Card>
-          <p class="msc2-type-overline">{section.title}</p>
+          <p class="msc-type-overline">{section.title}</p>
           {#each section.items as item, index (index)}
             {#if item.type === 'paragraph'}
-              <p class="msc2-type-body muted">{item.body}</p>
+              <p class="msc-type-body muted">{item.body}</p>
             {:else if item.type === 'troubleshootingTopic'}
               <div class="topic">
                 <button
@@ -320,14 +320,14 @@
                   onclick={() => toggleTopic(item.id)}
                   aria-expanded={expandedTopicIds.has(item.id)}
                 >
-                  <span class="msc2-type-card">{item.title}</span>
+                  <span class="msc-type-card">{item.title}</span>
                   <span class="chevron" class:open={expandedTopicIds.has(item.id)}>›</span>
                 </button>
                 {#if expandedTopicIds.has(item.id)}
                   <div class="topic-body">
-                    <p class="msc2-type-body muted">{item.summary}</p>
+                    <p class="msc-type-body muted">{item.summary}</p>
                     {#if item.suggestedNextActions.length}
-                      <ul class="msc2-type-body muted">
+                      <ul class="msc-type-body muted">
                         {#each item.suggestedNextActions as action (action)}
                           <li>{action}</li>
                         {/each}
@@ -343,7 +343,7 @@
       {/if}
     {/each}
 
-    <p class="msc2-type-meta variance">
+    <p class="msc-type-meta variance">
       Screen layouts vary by firmware version. Menu paths and labels may differ.
     </p>
 
@@ -357,18 +357,18 @@
 <style>
   /* Router Guide runs a size step above the shared type scale -- the owner's
      own visual-review call, this component only. */
-  .reader :global(.msc2-type-overline) {
+  .reader :global(.msc-type-overline) {
     font-size: 11px;
   }
-  .reader :global(.msc2-type-body),
-  .reader :global(.msc2-type-card) {
+  .reader :global(.msc-type-body),
+  .reader :global(.msc-type-card) {
     font-size: 15px;
   }
-  .reader :global(.msc2-type-meta) {
+  .reader :global(.msc-type-meta) {
     font-size: 13px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
-  .reader :global(.msc2-type-mono) {
+  .reader :global(.msc-type-mono) {
     font-size: 13px;
   }
   .reader {
@@ -386,7 +386,7 @@
     margin: 0;
   }
   .muted {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .aside {
     font-style: italic;
@@ -399,7 +399,7 @@
     padding: 12px 16px;
     border: none;
     background: transparent;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     cursor: pointer;
   }
@@ -408,14 +408,14 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     padding-top: 12px;
   }
   .section-body.notes {
     gap: 12px;
   }
   .chevron {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     transform: rotate(90deg);
     transition: transform 0.15s ease;
   }
@@ -436,9 +436,9 @@
   .ip-callout {
     margin: 12px 16px 0;
     padding: 10px 12px;
-    border: 1px solid var(--msc2-status-warn);
-    border-radius: var(--msc2-radius-2);
-    background: var(--msc2-status-warn-tint);
+    border: 1px solid var(--msc-status-warn);
+    border-radius: var(--msc-radius-2);
+    background: var(--msc-status-warn-tint);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -458,20 +458,20 @@
   }
   .copy-btn {
     flex: none;
-    border: 1px solid var(--msc2-hairline);
-    border-radius: var(--msc2-radius-1);
+    border: 1px solid var(--msc-hairline);
+    border-radius: var(--msc-radius-1);
     background: transparent;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
     padding: 4px 9px;
     cursor: pointer;
   }
   .copy-btn:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .divider {
     height: 1px;
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
     margin: 0 16px;
   }
   .breadcrumb {
@@ -497,15 +497,15 @@
     height: 20px;
     border-radius: 50%;
     border: none;
-    background: var(--msc2-neutral-muted);
-    color: var(--msc2-text-primary);
+    background: var(--msc-neutral-muted);
+    color: var(--msc-text-primary);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
   }
   .step-check.done {
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-secondary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-secondary);
   }
   .step-body {
     display: flex;
@@ -523,7 +523,7 @@
     align-self: flex-start;
   }
   .topic {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .topic:first-of-type {
     border-top: none;
@@ -536,7 +536,7 @@
     padding: 10px 0;
     border: none;
     background: transparent;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     cursor: pointer;
   }
@@ -554,6 +554,6 @@
     align-items: center;
     justify-content: space-between;
     padding-top: 10px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
 </style>

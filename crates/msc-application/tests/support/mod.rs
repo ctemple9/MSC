@@ -1,6 +1,6 @@
 //! Fixture-loading support shared by msc-application's integration tests.
 //! Same shape as `msc-domain/tests/support/mod.rs` (per
-//! `docs/msc2/fixture-format.md`) -- duplicated rather than shared via a
+//! `docs/msc/fixture-format.md`) -- duplicated rather than shared via a
 //! path dependency because cargo integration-test binaries can't import
 //! another crate's `tests/` module directly.
 

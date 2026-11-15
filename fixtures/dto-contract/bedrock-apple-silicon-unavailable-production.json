@@ -3,7 +3,7 @@
   "case": "bedrock-apple-silicon-unavailable-production",
   "source": {
     "file": "bedrock_runtime_selection.rs",
-    "test": "production_agent_reports_the_selected_bedrock_runtime",
+    "test": "production_engine_reports_the_selected_bedrock_runtime",
     "line": 1
   },
   "input": {

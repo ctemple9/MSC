@@ -1,7 +1,7 @@
 //! `SecretStore` (P3.8) for Windows: Windows Credential Manager
 //! (`CredWriteW`/`CredReadW`/`CredDeleteW`, generic-credential type),
 //! which wraps DPAPI for at-rest encryption -- confirming which of
-//! `msc2-decisions.md` D-025's two named options this targets, per this
+//! `msc-decisions.md` D-025's two named options this targets, per this
 //! step's own charge not to assume one. Persisted with
 //! `CRED_PERSIST_LOCAL_MACHINE`, the scope `service-identity.md` §50
 //! confirmed: DPAPI's *user*-scope mode (despite the constant's name,
@@ -14,7 +14,7 @@
 //! macOS's `LaunchDaemon` case.
 //!
 //! One Credential Manager `TargetName` string per `SecretStore` key,
-//! namespaced with a fixed prefix so this agent's entries are
+//! namespaced with a fixed prefix so this engine's entries are
 //! identifiable in Credential Manager's UI without colliding with
 //! anything else on the machine.
 
@@ -173,7 +173,7 @@ mod tests {
 
     /// A namespace no production key ever uses, so these tests can never
     /// collide with (or be mistaken for) a real stored secret.
-    const TEST_PREFIX: &str = "MSC2-contract-test:";
+    const TEST_PREFIX: &str = "MSC-contract-test:";
 
     fn fixtures_dir() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures")

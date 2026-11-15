@@ -60,7 +60,7 @@ export default defineConfig({
         if (latest && Date.now() - receivedAt < 3000) {
           response.end(latest);
         } else {
-          response.end(JSON.stringify({ source: 'bds-behavior-pack', fresh: false, status: 'agent-unavailable', players: [] }));
+          response.end(JSON.stringify({ source: 'bds-behavior-pack', fresh: false, status: 'engine-unavailable', players: [] }));
         }
       });
     },

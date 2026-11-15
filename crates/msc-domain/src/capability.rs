@@ -1,14 +1,14 @@
 //! The capability domain type: a pure `CapabilitySet` describing what a
-//! given agent build, on a given host, can do for a given token.
+//! given engine build, on a given host, can do for a given token.
 //!
-//! Greenfield MSC 2 construction, not a port — MSC 1 has no equivalent
+//! Greenfield MSC construction, not a port — MSC 1 has no equivalent
 //! route or type. The specification is
-//! `docs/msc2/api-contract/capability-model.md` (P2.6, confirmed by
-//! the owner 2026-07-31) and `docs/msc2/msc2-decisions.md`'s D-019
+//! `docs/msc/api-contract/capability-model.md` (P2.6, confirmed by
+//! the owner 2026-07-31) and `docs/msc/msc-decisions.md`'s D-019
 //! (the nine-category permission vocabulary, P2.1). This module implements
 //! their data shape only.
 //!
-//! No I/O: per `msc2-engineering.md` §6's module-boundary rule, the real
+//! No I/O: per `msc-engineering.md` §6's module-boundary rule, the real
 //! detection logic that *populates* a `CapabilitySet` (installed-helper
 //! probing, per-flavor Java support checks, Bedrock backend selection) is
 //! Phase 3/4/10 infrastructure work, not this crate's job. Wire
@@ -19,8 +19,8 @@ use crate::identity::{JavaServerFlavor, ServerType};
 use crate::world_profile::WorldProfileField;
 use std::collections::BTreeSet;
 
-/// closed enum, `msc2-engineering.md` §8's first support matrix ("MSC
-/// agent host") — capability-model.md §3.
+/// closed enum, `msc-engineering.md` §8's first support matrix ("MSC
+/// engine host") — capability-model.md §3.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum HostOs {
     Macos,
@@ -232,7 +232,7 @@ pub struct WorldSettingCapability {
     pub help_id: Option<String>,
 }
 
-/// MSC 2's native world-settings floor for this release. The runtime's
+/// MSC's native world-settings floor for this release. The runtime's
 /// ability to launch a server is reported beside these fields; it is not
 /// silently conflated with whether a persisted native setting has a known
 /// Minecraft meaning.

@@ -144,7 +144,7 @@
         }
       } catch {
         // The import request remains the authoritative check if the status
-        // endpoint is unavailable or the client is talking to an older agent.
+        // endpoint is unavailable or the client is talking to an older engine.
       }
     }
     step = review;
@@ -229,7 +229,7 @@
       );
       curseforgeApiKey = '';
       if (!status.configured) {
-        curseforgeKeyNotice = 'The agent did not save a CurseForge API key.';
+        curseforgeKeyNotice = 'The engine did not save a CurseForge API key.';
         return;
       }
       step = {
@@ -270,7 +270,7 @@
       <p class="lede">CurseForge key required</p>
       <p class="explain">
         This archive is a CurseForge modpack. MSC needs an API key to look up its files before the
-        import can begin. The key is saved on the connected agent and is never shown again.
+        import can begin. The key is saved on the connected engine and is never shown again.
       </p>
       {#if step.reason}<p class="key-notice" role="alert">{step.reason}</p>{/if}
       <p class="key-link">
@@ -405,23 +405,23 @@
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .error-text {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .key-notice {
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .key-link {
     margin: 0;
     font-size: 12px;
   }
   .key-link a {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .key-control {
     position: relative;
@@ -438,20 +438,20 @@
     place-items: center;
     border: 0;
     background: transparent;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     cursor: pointer;
   }
   .explain {
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .summary {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 8px;
     padding: 12px;
   }
@@ -463,21 +463,21 @@
   }
   .label {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .value {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .value.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .warnings {
     margin: 0;
     padding-left: 18px;
     font-size: 12px;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
     line-height: 1.6;
   }
   .action-row {

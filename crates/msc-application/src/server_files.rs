@@ -8,7 +8,7 @@
 //! 41) the oracle applies to every path this module resolves. The read side
 //! can surface secrets (`rcon.password` in `server.properties`, API keys in
 //! plugin YAMLs), which is why the oracle keeps both routes admin-only —
-//! `crates/msc-agent/src/routes/files.rs` enforces that, this module trusts
+//! `crates/msc-engine/src/routes/files.rs` enforces that, this module trusts
 //! its caller already did.
 
 use std::path::Path;

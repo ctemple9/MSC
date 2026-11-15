@@ -1,0 +1,444 @@
+# MSC — Port Plan
+
+> Owner amendment (2026-10-06, D-042): modded map repair/import and private Minecraft client capture are retired. The standard Java and Bedrock saved-terrain maps remain supported. Earlier repair-plan or capture acceptance requirements are withdrawn rather than satisfied.
+
+**Revision:** 1.9 · **Date:** 2026-10-30
+**Status:** **Execution document — Proposed, not owner-approved.**
+
+**This document is deliberately separate from the vision.** `msc-product.md` and `msc-engineering.md` describe the destination, its guarantees, and its architecture. This document describes a *route*, and routes change. Nothing here constrains the vision; if a phase order proves wrong, this file changes and the vision does not.
+
+**Do not treat sequencing here as settled.** The principles it implements are in `msc-decisions.md` D-016 (port strategy), D-017 (Windows validation timing), and D-018 (behavioral evidence before translation). Those principles are the durable part.
+
+**Companion documents:** `MSC-VISION.md` · `msc-product.md` · `msc-engineering.md` · `msc-decisions.md`
+
+---
+
+## 1. Shape of the work
+
+**Vertical slices, not subsystems.** After the substrate exists, each stage cuts through engine, API, and clients together. The failure mode for a rewrite this size is a long stretch with a working engine and no working software — easy to fall into when the specification is organized by subsystem.
+
+**Extraction precedes translation, per domain.** Parsers and policies embedded in MSC 1's views and view-model extensions are pulled out *in Swift*, where the compiler still checks the refactor, before that domain is translated to Rust.
+
+This is **not** a blanket gate before all Rust, and **not** a mechanical grep rule. Extraction is driven by a **symbol ledger that does not exist yet**. The two audit CSVs are *file-level* dispositions — they say which files to open, not which symbols inside them must survive. Building that ledger is a Phase 0 deliverable. Only behavior that must be preserved is extracted. Client-side concerns — file pickers, image cropping, window presentation, avatar rendering — legitimately remain in UI code and are not extraction targets.
+
+**The deletion test.** For any SwiftUI file, the question is not *"does it contain I/O?"* but *"does this behavior belong to the engine or to the replacement client?"*
+
+| Behavior | Belongs to |
+|---|---|
+| Avatar image cropping and rendering | Client |
+| Finder / file-picker presentation | Client |
+| Window and navigation state | Client |
+| Server installation detection | **Engine** |
+| Pairing security and token lifecycle | **Engine** |
+| Console log parsing | **Engine** |
+| Settings validation and clamping | **Engine** (schema), rendered by client |
+
+A file may be retired once every engine-owned symbol in it has a disposition record. Static scanning flags candidates; it does not make the decision.
+
+---
+
+## 2. Estimated corpus
+
+**≈33,000–36,000 lines of engine logic to translate** — roughly one third of MSC 1's 97,357 lines.
+
+**This is not an effort estimate.** It measures *preserved behavior only*. MSC additionally requires substantial code with no MSC 1 equivalent:
+
+- Cross-platform service integration (`launchd`, Windows Service, `systemd`)
+- Process ownership and supervision across three operating systems
+- Operation journaling and restart recovery
+- Long-operation progress, cancellation, and idempotency
+- Safe remote file streaming
+- OpenAPI generation and client codegen
+- Cross-platform secret stores
+- Self-update for app + engine + sidecar
+- Native Linux and Windows Bedrock runtimes
+- Tauri and web client state, reconnect, and multi-host handling
+
+That new work may well exceed the ported corpus. Use the 33–36k figure only as evidence that the preserved behavior is *finite*.
+
+---
+
+## 3. Phases
+
+### Phase 0 — Freeze the baseline and build the harness
+
+No Rust. **Deliberately small.** Phase 0 is not "characterize everything MSC 1 does" — that would be unbounded and would delay the first working software indefinitely. It establishes the machinery that makes characterization possible, and freezes what cannot be recovered later.
+
+| Deliverable | Why it must be global |
+|---|---|
+| **Fixture harness** — the format, runner, and comparison tooling for language-neutral fixtures | Every later domain depends on it |
+| **API baseline** — OpenAPI plus WebSocket event schemas captured from MSC 1 | The contract everything else is generated from |
+| **Symbol ledger** — one row per parser, policy, and workflow inside a Mixed or UI file | Drives all later extraction. The audit CSVs are *file-level inputs* to this, not the ledger itself |
+| **Sidecar IPC contract** — the macOS Bedrock process protocol | Shapes the `BedrockRuntime` trait |
+| **Reference corpus** — real logs, packs, server directories, historical configs, DTO examples | Snapshot of live evidence; cheapest to gather now |
+| **Extraction of the 270 existing tests** from inline Swift literals | Mechanical, and they are the seed set |
+
+**Exit criteria:** a fixture can be written, run, and compared. The API baseline exists. The ledger exists.
+
+### Per-domain characterization — immediately before each translation
+
+Everything else in §4A happens **just before the domain that needs it**, not up front. Characterizing world mutation before anything can run a world is wasted precision; characterizing it the week before it is translated is exactly right.
+
+This keeps Phase 0 bounded, keeps evidence fresh, and lets Phase 1 begin quickly.
+
+### Phase 1 — Domain types and pure rules
+
+Server identity, flavors, version comparison, Java policy, property models, command catalog, TPS parsing, crash analysis, slug normalization, and the router rule engine (matcher, fallback resolver, composer, troubleshooting engine — these are executable behavior, not data).
+
+Per-domain Swift extraction happens immediately ahead of each translation.
+
+**Exit criteria:** Rust passes the Phase 1-scoped Phase 0 pure fixtures, plus Phase 1 characterization fixtures. No user files touched.
+
+### Phase 2 — API contract and operation model
+
+Versioned HTTP and WebSocket contract generated from the schema. Operation IDs, progress, structured errors, capability advertisement, cancellation. A skeletal engine whose routes can be exercised without real mutation.
+
+**Exit criteria:** the desktop browser client connects and reads status against a stub engine.
+
+### Phase 3 — Safety substrate
+
+Approved server roots and path safety · atomic writes · versioned configuration with migrations · `SecretStore` trait · audit log · download staging with checksum verification · operation journal · operation exclusivity.
+
+**Windows CI begins here** (D-017), covering path separators and length limits, file-locking semantics, service lifecycle, and case-insensitive path comparison.
+
+**Exit criteria:** substrate fixtures pass on macOS, Linux, and Windows.
+
+### Phase 4 — Java lifecycle vertical slice
+
+One imported Paper server, end to end: import and detect · start · console · command · status and metrics · graceful stop · restart. Driven from the CLI **and the desktop browser client**.
+
+**Exit criteria:** headless service ownership proven on **macOS (LaunchDaemon), Linux (systemd), and Windows (Service)** — all three, not two. Closing every client changes nothing about the running server; on Windows, neither does signing out. This is the first stage that produces genuinely useful software.
+
+*Windows is included here deliberately.* Service ownership is the single assumption most expensive to discover late, and D-017 already starts Windows CI one phase earlier.
+
+### Phase 5 — Configuration and migration
+
+Historical MSC config corpus · settings schema as a versioned contract · corruption recovery · MSC 1 transfer-package import (D-009) · raw server-directory import.
+
+Gate review amendment (P5.33): Phase 5 imports and labels world data but does not reconcile it into the formal world-slot model. Phase 6 must audit imported live-world and `world_slots` data before world mutations become authoritative.
+
+### Phase 6 — Worlds and backups
+
+World discovery, slots, transactional mutations, backups, retention, verification, restore.
+
+**Placed before breadth deliberately:** the highest data-loss domain, ported while the codebase is still small enough to review carefully.
+
+### Phase 7 — Server families and provisioning
+
+Vanilla, Paper, Purpur, Fabric, NeoForge, Forge. Runtime selection, installer flows, archive behavior, startup diagnostics. Scope bounded by the 1.20 floor (D-014).
+
+Later audit: after Phase 5's broad raw import, Phase 7 must prove non-Paper Java servers are not merely classified but actually launchable with the correct family-specific startup shape.
+
+### Phase 8 — Mods, plugins, modpacks
+
+Modrinth / Hangar / CurseForge providers · metadata parsing · dependency resolution · client-only classification · pack-managed guards · import · update · client export.
+
+### Phase 9 — Networking and helpers
+
+Playit · resource-pack hosting · DuckDNS · port diagnostics · Xbox Broadcast · Geyser and Floodgate · notifications · helper process lifecycle · named-token `/users` CRUD (`POST /users`, `/users/update`, `/users/revoke`, `GET /users`) · remaining D-012 remote-auth posture.
+
+Later audit: Phase 9 must prove credential CRUD and revocation against the same durable `SecretStore` path Phase 4/5 use, including invalidating revoked tokens across restart.
+
+### Phase 10 — Bedrock runtimes
+
+The `BedrockRuntime` trait, implemented **native Linux → native Windows → macOS VZ Swift sidecar**, so the contract cannot absorb macOS-specific assumptions (D-007).
+
+Bedrock files, properties, players, LevelDB, allowlist, permissions, metrics, and UDP behavior against shared fixtures. Publish the Bedrock compatibility matrix separately from the MSC engine matrix (D-022).
+
+Later audit: Phase 10 must reconcile Phase 5's Bedrock import records with real Bedrock lifecycle and settings behavior, including what imported Bedrock servers can and cannot do before native runtimes land.
+
+### Phase 11 — Desktop and web clients
+
+Tauri shell plus the Svelte frontend, built against the proven API, preserving MSC 1's information architecture and design language.
+
+Also owns `GET /v1/help/{helpId}` and the handbook/concept-guide/router-guide content serving contract. The frozen settings schema may carry `helpId` pointers earlier, but resolving those pointers into client-visible guide content is Phase 11 work.
+
+Later audit: Phase 11 must prove clients consume the help-content contract instead of hardcoding divergent guide text.
+
+**UI completion never gates headless engine correctness.**
+
+### Phase 12 — Client redesign (MSC 1 visual + behavioral fidelity)
+
+Phase 11 shipped a working desktop/web client wired to the real engine, but its UI diverged from MSC 1's information architecture and design language — the very thing the Phase 11 note above says that phase was meant to preserve. Phase 12 rebuilds the **presentation layer only** (Svelte views, the shell, the design system) so MSC looks *and behaves* like MSC 1, **refreshed** into one consistent, deliberately-designed system — while keeping the entire Phase 11 data / engine / auth / platform layer intact (the keep/replace line is recorded in the rolling plan).
+
+Governed by the anti-slop design law (`docs/msc/antiAIslop.md`, hard rule #11) and the locked design-system reference specimens (`docs/msc/renderings/`). Multi-host (D-013) is preserved through a host-aware server picker, not a rival navigation model.
+
+Because this is a *design* phase, its verification is deliberately different from the Rust phases: each screen is verified by Cameron's **visual review against MSC 1** plus the anti-slop checklist, not a single runnable command, and a screen may take several adjustment commits. This departure is recorded in the rolling plan.
+
+**Exit criteria (gate):** every MSC 1 screen and sheet has a rebuilt MSC counterpart that (a) matches MSC 1's shape and behavior — verified screen-by-screen against MSC 1 by Cameron — and (b) passes the `antiAIslop.md` checklist. The data/agent layer is unchanged in contract, and no screen exists in the desktop app that is absent from the web UI (D-003 corollary).
+
+**Amendment, 2026-08-26 (owner decision, recorded per the exception rule at line 174):** the Packs tab (MSC 1's `DetailsPacksTabView`/`ResourcePacksView`) is an explicit, named exception to this gate. Cameron does not use it in MSC 1 and does not want it rebuilt for MSC's redesign. The underlying engine routes (`/v1/resourcepacks/*`) and their capability-matrix rows stay as they are — this is a client-screen scope decision, not an engine capability removal — and CLI access is unaffected. The feature is deferred, not declared permanently out of scope: it can be picked back up as a new step later if wanted. See `rolling-plan.md`'s P12.5 entry, which removed the greyed-out Packs tab placeholder from the running client, for the full reasoning.
+
+**Amendment, 2026-09-07 (D-033/P12.108):** the native mobile client and any
+supported mobile management client are out of v1. The Phase 12 client gate
+covers the Tauri desktop and desktop-browser experience; responsive layout is
+an implementation detail, not a mobile support promise. Phase 2 and Phase 4
+client evidence uses the desktop browser client. The headless CLI remains a
+first-class client, and optional Tailscale may provide remote access for the
+desktop app or desktop browser without becoming a requirement for ordinary MSC
+use. Historical phase records and MSC 1 audit evidence remain unchanged.
+
+### Phase 13 — Original full-screen terminal client (retired)
+
+The original Phase 13 terminal client was retired by D-034; that phase's
+implementation and gate remain historical. D-043 later restored a redesigned,
+host-local terminal client as Phase 22. The engine API, WebSocket channels, and
+headless installation story remain shared with desktop and CLI.
+
+### Phase 14 — Operational refinements
+
+Phase 14 covers four bounded operational areas: semantic Minecraft time
+actions, separation of automatic monitoring traffic from human console history,
+tri-platform headless command installation, and a Tauri-managed remote-host
+connection flow. The source and acceptance map is
+`docs/msc/capabilities/phase14-operational-refinements.md`; it is the required
+coverage reference before implementation proceeds.
+
+**Exit criteria:** same-day time actions and explicit day changes are distinct
+across Vanilla, Paper, Purpur, Fabric, Forge, NeoForge, and Bedrock; automatic
+polling cannot evict human console history; `msc` is discoverable after
+headless installation on macOS, Windows, and Linux; and a Tauri desktop can
+save/edit host routes, manage SSH forwarding, and pair without a required
+cloud relay, Tailscale account, manually opened terminal, or remote service
+installation API. Evidence must include static inspection, live Minecraft
+verification, and real OS install exercises as identified by the matrix. The
+P14.19 handoff records the static result and outstanding owner evidence in
+`docs/msc/capabilities/phase14-acceptance.md`; static inspection alone does
+not close this gate.
+
+### Phase 16 — Release safety and codebase readiness
+
+Phase 16 resolves the September 17 external audit and September 28 public-release/codebase review. The ordered implementation steps and finding-to-step map are in `rolling-plan.md`. Cameron's clarification that the Linux headless archive has no browser UI is a support-boundary documentation task, not a mandate to add a UI to that archive. Phase 15's later P15.101 change must be rechecked before implementing any now-stale September 28 recommendation.
+
+**Exit criteria:** every finding in both audits has a documented disposition supported by current source or exact-artifact evidence; world archives cannot install non-world files; operation and host-reset admission are exclusive; interrupted world replacement reaches a provable complete state; online backups cannot use old save acknowledgements; cancellation and WebSocket streams respect credential permissions and revocation; operation history stays bounded; delayed host connections cannot publish stale state; Windows services start through the production Service Control Manager path; Windows and macOS updates restore the prior healthy installation on failure; the engine does not serve a browser page or accept browser sessions, and browser-only routes and assets are absent from the next release; Linux release binaries launch on the declared minimum; publication produces all nine artifacts, checksums, and signed update metadata without an automated CI gate (D-039); API generation and frontend static checks are recorded during Cameron's separate acceptance work; and current public license, security, and support documents are owner-approved. Cameron records clean-machine and fault-path results for the exact release artifacts in `docs/msc/release/phase16-acceptance.md`, including retained desktop/CLI support and removal of browser-only release gates. A green static check or an earlier phase's completion does not substitute for this evidence. The phase reviewer is the engine that did not implement it.
+
+### Phase 17 — Local CLI refinement
+
+Phase 17 implements D-040's host-local CLI contract and the API-to-CLI task inventory in `clients/phase17-cli.md`. The ordered steps are P17.1–P17.27 in `rolling-plan.md`. D-041 records two owner-approved API-only tasks: gamerule-catalog lookup and router symptom analysis; raw `msc command` and router-guide reading remain in the CLI. No new Minecraft command vocabulary, direct-remote CLI mode, or full-screen terminal client is in scope. Desktop remote-host pairing remains supported.
+
+**Exit criteria:** desktop and headless packages on macOS, Windows, and Linux put `msc` on PATH; local and SSH login-shell commands require no visible token or repeated setup before and after engine restart and host reboot; wrong-user and forwarded-port attempts are refused; service start, stop, and status work with the engine down and preserve the documented boot policy; every user-facing API task has a CLI command or an owner-approved exception under D-041; provider and edition limits, route permissions, confirmations, active-server context, and JSON output are accurate. Cameron records physical acceptance before the other engine reviews this gate. Phase 16's separate acceptance remains open until its own evidence and review are complete. Phase 17 adds no CI or release-publication gate.
+
+### Phase 18 — Integrated 3D world map
+
+**Step disposition (2026-10-02):** P18.0–P18.11 and corrective substeps are Done at Cameron's direction. P18.11 consolidates the selected Java/BDS runtime evidence, standard dimensions, camera, terrain refresh, player controls, block appearance, resource bounds and deferred limitations in [Phase 18 map acceptance](phase18-map-acceptance.md).
+
+**Proposed exit gate:** The independent reviewer evaluates the in-window Worlds-map promise against that record, including saved-terrain freshness, live roster/Fly/Follow, selected runtime coverage, controls/exit, explicit empty dimensions and asset fallbacks. Nether absent-source troubleshooting, ATM10 custom-dimension visual proof and further consolidated runtime/platform checks remain deferred. Done step statuses do not prove universal mod support, total RSS compliance or separate release acceptance. Independent review remains open.
+
+### Continuous, from Phase 1 onward
+
+The client capability matrix (D-023) is updated as each capability lands, with intentional exceptions recorded rather than discovered.
+
+**Amendment (2026-09-28, D-038).** The supported browser client is retired.
+The Tauri desktop app and CLI remain supported, including remote management
+of headless hosts over the authenticated API. Phase 2, Phase 4, Phase 11, and
+Phase 12 records that describe browser-client work remain historical evidence
+of the earlier scope; current release gates follow D-038.
+
+The `RouterPortForward*` guide catalog, router records, and static step content migrate to JSON at any time — but the rule engine belongs to Phase 1.
+
+---
+
+## 4. Test inventory
+
+Two categories, and they belong in different places.
+
+### 4A — MSC 1 characterization (Phase 0)
+
+Behavior MSC 1 exhibits today and MSC must reproduce. Capturable now, by observing the running application. **Impossible to capture later.**
+
+MSC 1's existing 270 tests concentrate on parsing and API contracts. Coverage is strong where failure is cheap and weak where failure is expensive. The following do not exist and must be written in Phase 0 (D-018).
+
+**Worlds and backups**
+Full slot create/activate/duplicate/copy/delete/import/export matrix · Java multi-folder worlds (`world`, `world_nether`, `world_the_end`) · Bedrock layouts · archive path traversal and symlink escape · backup while running (`save-off`, `save-all`, timeout, resume) · failed archive creation · interrupted restore · retention when only one known-good backup exists · rollback after partial rename or replacement · real historical MSC backup metadata.
+
+**Process lifecycle** *(as MSC 1 exhibits it — macOS)*
+Partial output lines and mixed newline conventions · graceful-stop timeout into forced termination · process tree cleanup · duplicate launch prevention · port conflict · Java executable validation **on macOS** · Forge and NeoForge args-file launches across path syntaxes.
+
+**Modpacks and components**
+Real `.mrpack` and CurseForge server packs · overrides precedence and permission bits · blocked and manual CurseForge files · missing and circular dependencies · pack-managed update refusal · hash and provenance matching · atomic JAR replacement and rollback · interrupted downloads and corrupt archives · loader installers across supported generations (1.20+).
+
+**Console and diagnostics**
+Java and Bedrock join/leave lines · chat and advancement lines · broadcast authentication prompts · ready-state detection per server family · crash logs gathered from real failures · bounded console history and reconnect behavior.
+
+**Bedrock (macOS VZ only — the part MSC 1 has)**
+Real compacted LevelDB tables and write-ahead logs · Bedrock NBT and player records across BDS versions · allowlist and permissions round trips · VM boot, readiness, stop, and crash lifecycle · host-directory persistence across VM replacement.
+
+**API** *(baseline behavior MSC 1 actually has)*
+At least one authorization and validation test per existing mutating route · WebSocket reconnect and malformed frames · file transfer size, traversal, partial upload, atomic completion · role and permission enforcement · rate limiting and request-size limits.
+
+**Configuration**
+A corpus of historical `server_config_swift.json` versions · missing, renamed, malformed, and unknown fields · duplicate or conflicting server IDs and paths · atomic-write interruption.
+
+### 4B — New MSC acceptance tests (built with their vertical slice)
+
+Behavior MSC 1 has never had, on platforms it has never run on. **Nothing to characterize** — these are written against the Rust implementation as it lands.
+
+| Test area | Lands with |
+|---|---|
+| Windows service lifecycle, sign-out survival, Job Object process trees | Phase 3 substrate / Phase 4 |
+| Windows path separators, length limits, file-locking, case-insensitivity | Phase 3 |
+| Linux secret storage — chosen headless backend, and degradation behavior | Phase 3 |
+| `systemd` unit behavior, boot ordering, restart policy | Phase 3 / Phase 4 |
+| Native Linux and Windows Bedrock runtimes | Phase 10 |
+| Sidecar IPC failure modes — crash, hang, restart | Phase 10 |
+| Multi-host client state, per-host credentials, host switching | Phase 11 |
+| Remote desktop pairing and browser origin policy | Phase 2 / Phase 11 |
+| Cross-platform sleep inhibition and the two power policies (D-024) | Phase 3 |
+| Service identity, file ownership, privilege boundaries (D-025) | Phase 3 |
+| Java executable validation on **Windows and Linux** | Phase 4 |
+| Secret migration across platforms | Phase 3 / Phase 5 |
+| Engine restart while a server runs; operation cancellation and recovery | Phase 3 / Phase 4 |
+| Old-client/new-engine and new-client/old-engine skew fixtures | Phase 2 onward |
+| Sign-out and reboot survival per platform | Phase 4 |
+
+**Resource efficiency** (D-021) — headless packages verified to link no GUI frameworks · bounded-growth assertions for console buffers, metric history, and caches · idle-engine memory regression tests against measured baselines · the 8 GB minimal-Linux acceptance scenario. *Per-platform, as each platform's engine lands.*
+
+---
+
+## 5. Fixture strategy
+
+| Kind | Approach |
+|---|---|
+| **Pure functions** | Input/output fixtures. Cheap, exhaustive. |
+| **I/O workflows** | Temporary directories, fake providers, process doubles, interruption cases, rollback assertions. Expensive, and required. |
+
+**Parity rule.** Rust output is compared against **expected values**, never against Swift implementation details. A domain is not ported until its fixtures pass and its rollback behavior is explicit.
+
+MSC 1 must remain runnable and buildable throughout as the compatibility oracle (D-005).
+
+---
+
+## 6. Open sequencing questions
+
+| Question | Affects |
+|---|---|
+| Does the CLI ship inside the engine binary or separately? | Phase 4 packaging |
+| Is `UDPRelay` a general Bedrock need or VM-specific? | Phase 10 scope |
+| Console history bound — lines, bytes, or time? | Phase 4, and D-021 memory bounds |
+| Self-update mechanics for app + engine + sidecar as a set | Phase 11 |
+| Is the permission category vocabulary correct across all 87 routes? | Phase 2 contract freeze |
+
+## Phase 20 — Faster native file imports and uploads (owner-requested plan, October 16)
+
+**State:** P20.1–P20.10 implemented, accepted and archived at Cameron’s
+October 17 instruction in [the archive](rolling-plan-archive.md#phase-20--faster-native-file-imports-and-uploads).
+Independent gate review and measurement limitations remain in
+[pending acceptance](pending-acceptance.md); the detailed contract is
+[Native file imports and uploads](uploads/native-transfer-plan.md). This is a
+performance correction to supported import flows, preserving behavior and
+source safety. The complete paired-engine server transfer/resume plan stays in
+[deferred work](deferred-work.md).
+
+**Exit gate:** Native transfer keeps source bytes out of webview IPC, reuses
+connections, resolves credentials/service readiness once per transfer, retains
+bounded memory independent of file size, and receives/hashes remote streams
+without a compulsory final full-file hash reread. Verified local inputs avoid
+an upload round trip, with safe private staging and cross-volume fallback.
+Supported world/modpack/server inputs retain validation, data preservation,
+permission/cancellation and older-engine behavior. Progress distinguishes byte
+transfer from validation/import. Cameron records before/after stage times,
+throughput and peak memory for the approximately 8 GB world and representative
+pack/server sources; unavailable platform/network cases remain explicit. No
+instant-import or unmeasured speed claim. Independent review and owner physical
+acceptance remain required; no test or CI/release gate is added by this plan.
+
+
+## Phase 21 — Storage inventory and management
+
+**State:** P21.1–P21.37 implementation steps were closed and
+[archived](rolling-plan-archive.md#phase-21--storage-inventory-and-management)
+at Cameron's October 17 direction after he accepted the Storage management UI.
+P21.29 failed owner verification and was corrected by P21.30. P21.8's matching
+local candidate predates later corrections; it is not acceptance evidence for
+them. Representative physical and cross-platform acceptance and the other
+engine's gate review remain pending. See the [contract](storage/contract.md),
+[static sketches](storage/screens.md) and
+[acceptance record](storage/acceptance.md).
+
+**Exit gate:** Settings → Storage supports saved-computer overview → computer →
+category/server → separate removal review on supported desktop platforms and
+paired engines. Known owned roots have disjoint, explained accounting; unreadable
+or unverified coverage is partial/unknown. Capacity is per volume, logical and
+allocated sizes stay distinct, and hard-link/clone limits never become a promise
+of freed space. Headless engines report their own footprint; local desktop
+measurement remains available with its engine offline. Dated offline results are
+viewable, and bounded cancellable scans do not block server management or
+automatically contact all hosts. Stable host/root/item identities prevent stale
+results or actions from reaching a different computer.
+
+Cleanup revalidates exact selections, permissions, ownership, changed sources and
+live references at execution. It protects active staging/maps/tools, credentials,
+current/rollback installations and unrecognized data; it reuses Phase 20 owners
+and existing backup/world/server deletion rules and confirmations. Reviews stay
+within one computer/category, with separate world/server consequences. Failed,
+interrupted or cancelled work reports per-item partial outcomes truthfully.
+Cameron records representative local/remote/offline, multi-volume, large-server,
+active-operation and destructive acceptance using disposable data before the
+other engine reviews this gate. Static specification or step statuses do not
+close it. No automatic deletion, continuous deep scan, new CI/release gate or
+automatically authorized tests.
+
+## Phase 22 — Restored full-screen terminal client
+
+**State:** Cameron accepted the current TUI on 2026-10-30. Its implementation
+records are archived in `rolling-plan-archive.md`. The original October 26
+direction under D-043 restored the host-local client; the Phase 22 exception
+below describes how that incremental work was carried out.
+
+**Workflow exception:** Phase 22 has no separate Plan/Read stage and no
+prewritten step list. Each implementation conversation records only the step
+actually performed, including its files, behavior, owner-run verification,
+batch limit, and commit. Cameron verifies each step; an engine other than the
+implementer reviews the completed phase when he asks for that review. This
+exception changes neither the ban on engine-run tests without a specific owner
+request nor the build-only beta publication policy.
+
+**Product boundary:** `msc tui` runs on macOS, Windows, or Linux on the engine
+host, including through SSH. It shares the engine API, local authorization, and
+service controls with the existing `msc` CLI; one-shot commands remain
+scriptable. The TUI does not serve a browser page or directly pair with a
+remote host. Its accepted scope includes the server-management screens,
+Handbook, interactive Router Guide, and console tools; onboarding is omitted.
+
+**Acceptance:** Cameron confirmed the current TUI is accepted on 2026-10-30.
+That acceptance closes the Phase 22 implementation work; it does not by itself
+assert release packaging or row-by-row parity in the client-capability matrix.
+
+
+## Phase 24 — Modpack management and content exports
+
+**State:** implementation complete by owner direction, 2026-11-07, through P24.41. Illustrated launcher guides are deferred follow-up work. Independent gate review remains pending; unrecorded physical evidence stays unverified. See [acceptance](addons/phase24-acceptance.md) and [execution ledger](addons/phase24-execution.md).
+**Scope:** [Phase 24 contract](addons/phase24-scope.md).
+**Steps:** P24.1–P24.43 in the [rolling plan archive](rolling-plan-archive.md#phase-24--modpack-management-and-content-exports); implemented steps marked DONE at Cameron’s request, P24.20 deferred.
+
+Owner closure amendment — 2026-11-07: Cameron requested marking Phase 24 done and deferring guide work ("i dont feel like doing the guides right now. can we mark this phase doen"). Implementation is owner-closed through P24.41. P24.20 illustrated screenshots, exact launcher-build verification and rendered-guide review are deferred follow-up work, not completed evidence. Existing offline instructions remain bundled. Unrecorded physical scenarios remain unverified; the other engine's independent gate review remains pending. This records owner acceptance of ending implementation, not an implementer self-review, blanket test pass or release approval.
+
+**Exit gate:** Modrinth and CurseForge discovery, details, file selection,
+installation, dependencies, identification and updates work throughout their
+supported content surfaces, including creation and Java world datapacks; all
+inventoried Modrinth integrations have an implemented counterpart or an explicit
+provider limitation accepted by Cameron. Creation shows incompatible packs and
+supports both owner-approved mismatch choices without silently altering choices.
+One base pack, complete separate player retention, independent player content,
+server-mod player checks and non-destructive older-server recovery work.
+Updates preserve customizations with per-item upstream restoration; replacement
+reviews old pack removal and retained owner additions without touching worlds.
+
+Dated immutable publications produce audience-correct content-only ZIPs with
+organized folders, manifests, useful offline text/illustrated instructions and
+optional valid .mrpack from the same revision. Required gaps prevent complete
+publication; incomplete exports and format/distribution limits are explicit.
+Five launcher guides use Cameron's screenshots and verified launcher versions.
+Re-export is independent of current server content. No private files or keys
+leak; datapacks respect world-slot ownership. Local desktop and selected-host
+save work with bounded streaming, authorization, cancellation/recovery and stale
+host/server/destination refusal. Retained data participates safely in Storage.
+
+Desktop, host-local CLI and TUI expose the agreed operations with explicit
+capabilities and old-engine degradation. Cameron records representative
+macOS/Windows/Linux, provider, local/remote, launcher, customization, restricted
+file, failure/restart and large-pack evidence; missing screenshots, provider
+access or unverified scenarios remain open. The other engine reviews this gate
+when requested. Step statuses/builds alone do not satisfy it. No public sharing
+links, hosted backend, launcher implementation, full server/runtime export,
+automatically authorized tests or new CI/release gates.

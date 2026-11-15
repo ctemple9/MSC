@@ -1,6 +1,6 @@
 import type {
-  AgentServiceAction,
-  AgentServiceStatus,
+  EngineServiceAction,
+  EngineServiceStatus,
   DesktopNotification,
   FilePickerRequest,
   FileChunkSource,
@@ -62,11 +62,11 @@ export function createTauriPlatform(dependencies: TauriPlatformDependencies): Pl
     // P11.23 supplies per-host pairing and secret-store behavior. This seam
     // deliberately cannot fabricate a local token before that contract exists.
     credentialFor: async (_hostId: string) => null,
-    agentHealthCheck: dependencies.agentHealthCheck,
-    agentServiceStatus: dependencies.agentServiceStatus,
-    agentIndicatorEnabled: dependencies.agentIndicatorEnabled,
-    setAgentIndicatorEnabled: dependencies.setAgentIndicatorEnabled,
-    manageAgentService: dependencies.manageAgentService,
+    engineHealthCheck: dependencies.engineHealthCheck,
+    engineServiceStatus: dependencies.engineServiceStatus,
+    engineIndicatorEnabled: dependencies.engineIndicatorEnabled,
+    setEngineIndicatorEnabled: dependencies.setEngineIndicatorEnabled,
+    manageEngineService: dependencies.manageEngineService,
     previewLocalUninstall:
       dependencies.previewLocalUninstall ??
       (async () => {
@@ -241,13 +241,13 @@ export async function loadTauriPlatform(): Promise<PlatformAdapter> {
       invoke<UninstallInventory>('preview_local_uninstall', { installers }),
     uninstallLocal: (request: LocalUninstallRequest) =>
       invoke<UninstallScheduled>('uninstall_local', { request }),
-    agentHealthCheck: () => invoke<boolean>('agent_health_check'),
-    agentServiceStatus: () => invoke<AgentServiceStatus>('agent_service_status'),
-    agentIndicatorEnabled: () => invoke<boolean>('agent_indicator_enabled'),
-    setAgentIndicatorEnabled: (enabled: boolean) =>
-      invoke<void>('set_agent_indicator_enabled', { enabled }),
-    manageAgentService: (action: AgentServiceAction) =>
-      invoke<AgentServiceStatus>('manage_agent_service', { action }),
+    engineHealthCheck: () => invoke<boolean>('engine_health_check'),
+    engineServiceStatus: () => invoke<EngineServiceStatus>('engine_service_status'),
+    engineIndicatorEnabled: () => invoke<boolean>('engine_indicator_enabled'),
+    setEngineIndicatorEnabled: (enabled: boolean) =>
+      invoke<void>('set_engine_indicator_enabled', { enabled }),
+    manageEngineService: (action: EngineServiceAction) =>
+      invoke<EngineServiceStatus>('manage_engine_service', { action }),
     checkForUpdates: () => invoke<UpdateCheckResult>('check_for_updates'),
     installUpdate: (releaseId: string) =>
       invoke<UpdateInstallResult>('install_coordinated_update', {

@@ -3,7 +3,7 @@
 //! The webview never receives a password, bearer token, or child-process
 //! handle. It receives only a small status record and asks this module to
 //! start, inspect, retry, or stop a tunnel. OpenSSH remains responsible for
-//! the protocol and for private-key/agent authentication; this module owns
+//! the protocol and for private-key/key-helper authentication; this module owns
 //! the process lifecycle and host-key decision boundary.
 
 use serde::{Deserialize, Serialize};
@@ -384,7 +384,7 @@ fn validate_connection_values<const N: usize>(
             }
             validate_private_key(path)?;
         }
-        "agent" => {}
+        "keychain" | "agent" => {}
         other => {
             return Err(format!(
                 "SSH: Unsupported SSH authentication choice: {other}."
@@ -403,7 +403,7 @@ fn validate_private_key(path: &str) -> Result<(), String> {
     if output.status.success() {
         return Ok(());
     }
-    Err("SSH: The selected private key is encrypted or uses an unsupported format. Choose an unencrypted key file or use the SSH agent.".to_string())
+    Err("SSH: The selected private key is encrypted or uses an unsupported format. Choose an unencrypted key file or use the SSH key helper.".to_string())
 }
 
 #[derive(Debug, Deserialize)]
@@ -466,7 +466,7 @@ pub fn create_remote_pairing(
         return Err(classify_ssh_failure(&clean_output(&output.stderr)).1);
     }
     let pairing: PairingOutput = serde_json::from_slice(&output.stdout).map_err(|_| {
-        "MSC agent: The remote `msc` command is missing from the remote user's PATH, or it returned an invalid pairing response.".to_string()
+        "MSC engine: The remote `msc` command is missing from the remote user's PATH, or it returned an invalid pairing response.".to_string()
     })?;
     if pairing.client_kind != "desktop"
         || pairing.agent_host_id.trim().is_empty()
@@ -474,7 +474,7 @@ pub fn create_remote_pairing(
         || pairing.expires_at.trim().is_empty()
     {
         return Err(
-            "MSC agent: The remote `msc` command returned an invalid desktop challenge."
+            "MSC engine: The remote `msc` command returned an invalid desktop challenge."
                 .to_string(),
         );
     }
@@ -500,7 +500,7 @@ fn run_remote_pairing_command(
     // Non-login macOS SSH shells can omit the installer's command directory.
     // Retry only command lookup failures, never a pairing/authentication failure.
     if output.status.code() == Some(127)
-        && classify_ssh_failure(&clean_output(&output.stderr)).0 == "msc-agent"
+        && classify_ssh_failure(&clean_output(&output.stderr)).0 == "msc-engine"
     {
         return run_pairing_executable(request, known_hosts_path, "/usr/local/bin/msc");
     }
@@ -858,7 +858,7 @@ fn temporary_key_path(label: &str) -> PathBuf {
         .iter()
         .map(|byte| format!("{byte:02x}"))
         .collect::<String>();
-    std::env::temp_dir().join(format!("msc2-ssh-known-host-{suffix}"))
+    std::env::temp_dir().join(format!("msc-ssh-known-host-{suffix}"))
 }
 
 fn ssh_command(
@@ -903,7 +903,7 @@ fn ssh_command(
             .env(SSH_ASKPASS_PASSWORD, password)
             .env("SSH_ASKPASS", executable)
             .env("SSH_ASKPASS_REQUIRE", "force")
-            .env("DISPLAY", "msc2");
+            .env("DISPLAY", "msc");
     }
     Ok(command)
 }
@@ -1064,7 +1064,7 @@ fn classify_ssh_failure(detail: &str) -> (&'static str, String) {
     {
         return (
             "authentication",
-            "Authentication: The SSH agent is locked, unavailable, or refused this key."
+            "Authentication: The SSH key helper is locked, unavailable, or refused this key."
                 .to_string(),
         );
     }
@@ -1083,20 +1083,20 @@ fn classify_ssh_failure(detail: &str) -> (&'static str, String) {
         || lower.contains("invalid pairing response")
     {
         return (
-            "msc-agent",
-            "MSC agent: The remote `msc` command is missing from the remote user's PATH."
+            "msc-engine",
+            "MSC engine: The remote `msc` command is missing from the remote user's PATH."
                 .to_string(),
         );
     }
-    if lower.contains("agent")
+    if (lower.contains("engine") || lower.contains("agent"))
         && (lower.contains("stopped")
             || lower.contains("unavailable")
             || lower.contains("not running")
             || lower.contains("version"))
     {
         return (
-            "msc-agent",
-            "MSC agent: The remote management service is stopped, unavailable, or below the supported version floor.".to_string(),
+            "msc-engine",
+            "MSC engine: The remote management service is stopped, unavailable, or below the supported version floor.".to_string(),
         );
     }
     if lower.contains("timed out")

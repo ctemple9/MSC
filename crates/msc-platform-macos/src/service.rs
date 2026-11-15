@@ -1,8 +1,8 @@
-//! `launchd` service management for the macOS headless agent.
+//! `launchd` service management for the macOS headless engine.
 //!
 //! Phase 4's service proof uses a root-owned LaunchDaemon plist under
 //! `/Library/LaunchDaemons`, with `UserName` set to the installing user
-//! (`docs/msc2/substrate/service-identity.md` §2). This module keeps that
+//! (`docs/msc/substrate/service-identity.md` §2). This module keeps that
 //! behavior explicit: it writes the plist, registers it with `launchctl`,
 //! and reconstructs the shared `ServiceInstallRequest` back out of the
 //! installed plist so `status` reports the same cross-platform shape
@@ -24,17 +24,17 @@ use security_framework::os::macos::code_signing::{
 };
 
 const EXPECTED_PORT_ENV: &str = "MSC2_EXPECTED_PORT";
-const LOCAL_AGENT_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
+const LOCAL_ENGINE_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
 
-pub fn local_agent_boot_enabled() -> Result<bool, ServiceError> {
-    let plist = format!("/Library/LaunchDaemons/{LOCAL_AGENT_SERVICE_NAME}.plist");
+pub fn local_engine_boot_enabled() -> Result<bool, ServiceError> {
+    let plist = format!("/Library/LaunchDaemons/{LOCAL_ENGINE_SERVICE_NAME}.plist");
     let output = Command::new("/usr/bin/plutil")
         .args(["-extract", "RunAtLoad", "raw", "-o", "-", &plist])
         .output()
-        .map_err(|error| ServiceError::Platform(format!("reading agent boot setting: {error}")))?;
+        .map_err(|error| ServiceError::Platform(format!("reading engine boot setting: {error}")))?;
     if !output.status.success() {
         return Err(ServiceError::Platform(format!(
-            "reading agent boot setting: {}",
+            "reading engine boot setting: {}",
             String::from_utf8_lossy(&output.stderr).trim()
         )));
     }
@@ -42,12 +42,12 @@ pub fn local_agent_boot_enabled() -> Result<bool, ServiceError> {
     let disabled = run_launchctl(&["print-disabled", "system"], None)?;
     let disabled_entry = disabled.lines().find(|line| {
         line.trim_start()
-            .starts_with(&format!("\"{LOCAL_AGENT_SERVICE_NAME}\""))
+            .starts_with(&format!("\"{LOCAL_ENGINE_SERVICE_NAME}\""))
     });
     Ok(run_at_load && !disabled_entry.is_some_and(|line| line.contains("=> disabled")))
 }
 
-pub fn set_local_agent_boot_enabled(enabled: bool) -> Result<(), ServiceError> {
+pub fn set_local_engine_boot_enabled(enabled: bool) -> Result<(), ServiceError> {
     run_local_launchctl(&[
         if enabled { "enable" } else { "disable" },
         "system/com.ctemple.msc2.agent",
@@ -56,14 +56,14 @@ pub fn set_local_agent_boot_enabled(enabled: bool) -> Result<(), ServiceError> {
 
 pub fn install_desktop_cli_link_elevated(binary: &Path) -> Result<(), ServiceError> {
     let builds = binary.parent().and_then(Path::parent).ok_or_else(|| {
-        ServiceError::InvalidDefinition("desktop agent path has no build directory".into())
+        ServiceError::InvalidDefinition("desktop engine path has no build directory".into())
     })?;
     if binary.file_name().is_none_or(|name| name != "msc")
         || builds.file_name().is_none_or(|name| name != "builds")
         || !binary.is_file()
     {
         return Err(ServiceError::InvalidDefinition(
-            "desktop CLI link requires a staged MSC agent binary".into(),
+            "desktop CLI link requires a staged MSC engine binary".into(),
         ));
     }
     let link = Path::new("/usr/local/bin/msc");
@@ -101,12 +101,12 @@ pub const BEDROCK_HELPER_SOCKET_PATH: &str = "/var/run/msc2/bedrock.sock";
 const BEDROCK_HELPER_INSTALL_ROOT: &str = "/Library/Application Support/MSC 2/bedrock-helper";
 const BEDROCK_HELPER_RUNTIME_ROOT: &str = "/var/run/msc2";
 const BEDROCK_HELPER_PLIST_TEMPLATE: &str =
-    include_str!("../../../packaging/macos/com.ctemple.msc2.bedrock-helper.plist.in");
+    include_str!("../../../packaging/macos/com.ctemple.msc.bedrock-helper.plist.in");
 
 /// The installation key lives as a plain 0600 file next to the rest of the
 /// secret store's encrypted files, not in the System keychain — see
 /// `secret_store.rs`'s module doc for why keychain-rooted secrets were
-/// dropped. The agent and its desktop shell always run as the same regular
+/// dropped. The engine and its desktop shell always run as the same regular
 /// user, so both sides just read/write this same file directly; nothing
 /// needs an elevated install step to provision it.
 pub const LOCAL_BOOTSTRAP_KEY_FILE_NAME: &str = "local-bootstrap.key";
@@ -115,7 +115,7 @@ pub fn local_bootstrap_key_path(secrets_dir: &Path) -> PathBuf {
     secrets_dir.join(LOCAL_BOOTSTRAP_KEY_FILE_NAME)
 }
 
-/// Returns the UID that the desktop and agent already use for local MSC data.
+/// Returns the UID that the desktop and engine already use for local MSC data.
 /// The helper receives this numeric identity because it authenticates the
 /// accepted Unix-socket peer by UID, not by a username string supplied over
 /// IPC.
@@ -125,7 +125,7 @@ pub fn installing_user_uid() -> u32 {
 
 /// Returns the installing user's primary group. The helper passes both values
 /// into the guest so files created through virtio-fs keep the same ownership
-/// as files created by the user-owned Rust agent.
+/// as files created by the user-owned Rust engine.
 pub fn installing_user_gid() -> u32 {
     unsafe { libc::getgid() as u32 }
 }
@@ -173,7 +173,7 @@ pub struct BedrockHelperInspection {
 
 /// Verifies the live process behind a local socket against the designated
 /// requirement recorded when the desktop package was installed. The kernel
-/// supplies the PID; the agent never trusts a PID or executable path supplied
+/// supplies the PID; the engine never trusts a PID or executable path supplied
 /// by the client.
 pub fn verify_process_code_identity(pid: u32, requirement: &str) -> Result<(), String> {
     let mut attributes = GuestAttributes::new();
@@ -435,7 +435,7 @@ pub fn install_and_start_elevated(
         request.service_name.as_str()
     ));
     let temporary_plist = std::env::temp_dir().join(format!(
-        "msc2-{}.{}.plist",
+        "msc-{}.{}.plist",
         request.service_name.as_str(),
         std::process::id()
     ));
@@ -451,7 +451,7 @@ pub fn install_and_start_elevated(
         .as_ref()
         .map(|helper| {
             let path = std::env::temp_dir().join(format!(
-                "msc2-{}.{}.plist",
+                "msc-{}.{}.plist",
                 BEDROCK_HELPER_SERVICE_NAME,
                 std::process::id()
             ));
@@ -503,19 +503,19 @@ pub fn start_elevated(service_name: &str) -> Result<ServiceStatusReport, Service
 }
 
 /// Terminal and SSH service control uses sudo's ordinary shell prompt.
-pub fn start_local_agent() -> Result<ServiceStatusReport, ServiceError> {
+pub fn start_local_engine() -> Result<ServiceStatusReport, ServiceError> {
     run_local_launchctl(&["kickstart", "-k", "system/com.ctemple.msc2.agent"])?;
     wait_for_service_state(
-        &msc_infrastructure::service::ServiceName::new(LOCAL_AGENT_SERVICE_NAME),
+        &msc_infrastructure::service::ServiceName::new(LOCAL_ENGINE_SERVICE_NAME),
         ServiceState::Running,
     )
 }
 
-pub fn stop_local_agent() -> Result<ServiceStatusReport, ServiceError> {
-    run_local_launchctl(&["stop", LOCAL_AGENT_SERVICE_NAME])?;
+pub fn stop_local_engine() -> Result<ServiceStatusReport, ServiceError> {
+    run_local_launchctl(&["stop", LOCAL_ENGINE_SERVICE_NAME])?;
     let _ = run_local_launchctl(&["stop", BEDROCK_HELPER_SERVICE_NAME]);
     wait_for_service_state(
-        &msc_infrastructure::service::ServiceName::new(LOCAL_AGENT_SERVICE_NAME),
+        &msc_infrastructure::service::ServiceName::new(LOCAL_ENGINE_SERVICE_NAME),
         ServiceState::Stopped,
     )
 }
@@ -526,7 +526,7 @@ fn run_local_launchctl(args: &[&str]) -> Result<(), ServiceError> {
         .args(args)
         .output()
         .map_err(|error| {
-            ServiceError::Platform(format!("starting sudo for agent service control: {error}"))
+            ServiceError::Platform(format!("starting sudo for engine service control: {error}"))
         })?;
     if output.status.success() {
         Ok(())
@@ -541,7 +541,7 @@ fn run_local_launchctl(args: &[&str]) -> Result<(), ServiceError> {
 
 /// Stops an already-installed LaunchDaemon through the same elevation boundary
 /// as start. A GUI process's `launchctl stop <label>` targets its own launchd
-/// context, not the system LaunchDaemon domain that owns the agent.
+/// context, not the system LaunchDaemon domain that owns the engine.
 pub fn stop_elevated(service_name: &str) -> Result<ServiceStatusReport, ServiceError> {
     run_as_administrator(&elevated_stop_command(service_name))?;
     wait_for_service_state(
@@ -551,7 +551,7 @@ pub fn stop_elevated(service_name: &str) -> Result<ServiceStatusReport, ServiceE
 }
 
 /// Removes the local LaunchDaemon through the administrator boundary. The
-/// desktop may do this only for its own local agent after a full host reset.
+/// desktop may do this only for its own local engine after a full host reset.
 pub fn uninstall_elevated(service_name: &str) -> Result<ServiceStatusReport, ServiceError> {
     run_as_administrator(&elevated_uninstall_command(service_name))?;
     wait_for_service_state(
@@ -658,8 +658,8 @@ fn shell_quote(value: &str) -> String {
 
 fn elevated_stop_command(service_name: &str) -> String {
     format!(
-        "/bin/launchctl stop {agent}; /bin/launchctl stop {helper} >/dev/null 2>&1 || true",
-        agent = shell_quote(service_name),
+        "/bin/launchctl stop {engine}; /bin/launchctl stop {helper} >/dev/null 2>&1 || true",
+        engine = shell_quote(service_name),
         helper = shell_quote(BEDROCK_HELPER_SERVICE_NAME),
     )
 }
@@ -668,10 +668,10 @@ fn elevated_uninstall_command(service_name: &str) -> String {
     let plist_path = format!("/Library/LaunchDaemons/{service_name}.plist");
     let helper_plist_path = format!("/Library/LaunchDaemons/{BEDROCK_HELPER_SERVICE_NAME}.plist");
     format!(
-        "if [ -e {agent} ]; then /bin/launchctl bootout system {agent} >/dev/null 2>&1 || true; /bin/rm -f {agent}; fi; \
+        "if [ -e {engine} ]; then /bin/launchctl bootout system {engine} >/dev/null 2>&1 || true; /bin/rm -f {engine}; fi; \
 if [ -e {helper_plist} ]; then /bin/launchctl bootout system {helper_plist} >/dev/null 2>&1 || true; /bin/rm -f {helper_plist}; fi; \
 /bin/rm -rf {helper_root}; /bin/rmdir {runtime_root} >/dev/null 2>&1 || true; /bin/rmdir /var/log/msc2 >/dev/null 2>&1 || true",
-        agent = shell_quote(&plist_path),
+        engine = shell_quote(&plist_path),
         helper_plist = shell_quote(&helper_plist_path),
         helper_root = shell_quote(BEDROCK_HELPER_INSTALL_ROOT),
         runtime_root = shell_quote(BEDROCK_HELPER_RUNTIME_ROOT),
@@ -766,8 +766,8 @@ fn render_bedrock_helper_plist(
 
 fn elevated_pair_install_command(
     request: &ServiceInstallRequest,
-    agent_plist_path: &Path,
-    temporary_agent_plist: &Path,
+    engine_plist_path: &Path,
+    temporary_engine_plist: &Path,
     helper: Option<&BedrockHelperInstallRequest>,
     temporary_helper_plist: Option<&Path>,
 ) -> String {
@@ -783,60 +783,60 @@ fn elevated_pair_install_command(
         (helper_source, temporary_helper_plist)
     {
         format!(
-            "helper_stage=$(/usr/bin/mktemp -d /private/tmp/msc2-bedrock-helper.XXXXXX); \
+            "helper_stage=$(/usr/bin/mktemp -d /private/tmp/msc-bedrock-helper.XXXXXX); \
 /usr/bin/install -d -o root -g wheel -m 755 \"$helper_stage\"; \
 /usr/bin/install -o root -g wheel -m 755 {binary} \"$helper_stage/BedrockSidecar\"; \
 /usr/bin/install -o root -g wheel -m 644 {kernel} \"$helper_stage/vmlinuz-kata\"; \
 /usr/bin/install -o root -g wheel -m 644 {initramfs} \"$helper_stage/appliance-initramfs.gz\"; \
 /usr/bin/plutil -lint {plist} >/dev/null; \
-/usr/bin/install -d -o root -g wheel -m 755 {helper_root_parent} {runtime_root} /var/log/msc2; \
+/usr/bin/install -d -o root -g wheel -m 755 {helper_root_parent} {runtime_root} /var/log/msc; \
 if [ -e {helper_plist} ]; then /bin/launchctl bootout system {helper_plist} >/dev/null 2>&1 || true; fi; \
-if [ -e {agent_plist} ]; then /bin/launchctl bootout system {agent_plist} >/dev/null 2>&1 || true; fi; \
+if [ -e {engine_plist} ]; then /bin/launchctl bootout system {engine_plist} >/dev/null 2>&1 || true; fi; \
 /bin/rm -rf {helper_root}; /bin/mv \"$helper_stage\" {helper_root}; \
 /usr/bin/install -o root -g wheel -m 644 {plist} {helper_plist}; \
-/usr/bin/install -o root -g wheel -m 644 {temporary_agent} {agent_plist}; \
-/bin/launchctl enable {agent_target}; /bin/launchctl bootstrap system {helper_plist}; /bin/launchctl bootstrap system {agent_plist}; \
-/bin/launchctl kickstart -k {helper_target}; /bin/launchctl kickstart -k {agent_target}; \
+/usr/bin/install -o root -g wheel -m 644 {temporary_engine} {engine_plist}; \
+/bin/launchctl enable {engine_target}; /bin/launchctl bootstrap system {helper_plist}; /bin/launchctl bootstrap system {engine_plist}; \
+/bin/launchctl kickstart -k {helper_target}; /bin/launchctl kickstart -k {engine_target}; \
 /bin/launchctl print {helper_target} >/dev/null",
             binary = shell_quote(&binary),
             kernel = shell_quote(&kernel),
             initramfs = shell_quote(&initramfs),
             plist = shell_quote(&plist.display().to_string()),
-            temporary_agent = shell_quote(&temporary_agent_plist.display().to_string()),
-            agent_plist = shell_quote(&agent_plist_path.display().to_string()),
+            temporary_engine = shell_quote(&temporary_engine_plist.display().to_string()),
+            engine_plist = shell_quote(&engine_plist_path.display().to_string()),
             helper_plist = shell_quote(&helper_plist_path),
             helper_root = shell_quote(BEDROCK_HELPER_INSTALL_ROOT),
             helper_root_parent = shell_quote("/Library/Application Support/MSC 2"),
             runtime_root = shell_quote(BEDROCK_HELPER_RUNTIME_ROOT),
             helper_target = shell_quote(&format!("system/{BEDROCK_HELPER_SERVICE_NAME}")),
-            agent_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
+            engine_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
         )
     } else {
         format!(
             "if [ -e {helper_plist} ]; then /bin/launchctl bootout system {helper_plist} >/dev/null 2>&1 || true; /bin/rm -f {helper_plist}; fi; \
 /bin/rm -rf {helper_root}; \
-if [ -e {agent_plist} ]; then /bin/launchctl bootout system {agent_plist} >/dev/null 2>&1 || true; fi; \
-/usr/bin/install -o root -g wheel -m 644 {temporary_agent} {agent_plist}; \
-/bin/launchctl enable {agent_target}; /bin/launchctl bootstrap system {agent_plist}; /bin/launchctl kickstart -k {agent_target}",
+if [ -e {engine_plist} ]; then /bin/launchctl bootout system {engine_plist} >/dev/null 2>&1 || true; fi; \
+/usr/bin/install -o root -g wheel -m 644 {temporary_engine} {engine_plist}; \
+/bin/launchctl enable {engine_target}; /bin/launchctl bootstrap system {engine_plist}; /bin/launchctl kickstart -k {engine_target}",
             helper_plist = shell_quote(&helper_plist_path),
             helper_root = shell_quote(BEDROCK_HELPER_INSTALL_ROOT),
-            temporary_agent = shell_quote(&temporary_agent_plist.display().to_string()),
-            agent_plist = shell_quote(&agent_plist_path.display().to_string()),
-            agent_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
+            temporary_engine = shell_quote(&temporary_engine_plist.display().to_string()),
+            engine_plist = shell_quote(&engine_plist_path.display().to_string()),
+            engine_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
         )
     };
     let transaction_prefix = format!(
-        "backup=$(/usr/bin/mktemp -d /private/tmp/msc2-service-backup.XXXXXX); helper_stage=; \
-agent_was_present=0; helper_was_present=0; helper_root_was_present=0; \
-agent_was_running=0; helper_was_running=0; \
-if [ -e {agent_plist} ]; then /bin/cp -p {agent_plist} \"$backup/agent.plist\"; agent_was_present=1; /bin/launchctl print {agent_target} >/dev/null 2>&1 && agent_was_running=1 || true; fi; \
+        "backup=$(/usr/bin/mktemp -d /private/tmp/msc-service-backup.XXXXXX); helper_stage=; \
+engine_was_present=0; helper_was_present=0; helper_root_was_present=0; \
+engine_was_running=0; helper_was_running=0; \
+if [ -e {engine_plist} ]; then /bin/cp -p {engine_plist} \"$backup/engine.plist\"; engine_was_present=1; /bin/launchctl print {engine_target} >/dev/null 2>&1 && engine_was_running=1 || true; fi; \
 if [ -e {helper_plist} ]; then /bin/cp -p {helper_plist} \"$backup/helper.plist\"; helper_was_present=1; /bin/launchctl print {helper_target} >/dev/null 2>&1 && helper_was_running=1 || true; fi; \
 if [ -d {helper_root} ]; then /bin/cp -Rp {helper_root} \"$backup/helper-root\"; helper_root_was_present=1; fi; \
-rollback() {{ status=$?; if [ \"$status\" -ne 0 ]; then /bin/launchctl bootout system {helper_plist} >/dev/null 2>&1 || true; /bin/launchctl bootout system {agent_plist} >/dev/null 2>&1 || true; /bin/rm -f {agent_plist} {helper_plist}; /bin/rm -rf {helper_root}; if [ \"$agent_was_present\" -eq 1 ]; then /usr/bin/install -o root -g wheel -m 644 \"$backup/agent.plist\" {agent_plist}; /bin/launchctl bootstrap system {agent_plist} >/dev/null 2>&1 || true; [ \"$agent_was_running\" -eq 1 ] && /bin/launchctl kickstart -k {agent_target} >/dev/null 2>&1 || true; fi; if [ \"$helper_was_present\" -eq 1 ]; then /usr/bin/install -o root -g wheel -m 644 \"$backup/helper.plist\" {helper_plist}; fi; if [ \"$helper_root_was_present\" -eq 1 ]; then /bin/mv \"$backup/helper-root\" {helper_root}; fi; if [ \"$helper_was_present\" -eq 1 ]; then /bin/launchctl bootstrap system {helper_plist} >/dev/null 2>&1 || true; [ \"$helper_was_running\" -eq 1 ] && /bin/launchctl kickstart -k {helper_target} >/dev/null 2>&1 || true; fi; fi; [ -z \"$helper_stage\" ] || /bin/rm -rf \"$helper_stage\"; /bin/rm -rf \"$backup\"; exit \"$status\"; }}; trap rollback EXIT",
-        agent_plist = shell_quote(&agent_plist_path.display().to_string()),
+rollback() {{ status=$?; if [ \"$status\" -ne 0 ]; then /bin/launchctl bootout system {helper_plist} >/dev/null 2>&1 || true; /bin/launchctl bootout system {engine_plist} >/dev/null 2>&1 || true; /bin/rm -f {engine_plist} {helper_plist}; /bin/rm -rf {helper_root}; if [ \"$engine_was_present\" -eq 1 ]; then /usr/bin/install -o root -g wheel -m 644 \"$backup/engine.plist\" {engine_plist}; /bin/launchctl bootstrap system {engine_plist} >/dev/null 2>&1 || true; [ \"$engine_was_running\" -eq 1 ] && /bin/launchctl kickstart -k {engine_target} >/dev/null 2>&1 || true; fi; if [ \"$helper_was_present\" -eq 1 ]; then /usr/bin/install -o root -g wheel -m 644 \"$backup/helper.plist\" {helper_plist}; fi; if [ \"$helper_root_was_present\" -eq 1 ]; then /bin/mv \"$backup/helper-root\" {helper_root}; fi; if [ \"$helper_was_present\" -eq 1 ]; then /bin/launchctl bootstrap system {helper_plist} >/dev/null 2>&1 || true; [ \"$helper_was_running\" -eq 1 ] && /bin/launchctl kickstart -k {helper_target} >/dev/null 2>&1 || true; fi; fi; [ -z \"$helper_stage\" ] || /bin/rm -rf \"$helper_stage\"; /bin/rm -rf \"$backup\"; exit \"$status\"; }}; trap rollback EXIT",
+        engine_plist = shell_quote(&engine_plist_path.display().to_string()),
         helper_plist = shell_quote(&helper_plist_path),
         helper_root = shell_quote(BEDROCK_HELPER_INSTALL_ROOT),
-        agent_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
+        engine_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
         helper_target = shell_quote(&format!("system/{BEDROCK_HELPER_SERVICE_NAME}")),
     );
     let transaction_success = "/bin/rm -rf \"$backup\"; trap - EXIT";
@@ -1072,7 +1072,7 @@ impl LaunchDaemonPlist {
         }
         if self.standard_out_path != self.standard_error_path {
             return Err(ServiceError::InvalidDefinition(format!(
-                "LaunchDaemon plist uses different stdout/stderr paths ({} vs {}), but MSC 2's shared service model stores one log path",
+                "LaunchDaemon plist uses different stdout/stderr paths ({} vs {}), but MSC's shared service model stores one log path",
                 self.standard_out_path, self.standard_error_path
             )));
         }

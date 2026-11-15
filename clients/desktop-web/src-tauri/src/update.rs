@@ -87,7 +87,7 @@ pub fn run_desktop_update_helper() -> bool {
     #[cfg(target_os = "macos")]
     if mode == "--msc2-repair-update-agent" {
         if let Err(error) =
-            super::manage_agent_service_blocking(super::AgentServiceAction::Repair, 0)
+            super::manage_engine_service_blocking(super::EngineServiceAction::Repair, 0)
         {
             eprintln!("{error}");
             std::process::exit(1);
@@ -130,7 +130,7 @@ pub fn run_desktop_update_helper() -> bool {
         Err(error) => {
             #[cfg(target_os = "windows")]
             windows::notify(&error);
-            eprintln!("MSC 2 desktop update failed: {error}");
+            eprintln!("MSC desktop update failed: {error}");
             std::process::exit(1);
         }
     }
@@ -161,12 +161,12 @@ pub fn install(request: InstallRequest, data_directory: &Path) -> Result<Install
     if staged.install_mode == "tauri-coordinated" {
         #[cfg(target_os = "macos")]
         require_stopped_macos_server()?;
-        super::agent_indicator::stop()?;
+        super::engine_indicator::stop()?;
         schedule_desktop_update(&request.release_id, data_directory)?;
         return Ok(InstallResult {
             state: "scheduled",
             release_id: request.release_id,
-            detail: "The verified update was scheduled. MSC 2 will close, install it, and relaunch when the replacement is complete.".to_string(),
+            detail: "The verified update was scheduled. MSC will close, install it, and relaunch when the replacement is complete.".to_string(),
         });
     }
 
@@ -283,7 +283,7 @@ fn install_macos_bundle(staged: &StagedUpdate) -> Result<String, String> {
         rollback = Some(replace_app_bundle(&current_bundle, &replacement)?);
         // Bind the service and desktop trust identity to the replacement before
         // asking it to connect. The same transaction restores both on rollback.
-        repair_macos_bundle_agent(&current_bundle)?;
+        repair_macos_bundle_engine(&current_bundle)?;
         let marker = work_directory.join("desktop-ready");
         let token = format!(
             "{}-{}",
@@ -300,7 +300,7 @@ fn install_macos_bundle(staged: &StagedUpdate) -> Result<String, String> {
                 .args(["--args", "--msc2-update-health-file"])
                 .arg(&marker)
                 .args(["--msc2-update-health-token", &token]),
-            "Could not relaunch MSC 2",
+            "Could not relaunch MSC",
         )?;
         wait_for_macos_health(&marker, &token)?;
         fs::write(marker.with_extension("accepted"), &token)
@@ -309,7 +309,7 @@ fn install_macos_bundle(staged: &StagedUpdate) -> Result<String, String> {
             finalize_macos_replacement(&previous_installation)?;
         }
         Ok(format!(
-            "MSC 2 {} was installed, relaunched, and passed desktop and agent health checks.",
+            "MSC {} was installed, relaunched, and passed desktop and engine health checks.",
             staged.manifest.release_id
         ))
     })();
@@ -317,7 +317,7 @@ fn install_macos_bundle(staged: &StagedUpdate) -> Result<String, String> {
         let recovery = stop_macos_trial(&work_directory.join("desktop-ready"))
             .and_then(|_| rollback_macos_replacement(rollback))
             .and_then(|_| {
-                repair_macos_bundle_agent(&current_bundle)?;
+                repair_macos_bundle_engine(&current_bundle)?;
                 run_command(
                     Command::new("/usr/bin/open").arg(&current_bundle),
                     "Could not relaunch the previous MSC app",
@@ -345,19 +345,19 @@ fn wait_for_macos_health(marker: &Path, token: &str) -> Result<(), String> {
     let deadline = Instant::now() + Duration::from_secs(90);
     while Instant::now() < deadline {
         let desktop_ready = fs::read_to_string(marker).is_ok_and(|value| value == token);
-        if desktop_ready && macos_agent_is_healthy() {
+        if desktop_ready && macos_engine_is_healthy() {
             return Ok(());
         }
         std::thread::sleep(Duration::from_millis(500));
     }
     Err(
-        "The replacement desktop and local agent did not both become healthy within 90 seconds."
+        "The replacement desktop and local engine did not both become healthy within 90 seconds."
             .to_string(),
     )
 }
 
 #[cfg(target_os = "macos")]
-fn macos_agent_is_healthy() -> bool {
+fn macos_engine_is_healthy() -> bool {
     let address = SocketAddr::from(([127, 0, 0, 1], 48001));
     let Ok(mut stream) = TcpStream::connect_timeout(&address, Duration::from_millis(500)) else {
         return false;
@@ -370,7 +370,7 @@ fn macos_agent_is_healthy() -> bool {
         return false;
     }
     let mut response = String::new();
-    stream.read_to_string(&mut response).is_ok() && healthy_macos_agent_response(&response)
+    stream.read_to_string(&mut response).is_ok() && healthy_macos_engine_response(&response)
 }
 
 #[cfg(target_os = "macos")]
@@ -380,7 +380,7 @@ fn current_app_bundle() -> Result<PathBuf, String> {
         .ancestors()
         .find(|path| path.extension().is_some_and(|extension| extension == "app"))
         .map(Path::to_path_buf)
-        .ok_or_else(|| "MSC 2 must be installed as an app bundle to update itself.".to_string())
+        .ok_or_else(|| "MSC must be installed as an app bundle to update itself.".to_string())
 }
 
 #[cfg(target_os = "macos")]
@@ -414,7 +414,7 @@ fn replace_app_bundle(
         target
             .file_name()
             .and_then(|name| name.to_str())
-            .unwrap_or("MSC 2.app"),
+            .unwrap_or("Minecraft Server Controller.app"),
         std::process::id()
     ));
     let direct = || -> Result<(PathBuf, PathBuf, bool), String> {
@@ -657,7 +657,7 @@ fn launch_local_install(staged: &StagedUpdate) -> Result<(), String> {
 fn installation_detail(staged: &StagedUpdate) -> String {
     match staged.install_mode.as_str() {
         "tauri-coordinated" => format!(
-            "The verified {} installer was launched. It may replace the desktop, bundled agent, and required local components together. Configuration, secrets, worlds, and server files remain outside the staged release.",
+            "The verified {} installer was launched. It may replace the desktop, bundled engine, and required local components together. Configuration, secrets, worlds, and server files remain outside the staged release.",
             staged.artifact_path.display()
         ),
         "authorized-package-install" => format!(
@@ -669,7 +669,7 @@ fn installation_detail(staged: &StagedUpdate) -> String {
 }
 
 #[cfg(any(target_os = "macos", test))]
-fn healthy_macos_agent_response(response: &str) -> bool {
+fn healthy_macos_engine_response(response: &str) -> bool {
     // /v1/healthz's documented liveness response has no body (204).
     matches!(
         response
@@ -684,8 +684,8 @@ fn healthy_macos_agent_response(response: &str) -> bool {
 mod health_response_tests {
     use super::*;
     #[test]
-    fn accepts_agent_liveness_contract_and_rejects_failures() {
-        assert!(healthy_macos_agent_response(
+    fn accepts_engine_liveness_contract_and_rejects_failures() {
+        assert!(healthy_macos_engine_response(
             "HTTP/1.1 204 No Content\r\n\r\n"
         ));
         for response in [
@@ -694,13 +694,13 @@ mod health_response_tests {
             "garbage 204",
             "HTTP/1.1 2040 Invalid",
         ] {
-            assert!(!healthy_macos_agent_response(response));
+            assert!(!healthy_macos_engine_response(response));
         }
     }
 }
 
 #[cfg(target_os = "macos")]
-fn repair_macos_bundle_agent(bundle: &Path) -> Result<(), String> {
+fn repair_macos_bundle_engine(bundle: &Path) -> Result<(), String> {
     // Execute the installed bundle's code: the old helper may now reside in
     // the rollback folder, with the old package and signing requirement.
     let executable_name = std::env::current_exe()
@@ -711,31 +711,33 @@ fn repair_macos_bundle_agent(bundle: &Path) -> Result<(), String> {
     run_command(
         Command::new(bundle.join("Contents/MacOS").join(executable_name))
             .arg("--msc2-repair-update-agent"),
-        "Could not register the installed bundle's matching agent",
+        "Could not register the installed bundle's matching engine",
     )
 }
 
 #[cfg(target_os = "macos")]
 fn require_stopped_macos_server() -> Result<(), String> {
-    let (report, _) = super::current_local_agent_report()?;
+    let (report, _) = super::current_local_engine_report()?;
     if report.state != super::ServiceState::Running {
         return Ok(());
     }
     let binary = report
         .definition
-        .ok_or("Could not identify the running agent. Stop the server and agent before updating.")?
+        .ok_or(
+            "Could not identify the running engine. Stop the server and engine before updating.",
+        )?
         .binary_path;
     let output = Command::new(binary)
         .args(["status", "--json"])
         .output()
         .map_err(|error| format!("Could not check the running server: {error}"))?;
     let status: serde_json::Value = serde_json::from_slice(&output.stdout).map_err(|_| {
-        "Could not confirm the server is stopped. Stop the server and agent before updating."
+        "Could not confirm the server is stopped. Stop the server and engine before updating."
             .to_string()
     })?;
     if !output.status.success() || status["running"].as_bool() != Some(false) {
         return Err(
-            "Stop the Minecraft server before updating MSC 2. The update must restart its agent."
+            "Stop the Minecraft server before updating MSC. The update must restart its engine."
                 .into(),
         );
     }

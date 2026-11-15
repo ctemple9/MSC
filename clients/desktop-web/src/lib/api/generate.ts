@@ -9,10 +9,10 @@ import { fileURLToPath } from 'node:url';
 
 const sourceDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(sourceDirectory, '../../../../..');
-const contractPath = resolve(repositoryRoot, 'docs/msc2/api-contract/openapi.json');
+const contractPath = resolve(repositoryRoot, 'docs/msc/api-contract/openapi.json');
 const outputPath = resolve(sourceDirectory, 'generated.ts');
 const generatedHeader =
-  '// Generated from docs/msc2/api-contract/openapi.json. Do not edit by hand.';
+  '// Generated from docs/msc/api-contract/openapi.json. Do not edit by hand.';
 
 async function generatedSource(): Promise<string> {
   const contractText = await readFile(contractPath, 'utf8');

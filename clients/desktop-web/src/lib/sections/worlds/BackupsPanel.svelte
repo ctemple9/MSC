@@ -8,7 +8,7 @@
   //      whichever slot is active, unlike MSC 1's per-selected-slot manual
   //      backup. Labeled plainly below rather than implying slot targeting.
   //   2. POST /v1/backups/restore 409s if the backup's slot isn't the
-  //      currently active one (crates/msc-agent/src/routes/backups.rs) --
+  //      currently active one (crates/msc-engine/src/routes/backups.rs) --
   //      MSC 1 could restore a backup into its owning slot even when that
   //      slot wasn't active. Restore is disabled with an explanation for a
   //      backup whose slot isn't active, rather than calling a route that
@@ -59,7 +59,7 @@
 
 <div class="section-heading">
   <div class="overline">
-    <span class="msc2-type-overline">Backups</span>
+    <span class="msc-type-overline">Backups</span>
     {#if selectedSlot}<span class="slot-name">· {selectedSlot.name}</span>{/if}
   </div>
 </div>
@@ -167,7 +167,7 @@
 
   {#if legacy.length > 0}
     <div class="legacy">
-      <p class="msc2-type-overline">Legacy / unmatched backups</p>
+      <p class="msc-type-overline">Legacy / unmatched backups</p>
       <p class="legacy-explain">
         These backups are still on disk but aren't attached to any current world slot.
       </p>
@@ -223,7 +223,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .section-heading {
     display: flex;
@@ -240,7 +240,7 @@
     flex-wrap: wrap;
   }
   .section-summary {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .aligned-toggle {
@@ -250,7 +250,7 @@
     gap: 10px;
     width: 100px;
     flex: 0 0 100px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .section-action {
@@ -269,7 +269,7 @@
     font-weight: 600;
     letter-spacing: 0.4px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     padding: 10px 0 6px;
   }
   .row {
@@ -277,7 +277,7 @@
     align-items: center;
     gap: 10px;
     padding: 8px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     flex-wrap: wrap;
   }
   .badge {
@@ -285,42 +285,42 @@
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 4px;
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-secondary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-secondary);
     flex-shrink: 0;
   }
   .badge.auto {
-    background: var(--msc2-status-bedrock-tint);
-    color: var(--msc2-status-bedrock);
+    background: var(--msc-status-bedrock-tint);
+    color: var(--msc-status-bedrock);
   }
   .time {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .size-col {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .reason {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .spacer {
     flex: 1;
   }
   .confirm {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .legacy {
     margin-top: 16px;
     padding-top: 14px;
-    border-top: 1px solid var(--msc2-hairline-faint);
+    border-top: 1px solid var(--msc-hairline-faint);
   }
   .legacy-explain {
     margin: 4px 0 8px;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

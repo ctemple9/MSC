@@ -23,8 +23,8 @@ fail() {
 command -v cargo >/dev/null 2>&1 || fail "missing required tool: cargo"
 
 cd "${ROOT}"
-echo "== exercising the synthetic macOS agent-to-sidecar lifecycle =="
-cargo nextest run -p msc-agent --test bedrock_macos_routes
+echo "== exercising the synthetic macOS engine-to-sidecar lifecycle =="
+cargo nextest run -p msc-engine --test bedrock_macos_routes
 
 echo "== exercising the Rust macOS sidecar adapter =="
 cargo nextest run -p msc-application --test bedrock_macos

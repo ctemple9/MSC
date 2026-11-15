@@ -9,7 +9,7 @@ links for the current official BDS binary's legacy `libpthread`, `libdl`, and
 - `appliance-initramfs.gz`
 
 The sidecar checks both resources before accepting `provision`. The verified
-pair is checked into this MSC 2 repository in this directory, so the desktop
+pair is checked into this MSC repository in this directory, so the desktop
 development build uses it automatically. Set `MSC2_BEDROCK_APPLIANCE_DIR` only
 when deliberately testing or packaging a replacement directory. For example:
 
@@ -18,7 +18,7 @@ xcodebuild -project sidecar/bedrock/BedrockSidecar.xcodeproj \
   -scheme BedrockSidecar MSC2_BEDROCK_APPLIANCE_DIR=/path/to/intel-appliance
 ```
 
-The kernel is the MSC 1 distribution input. The initramfs includes MSC 2's
+The kernel is the MSC 1 distribution input. The initramfs includes MSC's
 guest startup script; its SHA-256 changes whenever that script is rebuilt:
 
 | File | SHA-256 |
@@ -28,9 +28,9 @@ guest startup script; its SHA-256 changes whenever that script is rebuilt:
 
 The Xcode validation phase fails before compilation when either file is missing
 or a checksum differs. The pair is a verified distribution input rather than
-source code, but it is intentionally tracked here so MSC 2 has no build-time
+source code, but it is intentionally tracked here so MSC has no build-time
 dependency on the MSC 1 checkout. The desktop staging script copies the
-validated pair beside `BedrockSidecar` and the agent; a headless macOS package
+validated pair beside `BedrockSidecar` and the engine; a headless macOS package
 uses the same sibling layout. Linux and Windows do not receive this VM appliance
 and do not read this directory; they keep their native BDS archive as a
 verified first-run download.

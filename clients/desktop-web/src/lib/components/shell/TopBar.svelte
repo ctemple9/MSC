@@ -1,7 +1,7 @@
 <script lang="ts">
   // Window chrome: title, the running terrain banner, header actions, and the
   // tour actions when the guided-tour card is hidden. Tauri provides the titlebar.
-  // docs/msc2/renderings/shell.html, MSC 1 ContentView.swift top banner.
+  // docs/msc/renderings/shell.html, MSC 1 ContentView.swift top banner.
   import ShellIcon from './ShellIcon.svelte';
   import RunningBannerGame from './RunningBannerGame.svelte';
   import Button from '../base/Button.svelte';
@@ -93,8 +93,8 @@
     height: 52px;
     flex-shrink: 0;
     padding: 0 16px;
-    background: var(--msc2-tier-chrome);
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    background: var(--msc-tier-chrome);
+    border-bottom: 1px solid var(--msc-hairline-faint);
   }
   .titles {
     display: flex;
@@ -105,11 +105,11 @@
   .title {
     font-size: 13px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .subtitle {
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .spacer {
     flex: 1;
@@ -125,7 +125,7 @@
     gap: 4px;
     padding-right: 8px;
     margin-right: 4px;
-    border-right: 1px solid var(--msc2-hairline-faint);
+    border-right: 1px solid var(--msc-hairline-faint);
   }
   .icon-btn {
     display: inline-flex;

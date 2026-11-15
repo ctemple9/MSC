@@ -4,7 +4,7 @@
 //!
 //! Ported from `installRequiredDependencies(of:into:depth:)`
 //! (`AppViewModel+ModManagement.swift:271-328`), per
-//! `docs/msc2/addons/phase8-scope.md`, `fixtures/modrinth-dependencies/`
+//! `docs/msc/addons/phase8-scope.md`, `fixtures/modrinth-dependencies/`
 //! (P8.6), and `msc_domain::addon_dependency`'s pure decisions (P8.12).
 //! Every per-dependency failure is non-fatal to the batch (the loop always
 //! continues to the next sibling), matching the oracle's own `do`/`catch`

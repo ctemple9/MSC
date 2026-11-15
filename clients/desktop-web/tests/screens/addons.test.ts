@@ -47,7 +47,7 @@ describe('add-on and modpack screens', () => {
     expect(componentsSource).toContain('Set up voice tunnel');
     expect(componentsSource).toContain('Disable Voice Chat');
     expect(componentsSource).toContain("Don't Ask Again");
-    expect(componentsSource).toContain('msc2.svc-tunnel-prompt');
+    expect(componentsSource).toContain('msc.svc-tunnel-prompt');
     expect(componentsSource).toContain('serverRunning');
   });
   it('keeps catalog install and local-file staging as separate paths', () => {
@@ -69,7 +69,7 @@ describe('add-on and modpack screens', () => {
     expect(componentsSource).toContain('Check for mod/plugin updates');
   });
   it('uses the real resolver bucket enum, not an invented mod/plugin/component category', () => {
-    // crates/msc-agent/src/routes/components.rs's addon_bucket_name -- the
+    // crates/msc-engine/src/routes/components.rs's addon_bucket_name -- the
     // only four values GET /v1/addons ever puts on AddonItemDTO.bucket.
     const realBuckets = new Set(['updateAvailable', 'noCompatibleVersion', 'upToDate', 'unlinked']);
     expect(demoAddons.every((addon) => realBuckets.has(addon.bucket))).toBe(true);
@@ -111,7 +111,7 @@ describe('components tab -- DetailsComponentsTabView.swift is the real oracle', 
     expect(supportsCrossplay({ ...paper, javaFlavor: 'fabric' })).toBe(false);
     expect(supportsCrossplay({ ...paper, serverType: 'bedrock' })).toBe(false);
   });
-  it('derives the Server JAR row status straight from the agent, not a client-side version diff', () => {
+  it('derives the Server JAR row status straight from the engine, not a client-side version diff', () => {
     const [paper] = demoComponentsStatus.components;
     expect(componentTone(paper)).toBe('ok');
     expect(componentStatusLabel(paper)).toBe('Up to date');

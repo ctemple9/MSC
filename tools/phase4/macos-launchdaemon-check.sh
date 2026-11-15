@@ -81,17 +81,17 @@ if [ ! -e "${LOGIN_KEYCHAIN}" ]; then
 fi
 
 if [ -z "${TCC_DIR}" ]; then
-  TCC_DIR="${USER_HOME}/Documents/MSC2LaunchDaemonTccCheck"
+  TCC_DIR="${USER_HOME}/Documents/MSCLaunchDaemonTccCheck"
 fi
 
 RUN_ID="$(/bin/date +%Y%m%d%H%M%S)-$$"
-RUN_DIR="/private/tmp/msc2-launchdaemon-check.${RUN_ID}"
+RUN_DIR="/private/tmp/msc-launchdaemon-check.${RUN_ID}"
 WORKER_PATH="${RUN_DIR}/worker.sh"
 RESULT_PATH="${RUN_DIR}/result.txt"
 STDOUT_PATH="${RUN_DIR}/stdout.log"
 STDERR_PATH="${RUN_DIR}/stderr.log"
 SERVICE_PREFIX="${LABEL}.${RUN_ID}"
-ACCOUNT="msc2-phase4-${TARGET_USER}"
+ACCOUNT="msc-phase4-${TARGET_USER}"
 
 print_plan() {
   cat <<PLAN
@@ -175,11 +175,11 @@ run_cmd() {
   local label="$1"
   shift
   echo "[$label] command: $*"
-  "$@" >"/tmp/msc2-launchdaemon-check-cmd.$$" 2>&1
+  "$@" >"/tmp/msc-launchdaemon-check-cmd.$$" 2>&1
   local status=$?
   echo "[$label] exit: ${status}"
-  sed "s/^/[$label] output: /" "/tmp/msc2-launchdaemon-check-cmd.$$"
-  rm -f "/tmp/msc2-launchdaemon-check-cmd.$$"
+  sed "s/^/[$label] output: /" "/tmp/msc-launchdaemon-check-cmd.$$"
+  rm -f "/tmp/msc-launchdaemon-check-cmd.$$"
 }
 
 check_keychain() {
@@ -201,7 +201,7 @@ check_keychain() {
 }
 
 {
-  echo "msc2 Phase 4 macOS LaunchDaemon keychain/TCC check"
+  echo "msc Phase 4 macOS LaunchDaemon keychain/TCC check"
   echo "timestamp: $(/bin/date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "whoami: $(/usr/bin/whoami)"
   echo "id: $(/usr/bin/id)"
@@ -215,9 +215,9 @@ check_keychain() {
   echo "## TCC directory"
   echo "path: ${TCC_DIR}"
   run_cmd "tcc:mkdir" /bin/mkdir -p "${TCC_DIR}"
-  run_cmd "tcc:write" /bin/sh -c 'printf "%s\n" phase4-launchdaemon-check > "$1"' sh "${TCC_DIR}/msc2-launchdaemon-check.txt"
-  run_cmd "tcc:read" /bin/cat "${TCC_DIR}/msc2-launchdaemon-check.txt"
-  run_cmd "tcc:delete-file" /bin/rm -f "${TCC_DIR}/msc2-launchdaemon-check.txt"
+  run_cmd "tcc:write" /bin/sh -c 'printf "%s\n" phase4-launchdaemon-check > "$1"' sh "${TCC_DIR}/msc-launchdaemon-check.txt"
+  run_cmd "tcc:read" /bin/cat "${TCC_DIR}/msc-launchdaemon-check.txt"
+  run_cmd "tcc:delete-file" /bin/rm -f "${TCC_DIR}/msc-launchdaemon-check.txt"
   run_cmd "tcc:rmdir" /bin/rmdir "${TCC_DIR}"
 } >"${RESULT_PATH}" 2>&1
 WORKER

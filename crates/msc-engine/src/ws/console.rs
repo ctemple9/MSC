@@ -1,0 +1,273 @@
+//! `GET /v1/console/stream` — P0.24's one real MSC 1 WebSocket channel,
+//! carried forward at a versioned path per `websocket-v1.json` (P2.7):
+//! same bearer auth as every HTTP route (or a short-lived console ticket for
+//! desktop WebSocket clients), evaluated by the existing middleware before
+//! this handler, since the route sits inside `main.rs`'s auth-gated router;
+//! the 200-line-backfill-then-live delivery model, a 5000-line ring buffer,
+//! and a 64 KB inbound-frame cap.
+
+use std::collections::VecDeque;
+use std::sync::{Arc, Mutex};
+
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Extension, Query, State};
+use axum::response::{IntoResponse, Json, Response};
+use msc_infrastructure::console_buffer::{
+    CONSOLE_HISTORY_LIMIT, ConsoleBuffer, ConsoleLine, http_tail_count,
+};
+use serde::{Deserialize, Serialize};
+use tokio::sync::broadcast;
+
+use crate::auth::{AuthState, AuthenticatedCredential, StreamAuthentication};
+
+/// axum's inbound frame-size guard, matching `maxWebSocketClientFrameBytes`.
+const MAX_INBOUND_FRAME_BYTES: usize = 64 * 1024;
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConsoleQuery {
+    n: Option<String>,
+    hide_auto: Option<bool>,
+}
+
+/// Shared engine-lifetime console buffer plus a broadcast channel fanning
+/// new lines out to every currently-connected client — one buffer for the
+/// whole engine, not one per connection, matching MSC 1's single
+/// `consoleBuffer`.
+#[derive(Clone)]
+pub struct ConsoleState {
+    buffer: Arc<Mutex<ConsoleBuffer>>,
+    observed: Arc<Mutex<ObservedLines>>,
+    sender: broadcast::Sender<ConsoleLine>,
+    automatic_sender: broadcast::Sender<ConsoleLine>,
+}
+
+#[derive(Default)]
+struct ObservedLines {
+    sequence: u64,
+    lines: VecDeque<(u64, ConsoleLine)>,
+}
+
+impl Default for ConsoleState {
+    fn default() -> Self {
+        let (sender, _receiver) = broadcast::channel(CONSOLE_HISTORY_LIMIT);
+        let (automatic_sender, _automatic_receiver) = broadcast::channel(
+            msc_infrastructure::console_buffer::CONSOLE_DIAGNOSTIC_HISTORY_LIMIT,
+        );
+        Self {
+            buffer: Arc::new(Mutex::new(ConsoleBuffer::new())),
+            observed: Arc::new(Mutex::new(ObservedLines::default())),
+            sender,
+            automatic_sender,
+        }
+    }
+}
+
+impl ConsoleState {
+    pub fn push(&self, line: ConsoleLine) {
+        let mut observed = self
+            .observed
+            .lock()
+            .expect("console observation lock poisoned");
+        let mut buffer = self.buffer.lock().expect("console buffer lock poisoned");
+        let line = buffer.push(line);
+        observed.sequence = observed.sequence.saturating_add(1);
+        let sequence = observed.sequence;
+        observed.lines.push_back((sequence, line.clone()));
+        while observed.lines.len()
+            > msc_infrastructure::console_buffer::CONSOLE_INTERNAL_HISTORY_LIMIT
+        {
+            observed.lines.pop_front();
+        }
+        let is_human_line = line.origin.belongs_in_human_history();
+        drop(buffer);
+        drop(observed);
+        // No connected clients is the normal case; a send error just means
+        // nobody's listening right now.
+        if is_human_line {
+            let _ = self.sender.send(line);
+        } else {
+            let _ = self.automatic_sender.send(line);
+        }
+    }
+
+    fn backfill(&self, include_auto: bool) -> Vec<ConsoleLine> {
+        let buffer = self.buffer.lock().expect("console buffer lock poisoned");
+        if include_auto {
+            buffer.websocket_backfill_with_diagnostics()
+        } else {
+            buffer.websocket_backfill()
+        }
+    }
+
+    fn tail(&self, raw_n: Option<&str>, hide_auto: bool) -> Vec<ConsoleLine> {
+        let count = http_tail_count(raw_n);
+        let buffer = self.buffer.lock().expect("console buffer lock poisoned");
+        if hide_auto {
+            buffer.tail(count)
+        } else {
+            buffer.tail_with_diagnostics(count)
+        }
+    }
+
+    /// Serializes a command send with console insertion and returns the last
+    /// sequence that existed before the command was issued.
+    pub fn send_with_boundary(&self, send: impl FnOnce() -> bool) -> (u64, bool) {
+        let observed = self
+            .observed
+            .lock()
+            .expect("console observation lock poisoned");
+        let boundary = observed.sequence;
+        let sent = send();
+        (boundary, sent)
+    }
+
+    pub fn lines_after(&self, boundary: u64, count: usize) -> Vec<ConsoleLine> {
+        let observed = self
+            .observed
+            .lock()
+            .expect("console observation lock poisoned");
+        observed
+            .lines
+            .iter()
+            .rev()
+            .filter(|(sequence, _)| *sequence > boundary)
+            .take(count)
+            .map(|(_, line)| line.clone())
+            .collect()
+    }
+}
+
+pub async fn upgrade(
+    ws: WebSocketUpgrade,
+    State(state): State<ConsoleState>,
+    Query(query): Query<ConsoleQuery>,
+    Extension(auth): Extension<AuthState>,
+    Extension(identity): Extension<StreamAuthentication>,
+) -> Response {
+    let hide_auto = query.hide_auto.unwrap_or(true);
+    ws.max_frame_size(MAX_INBOUND_FRAME_BYTES)
+        .on_upgrade(move |socket| handle_socket(socket, state, hide_auto, auth, identity))
+}
+
+pub async fn tail(
+    State(state): State<ConsoleState>,
+    Query(query): Query<ConsoleQuery>,
+) -> Json<Vec<ConsoleLine>> {
+    Json(state.tail(query.n.as_deref(), query.hide_auto.unwrap_or(true)))
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConsoleStreamTicketResponse {
+    pub ticket: String,
+}
+
+pub async fn stream_ticket(
+    Extension(auth): Extension<AuthState>,
+    Extension(credential): Extension<AuthenticatedCredential>,
+) -> Response {
+    let mut response = Json(ConsoleStreamTicketResponse {
+        ticket: auth.issue_console_stream_ticket(&credential),
+    })
+    .into_response();
+    response.headers_mut().insert(
+        axum::http::header::CACHE_CONTROL,
+        axum::http::HeaderValue::from_static("no-store"),
+    );
+    response
+}
+
+async fn handle_socket(
+    mut socket: WebSocket,
+    state: ConsoleState,
+    hide_auto: bool,
+    auth: AuthState,
+    identity: StreamAuthentication,
+) {
+    let mut changes = auth.stream_changes();
+    let mut expiry_check = tokio::time::interval(std::time::Duration::from_secs(1));
+    if !auth.stream_is_authorized(&identity) {
+        let _ = socket.send(Message::Close(None)).await;
+        return;
+    }
+    // Subscribed before reading backfill so a line pushed mid-backfill is
+    // queued for live delivery rather than silently missed.
+    let mut live = state.sender.subscribe();
+    let mut automatic_live = (!hide_auto).then(|| state.automatic_sender.subscribe());
+
+    for line in state.backfill(!hide_auto) {
+        if !auth.stream_is_authorized(&identity) {
+            let _ = socket.send(Message::Close(None)).await;
+            return;
+        }
+        if send_line(&mut socket, &line).await.is_err() {
+            return;
+        }
+    }
+
+    loop {
+        tokio::select! {
+            _ = changes.changed() => {
+                if !auth.stream_is_authorized(&identity) {
+                    let _ = socket.send(Message::Close(None)).await;
+                    return;
+                }
+            }
+            _ = expiry_check.tick() => {
+                if !auth.stream_is_authorized(&identity) {
+                    let _ = socket.send(Message::Close(None)).await;
+                    return;
+                }
+            }
+            incoming = socket.recv() => {
+                match incoming {
+                    // Inbound text/binary is intentionally ignored — this
+                    // channel is server-to-client only (websocket-v1.json).
+                    // Ping/pong/close are handled by axum's WebSocket type
+                    // itself; a closed/errored connection ends the loop.
+                    Some(Ok(_)) => continue,
+                    Some(Err(_)) | None => return,
+                }
+            }
+            line = live.recv() => {
+                match line {
+                    Ok(line) => {
+                        if !auth.stream_is_authorized(&identity) { return; }
+                        if send_line(&mut socket, &line).await.is_err() {
+                            return;
+                        }
+                    }
+                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(broadcast::error::RecvError::Closed) => return,
+                }
+            }
+            line = receive_automatic(&mut automatic_live), if !hide_auto => {
+                match line {
+                    Ok(line) => {
+                        if !auth.stream_is_authorized(&identity) { return; }
+                        if send_line(&mut socket, &line).await.is_err() {
+                            return;
+                        }
+                    }
+                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(broadcast::error::RecvError::Closed) => return,
+                }
+            }
+        }
+    }
+}
+
+async fn receive_automatic(
+    receiver: &mut Option<broadcast::Receiver<ConsoleLine>>,
+) -> Result<ConsoleLine, broadcast::error::RecvError> {
+    match receiver {
+        Some(receiver) => receiver.recv().await,
+        None => std::future::pending().await,
+    }
+}
+
+async fn send_line(socket: &mut WebSocket, line: &ConsoleLine) -> Result<(), axum::Error> {
+    let text = serde_json::to_string(line).expect("ConsoleLine always serializes");
+    socket.send(Message::Text(text)).await
+}

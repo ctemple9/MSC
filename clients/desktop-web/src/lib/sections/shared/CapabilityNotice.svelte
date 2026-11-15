@@ -1,7 +1,7 @@
 <script lang="ts">
   import HelpLink from '../../help/HelpLink.svelte';
   export let title = 'This capability is unavailable';
-  export let message = 'The connected agent has not advertised this operation.';
+  export let message = 'The connected engine has not advertised this operation.';
   export let helpId: string | null | undefined = undefined;
   export let hostId = 'local-agent';
   export let serverId = 'survival';

@@ -129,7 +129,7 @@ struct ManagedLinuxProcess {
 /// A small real process supervisor for native Linux BDS.
 ///
 /// The shared process trait is synchronous.  Reader threads keep stdout and
-/// stderr flowing without blocking the agent, while `drain_events` performs
+/// stderr flowing without blocking the engine, while `drain_events` performs
 /// the non-blocking child-exit check and preserves the two stream identities.
 #[derive(Default)]
 pub struct LinuxBedrockProcessSupervisor {

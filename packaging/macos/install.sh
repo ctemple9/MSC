@@ -6,7 +6,7 @@ PATH_LINK="$PATH_DIR/msc"
 INSTALL_BASE="/usr/local/lib/msc2"
 
 fail() {
-  printf 'msc 2 macOS headless installer: %s\n' "$1" >&2
+  printf 'MSC macOS headless installer: %s\n' "$1" >&2
   exit 1
 }
 
@@ -14,7 +14,7 @@ usage() {
   cat <<'USAGE'
 Usage: install.sh
 
-Install the macOS headless MSC 2 command and launchd agent service.
+Install the macOS headless MSC command and launchd engine service.
 USAGE
 }
 
@@ -53,7 +53,7 @@ SOURCE_BINARY="$SCRIPT_DIR/msc"
 SOURCE_VANTAGE="$SCRIPT_DIR/vantage"
 SOURCE_BEDROCK_MAP="$SCRIPT_DIR/bedrock-map"
 SOURCE_VANTAGE_LICENSE="$SCRIPT_DIR/VANTAGE-LICENSE.txt"
-VERSION_FILE="$SCRIPT_DIR/MSC2-VERSION"
+VERSION_FILE="$SCRIPT_DIR/MSC-VERSION"
 [[ -x "$SOURCE_BINARY" ]] || fail "package binary is missing: $SOURCE_BINARY"
 [[ -x "$SOURCE_VANTAGE" ]] || fail "Vantage renderer is missing: $SOURCE_VANTAGE"
 [[ -x "$SOURCE_BEDROCK_MAP" ]] || fail "Bedrock terrain exporter is missing: $SOURCE_BEDROCK_MAP"
@@ -72,12 +72,12 @@ if ((EUID != 0)); then
 fi
 
 [[ -n "${MSC2_INSTALL_HOME:-}" && "${MSC2_INSTALL_HOME}" == /* ]] || fail \
-  "run install.sh as the account that will own MSC 2; it requests sudo itself"
+  "run install.sh as the account that will own MSC; it requests sudo itself"
 [[ -n "${MSC2_INSTALL_USER:-}" && "${MSC2_INSTALL_USER}" != "root" ]] || fail \
-  "run install.sh as the account that will own MSC 2"
+  "run install.sh as the account that will own MSC"
 INSTALLING_GROUP="$(id -gn "$MSC2_INSTALL_USER")" || fail "could not resolve installing group"
 DATA_DIR="$MSC2_INSTALL_HOME/Library/Application Support/MSC 2"
-AGENT_PLIST="/Library/LaunchDaemons/com.ctemple.msc2.agent.plist"
+ENGINE_PLIST="/Library/LaunchDaemons/com.ctemple.msc2.agent.plist"
 
 ARCH_ROOT="$INSTALL_BASE/$ARCHITECTURE"
 VERSION_ROOT="$ARCH_ROOT/$VERSION"
@@ -107,11 +107,11 @@ fi
 if [[ -e "$VERSION_ROOT" && ! -f "$OWNERSHIP_MARKER" ]]; then
   fail "existing non-MSC installation directory: $VERSION_ROOT"
 fi
-if [[ -f "$AGENT_PLIST" ]]; then
-  SERVICE_BINARY="$(plutil -extract ProgramArguments.0 raw -o - "$AGENT_PLIST" 2>/dev/null)" || \
-    fail "could not inspect the existing agent service"
+if [[ -f "$ENGINE_PLIST" ]]; then
+  SERVICE_BINARY="$(plutil -extract ProgramArguments.0 raw -o - "$ENGINE_PLIST" 2>/dev/null)" || \
+    fail "could not inspect the existing engine service"
   [[ "$SERVICE_BINARY" == "$INSTALL_BASE/"*/msc ]] || fail \
-    "the installed agent service belongs to another MSC installation"
+    "the installed engine service belongs to another MSC installation"
 fi
 
 install -d -m 0755 "$PATH_DIR" "$VERSION_ROOT"
@@ -153,7 +153,7 @@ install -d -m 0700 -o "$MSC2_INSTALL_USER" -g "$INSTALLING_GROUP" "$DATA_DIR" "$
 /bin/launchctl kickstart -k system/com.ctemple.msc2.agent
 
 cat <<MESSAGE
-MSC 2 macOS headless command installed.
+MSC macOS headless command installed.
 
 The command is installed as $PATH_LINK and is available as msc.
 $(if [[ ":$PATH:" == *":$PATH_DIR:"* ]]; then
@@ -162,6 +162,6 @@ $(if [[ ":$PATH:" == *":$PATH_DIR:"* ]]; then
     printf 'Refresh PATH or open a new shell before using it from this shell.\n'
   fi)
 
-The launchd agent is enabled at boot and running as $MSC2_INSTALL_USER.
-Use msc status agent, msc stop agent, and msc start agent for local control.
+The launchd engine is enabled at boot and running as $MSC2_INSTALL_USER.
+Use msc status engine, msc stop engine, and msc start engine for local control.
 MESSAGE

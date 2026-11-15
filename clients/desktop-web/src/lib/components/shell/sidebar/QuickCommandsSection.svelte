@@ -4,7 +4,7 @@
   // AppViewModel+ServerControls.swift:475-528, not guessed.
   //
   // Bedrock branching is real and manual, not something /v1/command does for
-  // us: crates/msc-agent/src/routes/commands.rs forwards whatever string it
+  // us: crates/msc-engine/src/routes/commands.rs forwards whatever string it
   // gets straight to the sidecar with no translation (only a leading-slash
   // strip), and msc-domain/src/commands.rs's own command catalog marks
   // "save-all"/"reload" as supports_bedrock: false and "allowlist" as
@@ -116,11 +116,11 @@
 
   onMount(() => {
     const refresh = () => void load();
-    window.addEventListener('msc2:active-world-profile-changed', refresh);
-    window.addEventListener('msc2:server-settings-changed', refresh);
+    window.addEventListener('msc:active-world-profile-changed', refresh);
+    window.addEventListener('msc:server-settings-changed', refresh);
     return () => {
-      window.removeEventListener('msc2:active-world-profile-changed', refresh);
-      window.removeEventListener('msc2:server-settings-changed', refresh);
+      window.removeEventListener('msc:active-world-profile-changed', refresh);
+      window.removeEventListener('msc:server-settings-changed', refresh);
     };
   });
 
@@ -146,7 +146,9 @@
       if (generation !== loadGeneration) return;
       activeWorldSlotId = worlds.activeSlotId;
       if (activeWorldSlotId) {
-        const slot = await api.get<Schema['WorldSlotWithProfileDTO']>(worldPaths.profile(activeWorldSlotId));
+        const slot = await api.get<Schema['WorldSlotWithProfileDTO']>(
+          worldPaths.profile(activeWorldSlotId),
+        );
         if (generation !== loadGeneration) return;
         difficulty = slot.profile.gameplay.difficulty ?? 'normal';
         gamemode = slot.profile.gameplay.defaultGameMode ?? 'survival';
@@ -200,10 +202,14 @@
     notice = '';
     confirmation = undefined;
     try {
-      const result = await mutate<Schema['WorldProfileUpdateResultDTO']>(api, worldPaths.profile(activeWorldSlotId), {
-        changes: { [key]: value },
-        ...(token ? { confirmation: token } : {}),
-      });
+      const result = await mutate<Schema['WorldProfileUpdateResultDTO']>(
+        api,
+        worldPaths.profile(activeWorldSlotId),
+        {
+          changes: { [key]: value },
+          ...(token ? { confirmation: token } : {}),
+        },
+      );
       if (key === 'gameplay.difficulty') difficulty = value;
       else gamemode = value;
       if (
@@ -213,7 +219,7 @@
       ) {
         notice = result.changes.find((change) => change.key === key)?.reason ?? 'Saved; it will apply after the server restarts.';
       }
-      window.dispatchEvent(new Event('msc2:active-world-profile-changed'));
+      window.dispatchEvent(new Event('msc:active-world-profile-changed'));
     } catch (error) {
       const prompt = safetyPrompt(error);
       if (prompt) {
@@ -273,7 +279,7 @@
         throw new Error('MSC could not save Enforce Gamemode.');
       }
       forceGamemodeEnabled = enabled;
-      window.dispatchEvent(new Event('msc2:server-settings-changed'));
+      window.dispatchEvent(new Event('msc:server-settings-changed'));
       notice = result.restartRequired
         ? 'Saved. Restart the server for Enforce Gamemode to take effect.'
         : running
@@ -419,7 +425,7 @@
   .stat {
     font-size: 10px;
     font-weight: 600;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: rgba(255, 255, 255, 0.06);
     padding: 3px 7px;
     border-radius: 20px;
@@ -438,7 +444,7 @@
     font-weight: 600;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .overline:first-child {
     margin-top: 0;
@@ -446,13 +452,13 @@
   .sub-label {
     margin: 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .subtle-note {
     margin: 0;
     font-size: 10px;
     line-height: 1.4;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .button-row {
     display: flex;
@@ -464,14 +470,14 @@
     font: inherit;
     font-size: 10px;
     font-weight: 500;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     cursor: pointer;
   }
   .pill:hover:not(:disabled) {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     background: rgba(255, 255, 255, 0.07);
   }
   .pill:disabled {
@@ -488,21 +494,21 @@
   }
   .field-label {
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .notice {
     margin: 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .confirmation {
     display: flex;
     flex-direction: column;
     gap: 7px;
     padding: 9px 10px;
-    border: 1px solid var(--msc2-hairline-strong);
+    border: 1px solid var(--msc-hairline-strong);
     border-radius: 7px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 10px;
     line-height: 1.45;
   }
@@ -510,7 +516,7 @@
     margin: 0;
   }
   .confirmation-title {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 600;
   }
   .confirmation-actions {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check the separate Phase 10 Bedrock compatibility matrix.
 
-The matrix keeps agent-host support independent from Bedrock-runtime support.
+The matrix keeps engine-host support independent from Bedrock-runtime support.
 Only an explicit ``planned`` runtime cell is allowed to wait for later
 evidence; every advertised status must point to a repository file that can be
 inspected and reproduced.  This is intentionally stdlib-only so the checker
@@ -25,8 +25,8 @@ ROOT = Path(__file__).resolve().parents[2]
 HEADER = [
     "host",
     "architecture",
-    "agent_host_status",
-    "agent_host_evidence",
+    "engine_host_status",
+    "engine_host_evidence",
     "bedrock_backend",
     "bedrock_runtime_status",
     "bedrock_runtime_evidence",
@@ -38,7 +38,7 @@ ADVERTISED_STATUSES = STATUSES - {"planned"}
 REQUIRED_FIELDS = {
     "host",
     "architecture",
-    "agent_host_status",
+    "engine_host_status",
     "bedrock_backend",
     "bedrock_runtime_status",
     "runtime_requirements",
@@ -100,15 +100,15 @@ def check_matrix(matrix_path: Path, required_cell: str | None = None) -> tuple[i
             require(cell not in seen_cells, f"line {row_number}: duplicate cell {cell!r}")
             seen_cells.add(cell)
 
-            for status_field in ("agent_host_status", "bedrock_runtime_status"):
+            for status_field in ("engine_host_status", "bedrock_runtime_status"):
                 status = row[status_field]
                 require(
                     status in STATUSES,
                     f"line {row_number}: {status_field}={status!r} is not one of {sorted(STATUSES)}",
                 )
                 evidence_field = (
-                    "agent_host_evidence"
-                    if status_field == "agent_host_status"
+                    "engine_host_evidence"
+                    if status_field == "engine_host_status"
                     else "bedrock_runtime_evidence"
                 )
                 evidence = row[evidence_field].strip()

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Live contract-conformance checker for the skeletal `msc-agent` (P2.17).
+"""Live contract-conformance checker for the skeletal `msc-engine` (P2.17).
 
-Calls every route this phase's agent implements (health, status,
+Calls every route this phase's engine implements (health, status,
 capabilities, and the three operation-lifecycle routes) against a running
-`msc-agent` and validates each live JSON response against
-`docs/msc2/api-contract/openapi.json`'s schema for that route --
+`msc-engine` and validates each live JSON response against
+`docs/msc/api-contract/openapi.json`'s schema for that route --
 P0.23/P2.11's schema-depth discipline (every required field present, every
 present field's declared type/enum matches, $ref/items/properties followed
 recursively so nested content is checked too), now pointed at a live
@@ -34,7 +34,7 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlparse
 
-CONTRACT_PATH = "docs/msc2/api-contract/openapi.json"
+CONTRACT_PATH = "docs/msc/api-contract/openapi.json"
 
 
 def load_contract():
@@ -141,7 +141,7 @@ def array_schema(item_schema_name):
 
 def run_checks(contract, base_url, token, selected_routes=None):
     """Returns a list of (route_name, passed, detail) tuples, one per route
-    this phase's agent implements."""
+    this phase's engine implements."""
     results = []
     selected = None
     if selected_routes is not None:
@@ -249,7 +249,7 @@ def check_phase4_lifecycle_routes(contract, base_url, token, selected, results, 
 
     check_schema("servers", "GET /v1/servers", "GET", "/v1/servers", array_schema("ServerDTO"), 200)
 
-    with tempfile.TemporaryDirectory(prefix="msc2-phase4-lifecycle-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="msc-phase4-lifecycle-") as tmp:
         server_dir = Path(tmp) / "paper"
         server_dir.mkdir()
         build_fake_paper_jar(server_dir / "paper.jar")
@@ -402,11 +402,11 @@ def live_check(base_url, token, routes):
 
 def expect_auth_store_check(base_url):
     """P4.5 live check: the old MSC_DEV_TOKEN value must not authorize
-    protected routes. Token-backed success is covered by msc-agent's
+    protected routes. Token-backed success is covered by msc-engine's
     auth_real_tokens tests, because a running service no longer exposes a
     fixed dev-token shortcut to mint credentials."""
     contract = load_contract()
-    dev_token = os.environ.get("MSC_DEV_TOKEN") or "msc2-dev-token"
+    dev_token = os.environ.get("MSC_DEV_TOKEN") or "msc-dev-token"
     checks = [
         ("GET /v1/status", "GET", "/v1/status", None),
         ("GET /v1/capabilities", "GET", "/v1/capabilities", None),

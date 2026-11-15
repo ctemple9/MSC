@@ -93,7 +93,7 @@ mod windows {
                         "uninstall",
                         "--danger",
                         "--confirm",
-                        "UNINSTALL MSC 2",
+                        "UNINSTALL MSC",
                         "--apply",
                     ])
                     .arg(root.join("job.json"))
@@ -122,7 +122,7 @@ mod windows {
                 .unwrap()
                 .as_nanos()
         );
-        let root = std::env::temp_dir().join(format!("msc2-handoff-{unique}"));
+        let root = std::env::temp_dir().join(format!("msc-handoff-{unique}"));
         fs::create_dir(&root).unwrap();
         let started_name = format!("Local\\MscHandoffStarted-{unique}");
         let release_name = format!("Local\\MscHandoffRelease-{unique}");

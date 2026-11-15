@@ -30,7 +30,7 @@ async fn line(stream: &mut UnixStream) -> Result<serde_json::Value, UploadError>
 fn failed() -> UploadError {
     UploadError::new(
         "local_handoff",
-        "The local agent could not confirm the selected file copy.",
+        "The local engine could not confirm the selected file copy.",
     )
 }
 pub(super) async fn copy(
@@ -89,7 +89,7 @@ pub(super) async fn copy(
     {
         return Err(failed());
     }
-    // No fallback after passing the descriptor: the agent may already be copying.
+    // No fallback after passing the descriptor: the engine may already be copying.
     if manager().generation(&context.host) != context.generation {
         return Err(cancelled());
     }

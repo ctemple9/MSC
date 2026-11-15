@@ -8,8 +8,8 @@
 > map repair/import/private-client capture feature was retired by owner decision
 > D-042 on 2026-10-06. Do not use launcher/capture experiments here to restore
 > that feature. Standard Java/Bedrock mapping and player-feed evidence remain
-> useful historical records. See [the retirement decision](../../docs/msc2/msc2-decisions.md)
-> and [the current rolling plan](../../docs/msc2/rolling-plan.md).
+> useful historical records. See [the retirement decision](../../docs/msc/msc-decisions.md)
+> and [the current rolling plan](../../docs/msc/rolling-plan.md).
 
 
 ## Fabric live player feed proof (P18.3m)
@@ -30,7 +30,7 @@ world data are not edited.
 Stop **Fabric** in MSC before installing:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/install_fabric_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/fabric" \
   --server-stopped
@@ -40,7 +40,7 @@ Start Fabric through MSC. From another terminal, watch its authenticated MSC
 console:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_java_player_feed.py --server Fabric
 ```
 
@@ -55,7 +55,7 @@ rendering.
 After the proof, stop Fabric in MSC and remove the temporary files:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/remove_fabric_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/fabric" \
   --server-stopped
@@ -78,7 +78,7 @@ Do not post watcher output publicly; names and coordinates are private.
 Stop **Forge** in MSC before installing:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/install_forge_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/forge" \
   --server-stopped
@@ -88,7 +88,7 @@ Start Forge through MSC. From another terminal, watch its authenticated
 console:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_java_player_feed.py --server Forge
 ```
 
@@ -97,7 +97,7 @@ samples track XYZ and yaw/pitch. Disconnect and confirm the next sample has
 `"players": []`. Stop Forge in MSC and remove the probe:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/remove_forge_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/forge" \
   --server-stopped
@@ -126,7 +126,7 @@ do not post output publicly.
 With Vanilla stopped, temporarily enable loopback RCON:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/enable_vanilla_rcon_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/vanilla" \
   --server-stopped
@@ -136,7 +136,7 @@ Start Vanilla through MSC. Join from this Mac at `127.0.0.1:25565`. In another
 terminal, poll the local RCON endpoint:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_vanilla_rcon_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/vanilla"
 ```
@@ -153,7 +153,7 @@ datapack disable "file/msc-map-player-feed-proof.zip"
 With Vanilla stopped, restore its original bind and RCON settings:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/disable_vanilla_rcon_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/vanilla" \
   --server-stopped
@@ -185,7 +185,7 @@ time but still needs its own live proof.
 Stop **Pupur** in MSC before installing:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/install_purpur_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/pupur" \
   --server-stopped
@@ -194,7 +194,7 @@ python3 tools/world-map-proof/install_purpur_player_feed.py \
 Start it through MSC and watch the authenticated console:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_java_player_feed.py --server Pupur
 ```
 
@@ -203,7 +203,7 @@ confirm fresh positions/look; disconnect and confirm an empty roster. Stop
 Pupur in MSC and remove the plugin:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/remove_purpur_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/pupur" \
   --server-stopped
@@ -231,7 +231,7 @@ Player names and coordinates are private; do not post watcher output publicly.
 Stop **Neoforge** in MSC before installing:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/install_neoforge_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/neoforge" \
   --server-stopped
@@ -240,7 +240,7 @@ python3 tools/world-map-proof/install_neoforge_player_feed.py \
 Start Neoforge through MSC, then watch from another terminal:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_java_player_feed.py --server Neoforge
 ```
 
@@ -249,7 +249,7 @@ positions/look; disconnect and confirm an empty roster. After stopping
 Neoforge in MSC, remove the probe:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/remove_neoforge_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/neoforge" \
   --server-stopped
@@ -276,7 +276,7 @@ pitch. Names and coordinates are private; do not publish watcher output.
 Stop **Paper** in MSC before installing the plugin:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/install_paper_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/paper" \
   --server-stopped
@@ -287,7 +287,7 @@ process is using this server directory. Start Paper through MSC. From a second
 terminal, watch its authenticated console:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_java_player_feed.py --server Paper
 ```
 
@@ -301,7 +301,7 @@ does not prove other Paper versions or Java terrain rendering.
 After the proof, stop Paper in MSC and remove the plugin:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/remove_paper_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/paper" \
   --server-stopped
@@ -329,7 +329,7 @@ runtime: [event list](https://kubejs.com/wiki/events),
 Stop **All The Mods 10 LITE** in MSC, then install the probe:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/install_java_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/all_the_mods_10_lite" \
   --server-stopped
@@ -340,7 +340,7 @@ process whose working directory is this server. Start the server in MSC, then
 watch its authenticated MSC console from another terminal:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_java_player_feed.py \
   --server "All The Mods 10 LITE"
 ```
@@ -355,7 +355,7 @@ open, not a connection to the server log file.
 To remove the probe, stop the server in MSC and run:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/remove_java_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/java/all_the_mods_10_lite" \
   --server-stopped
@@ -382,7 +382,7 @@ To try it on the imported `bedrock-sample` server, **stop that server in MSC**
 first. Then run:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/install_bedrock_player_feed.py \
   --server-dir "$HOME/Library/Application Support/MSC 2/servers/bedrock/bedrock-sample" \
   --server-stopped
@@ -393,19 +393,19 @@ pack ID to the active world's `world_behavior_packs.json`, and preserves any
 existing pack list as `.before-msc-map-proof`. It refuses duplicate installs.
 Restart BDS in MSC, then in another terminal run the polling watcher. It uses
 the authenticated `msc console tail` endpoint and works with the currently
-installed agent:
+installed engine:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/watch_bedrock_player_feed.py --poll \
   --server bedrock-sample
 ```
 
-After a development agent containing P18.3b is loaded, the streaming path can
+After a development engine containing P18.3b is loaded, the streaming path can
 also be checked with:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 MSC2_DATA_DIR="$HOME/Library/Application Support/MSC 2" \
   target/debug/msc console follow --server bedrock-sample \
   | python3 tools/world-map-proof/watch_bedrock_player_feed.py
@@ -441,7 +441,7 @@ separate `msc --json world map-snapshot` results; do not compare a live BDS
 LevelDB directory. Use a new output directory for each comparison:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/export_changed_tiles.py \
   --before '/path/from/first/snapshot/result/worldPath' \
   --after '/path/from/second/snapshot/result/worldPath' \
@@ -474,7 +474,7 @@ pack at export time and are never checked into this repository.
 ## Current local proof
 
 The private world copy is `/private/tmp/msc-bds-world-proof`, made from
-`~/msc2-servers/bedrock/juice/worlds/Juice!` while BDS was stopped. The resource
+`~/msc-servers/bedrock/juice/worlds/Juice!` while BDS was stopped. The resource
 pack is `/private/tmp/msc-bedrock-samples/resource_pack`, fetched from Mojang's
 [`bedrock-samples`](https://github.com/Mojang/bedrock-samples). The installed BDS
 `resource_packs/vanilla` has block metadata but no PNG/TGA terrain images, so
@@ -486,7 +486,7 @@ BDS is stopped, obtain a Bedrock resource pack containing
 `textures/terrain_texture.json` and block images, then run:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 cargo run --release --manifest-path tools/world-map-proof/Cargo.toml -- \
   /path/to/offline-world-copy /path/to/resource_pack \
   /path/to/private-output-directory
@@ -495,7 +495,7 @@ cargo run --release --manifest-path tools/world-map-proof/Cargo.toml -- \
 To view the existing artifact:
 
 ```sh
-cd /Users/example/msc2-world-map/tools/world-map-proof/viewer
+cd /Users/example/msc-world-map/tools/world-map-proof/viewer
 MSC_WORLD_MAP_PROOF_OUTPUT=/private/tmp/msc-world-map-output npm run dev
 ```
 
@@ -511,14 +511,14 @@ the owner's transferred MSC1 BDS world is copied read-only to
 The generated files are `/private/tmp/msc-bds-base-proof/output`.
 
 ```sh
-cd /Users/example/msc2-world-map/tools/world-map-proof/viewer
+cd /Users/example/msc-world-map/tools/world-map-proof/viewer
 MSC_WORLD_MAP_PROOF_OUTPUT=/private/tmp/msc-bds-base-proof/output npm run dev
 ```
 
 To regenerate from the offline copy, run:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 cargo run --release --manifest-path tools/world-map-proof/Cargo.toml -- \
   /private/tmp/msc-bds-base-proof/world \
   /private/tmp/msc-bedrock-samples/resource_pack \
@@ -555,7 +555,7 @@ The same private offline world copy contains the owner's gold farm near
 generated outside Git at `/private/tmp/msc-bds-gold-proof/output`:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 tools/world-map-proof/target/release/msc-world-map-proof \
   /private/tmp/msc-bds-base-proof/world \
   /private/tmp/msc-bedrock-samples/resource_pack \
@@ -576,7 +576,7 @@ tile starting at chunk `(private chunk origin omitted)`. Its private generated f
 `/private/tmp/msc-bds-ice-proof/output`:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 tools/world-map-proof/target/release/msc-world-map-proof \
   /private/tmp/msc-bds-base-proof/world \
   /private/tmp/msc-bedrock-samples/resource_pack \
@@ -607,7 +607,7 @@ records `lastOpenedWithVersion` `[1,26,31,1,0]` and storage version `10`.
 Neither field resolves a numeric biome ID to a name. The bounded color
 mapping remains provisional until a version-aware registry is established.
 The source and exact-version gap are recorded in
-`docs/msc2/bedrock-biome-registry.md`. The exporter labels its current mapping
+`docs/msc/bedrock-biome-registry.md`. The exporter labels its current mapping
 as provisional in `summary.txt`.
 
 ### Optional exact-version biome registry (P18.2k)
@@ -630,7 +630,7 @@ The available private BedrockData `1.26.30` wrapper at
 `/private/tmp/msc-biome-registry-1.26.30.json` is deliberately incompatible
 with this save's `1.26.31` metadata. The exact registry still needs extraction
 from the corresponding BDS executable on Linux. See
-`docs/msc2/bedrock-biome-registry.md` for provenance and upgrade limits.
+`docs/msc/bedrock-biome-registry.md` for provenance and upgrade limits.
 
 Surface biome IDs `27` and `155` occur in 1,922 and 2,174 columns. This
 bounded proof assumes their legacy mapping to birch forest and its mutated
@@ -684,7 +684,7 @@ first-visible viewer time and viewer CPU/memory use are still unmeasured.
 ## Running BDS snapshot proof (P18.2l)
 
 Start a disposable Bedrock world through MSC and place or remove one easily
-recognized block. Load this worktree's development agent, then run from the
+recognized block. Load this worktree's development engine, then run from the
 worktree root:
 
 ```sh
@@ -760,7 +760,7 @@ capture three samples around the developed base at `(private coordinates omitted
 origin for that base is `(private chunk origin omitted)`:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 tools/world-map-proof/measure_refresh_series.py \
   --resource-pack /private/tmp/msc-bedrock-samples/resource_pack \
   --output-root /private/tmp/msc-bds-base-proof/output \
@@ -777,19 +777,19 @@ not a full-world streaming benchmark or an automatic refresh loop.
 
 Production stopped-world Bedrock map snapshots have a separate 30-minute copy
 deadline. If a live copy cannot finish within its save-hold budget, stop the
-server and refresh terrain; stopped copying does not hold server saves. Agent
+server and refresh terrain; stopped copying does not hold server saves. Engine
 shutdown or starting the server cancels a stopped copy. Snapshot writes stream
 with a fixed-size buffer and periodically recheck the disk reserve. A map error
 does not require converting the world again.
 
 ### Live Bedrock player overlay (P18.3c)
 
-Build and load this worktree's development agent before using the new route.
+Build and load this worktree's development engine before using the new route.
 Leave the Bedrock player behavior pack installed in the active world and start
 that world through MSC. From this worktree, inspect the authenticated feed:
 
 ```sh
-cargo build -p msc-agent --bin msc
+cargo build -p msc-engine --bin msc
 MSC2_DATA_DIR="$HOME/Library/Application Support/MSC 2" \
   target/debug/msc --json world map-players
 ```
@@ -797,8 +797,8 @@ MSC2_DATA_DIR="$HOME/Library/Application Support/MSC 2" \
 The result reports `fresh: true` only while the active BDS server's pack has
 sent a sample in the last five seconds. It carries current XYZ, yaw, pitch,
 dimension, and names. When the feed is absent or stale, `players` is empty.
-The server must run under this newly built development agent; building the CLI
-alone does not update an already running agent.
+The server must run under this newly built development engine; building the CLI
+alone does not update an already running engine.
 
 Open the existing private base tile in the proof viewer:
 
@@ -809,12 +809,12 @@ MSC_WORLD_MAP_PROOF_OUTPUT=/private/tmp/msc-bds-base-proof/output npm run dev
 ```
 
 The local Vite proof server calls the authorized CLI on behalf of the browser;
-the browser never receives an agent token. Visit the local address Vite prints.
+the browser never receives an engine token. Visit the local address Vite prints.
 Keep that Vite process running: it now uses one CLI session for live updates
 and renews its credential before expiry, instead of authorizing every second.
 Join the Bedrock server near the exported base at `(private coordinates omitted)`, walk and
 turn, and compare the 3D model with your client. The label should show one
-live Bedrock player. Leave the server or stop the agent and confirm the model
+live Bedrock player. Leave the server or stop the engine and confirm the model
 disappears and the label reports an unavailable feed within roughly five
 seconds. This is a single-tile development proof; it does not yet provide the
 full Worlds-tab shell, roster, skins, all dimensions, or Java player feeds.
@@ -851,7 +851,7 @@ upright logs and deepslate, including compact string palette entries. Vantage
 as air. The helper requires pinned `nbtlib`:
 
 ```sh
-cd /Users/example/msc2-world-map
+cd /Users/example/msc-world-map
 python3 -m pip install --target /private/tmp/msc-java-pydeps \
   -r tools/world-map-proof/requirements-java-terrain.txt
 PYTHONPATH=/private/tmp/msc-java-pydeps python3 \
@@ -908,7 +908,7 @@ python3 tools/world-map-proof/audit_java_terrain_assets.py \
 Open any generated case in the existing proof viewer:
 
 ```sh
-cd /Users/example/msc2-world-map/tools/world-map-proof/viewer
+cd /Users/example/msc-world-map/tools/world-map-proof/viewer
 MSC_WORLD_MAP_PROOF_OUTPUT=/private/tmp/msc-java-terrain-proof/atm10-1.21.1 npm run dev
 ```
 
@@ -945,7 +945,7 @@ file: a safe Java snapshot boundary and live saved-terrain refresh still need
 proof. Modded regions use the staged assets and `--flatten-mod-namespaces`.
 
 The proof-only `world map-snapshot` endpoint now has a Java capture path. With
-an MSC-managed Java server running and its updated agent installed, run:
+an MSC-managed Java server running and its updated engine installed, run:
 
 ```sh
 MSC2_DATA_DIR="$HOME/Library/Application Support/MSC 2" \

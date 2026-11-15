@@ -12,7 +12,7 @@ import type { Schema, ScreenApi } from './types';
 
 export type UploadSource = (NativeFileSource | FileChunkSource) & {
   readonly uploadApi?: ScreenApi;
-  readonly olderAgent?: boolean;
+  readonly olderEngine?: boolean;
   readonly uploadBindings?: UploadBindings;
 };
 export type UploadBindings = Pick<
@@ -79,7 +79,7 @@ export async function pickUploadSource(
   bindings: UploadBindings = {},
   ownerCurrent: () => boolean = () => true,
 ): Promise<UploadSource | null> {
-  if (!api) throw new Error('Connect to an agent before choosing a file.');
+  if (!api) throw new Error('Connect to an engine before choosing a file.');
   if (!ownerCurrent()) return null;
   if (api.selectUploadSource) {
     const selected = await api.selectUploadSource(purpose, request, bindings);
@@ -95,7 +95,7 @@ export async function pickUploadSource(
     return selected;
   }
   // Retained for older adapters. The supported desktop adapter always selects
-  // a native handle, including when its agent needs legacy transfer support.
+  // a native handle, including when its engine needs legacy transfer support.
   const scoped = api.snapshot?.() ?? api;
   const source = await (await getPlatform()).pickFileStream(request);
   if (!ownerCurrent()) {
@@ -121,7 +121,7 @@ export function nativeProgress(progress: NativeUploadProgress): FileUploadProgre
 }
 
 export async function discardUpload(api: ScreenApi | undefined, id: string): Promise<void> {
-  if (!api?.delete) throw new Error('Agent cleanup could not be confirmed.');
+  if (!api?.delete) throw new Error('Background Service cleanup could not be confirmed.');
   try {
     await api.delete(`/v1/staged-uploads/${id}`);
   } catch (error) {

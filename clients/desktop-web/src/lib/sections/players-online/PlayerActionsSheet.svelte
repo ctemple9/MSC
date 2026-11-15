@@ -242,7 +242,7 @@
 
   {#if !selected}
     {#each groups as group (group.label)}
-      <div class="group-label msc2-type-overline">{group.label}</div>
+      <div class="group-label msc-type-overline">{group.label}</div>
       <div class="action-list">
         {#each actions.filter((action) => group.ids.includes(action.id) && (action.id !== 'ban' || !isBedrock)) as action (action.id)}
           <button
@@ -345,20 +345,20 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
     margin-bottom: 14px;
   }
   .edition {
     margin-left: auto;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .action-list {
     display: flex;
     flex-direction: column;
   }
   .group-label {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin: 18px 0 4px;
   }
   .context + .group-label {
@@ -373,8 +373,8 @@
     text-align: left;
     background: transparent;
     border: 0;
-    border-bottom: 1px solid var(--msc2-hairline-faint);
-    color: var(--msc2-text-primary);
+    border-bottom: 1px solid var(--msc-hairline-faint);
+    color: var(--msc-text-primary);
     padding: 10px 2px;
     cursor: pointer;
   }
@@ -397,16 +397,16 @@
   .action small {
     font-size: 10px;
     font-weight: 400;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .chevron {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .back {
     border: 0;
     padding: 0;
     background: none;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
     cursor: pointer;
   }
@@ -416,7 +416,7 @@
     margin: 14px 0 4px;
   }
   .recipient {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
     margin: 0 0 18px;
   }
@@ -424,17 +424,17 @@
   .field-label {
     display: block;
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     margin: 12px 0 6px;
   }
   select,
   input {
     box-sizing: border-box;
     width: 100%;
-    border: 1px solid var(--msc2-hairline-field);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
-    background: var(--msc2-tier-chrome);
-    color: var(--msc2-text-primary);
+    background: var(--msc-tier-chrome);
+    color: var(--msc-text-primary);
     padding: 8px 10px;
     font: inherit;
     font-size: 12px;
@@ -456,16 +456,16 @@
     margin: 14px 0 0;
   }
   .impact {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .confirm {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .notice {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .footer {
     display: flex;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  // First-start is an agent-owned two-pass operation. This sheet only drives
+  // First-start is an engine-owned two-pass operation. This sheet only drives
   // the existing routes and renders their truth; credentials stay inside
   // PlayitSetupSheet and never enter this coordinator's state.
   import { onDestroy, onMount } from 'svelte';
@@ -194,7 +194,7 @@
         );
       }
     } catch {
-      // The operation remains authoritative if the agent is briefly
+      // The operation remains authoritative if the engine is briefly
       // unreachable; keep the last visible console tail in place.
     }
   }
@@ -278,7 +278,7 @@
     statusLine = 'Starting the server to create its configuration and world files…';
     const accepted = await mutate<Schema['SimpleResult']>(api, fleetMutationPaths.start);
     operationId = accepted.operationId ?? '';
-    if (!operationId) throw new Error('The agent did not return a first-start operation.');
+    if (!operationId) throw new Error('The engine did not return a first-start operation.');
     const operation = await pollOperation(api, operationId, (tick) => {
       statusLine = tick.statusLine ?? statusLine;
     });
@@ -304,7 +304,7 @@
       operation.result?.firstStartPass1Complete !== true &&
       operation.result?.firstStartPass1Complete !== 'true'
     ) {
-      // A world left by an earlier attempt makes the agent use an ordinary
+      // A world left by an earlier attempt makes the engine use an ordinary
       // start, which succeeds at Ready while Paper is still running.
       phase = 'stopping';
       statusLine = 'The server is ready. Stopping it before connection setup…';
@@ -484,7 +484,7 @@
       }
       const accepted = await mutate<Schema['SimpleResult']>(api, fleetMutationPaths.start);
       operationId = accepted.operationId ?? '';
-      if (!operationId) throw new Error('The agent did not return the second-pass operation.');
+      if (!operationId) throw new Error('The engine did not return the second-pass operation.');
       phase = 'waiting';
       void monitorPassTwo().catch((caught) => {
         if (!disposed) failWithMessage(caught);
@@ -758,7 +758,7 @@
   {#if phase === 'eula'}
     <div class="stack">
       <div>
-        <p class="msc2-type-overline">One-time setup</p>
+        <p class="msc-type-overline">One-time setup</p>
         <h2>Prepare {serverName || 'your server'}</h2>
         <p class="copy">
           MSC will start the server once to create its real configuration and world files, then stop
@@ -788,17 +788,17 @@
     </div>
   {:else if phase === 'starting-pass-one'}
     <div class="stack">
-      <p class="msc2-type-overline">Pass 1 of 2</p>
+      <p class="msc-type-overline">Pass 1 of 2</p>
       <h2>Creating the server files</h2>
       <p class="copy">
-        The agent is waiting for the server-ready signal before it stops the first run.
+        The engine is waiting for the server-ready signal before it stops the first run.
       </p>
       <p class="status-line" role="status" aria-live="polite">{statusLine}</p>
     </div>
   {:else if phase === 'transport-setup' || phase === 'starting-pass-two' || phase === 'waiting' || phase === 'stopping'}
     <div class="stack">
       <div>
-        <p class="msc2-type-overline">
+        <p class="msc-type-overline">
           {phase === 'transport-setup' ? 'Pass 1 complete' : 'Pass 2 of 2'}
         </p>
         <h2>{phase === 'transport-setup' ? 'Choose connections' : 'Checking connections'}</h2>
@@ -885,7 +885,7 @@
   {:else if phase === 'complete'}
     <div class="stack">
       <div>
-        <p class="msc2-type-overline">First Start</p>
+        <p class="msc-type-overline">First Start</p>
         <h2>{serverName || 'Server'} is ready</h2>
         <p class="copy">
           MSC created the server files and recorded the connections that actually resolved.
@@ -1050,7 +1050,7 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .copy,
   .notice,
@@ -1058,11 +1058,11 @@
     margin: 0;
     font-size: 12px;
     line-height: 1.55;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .notice {
     padding: 10px 0;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
   }
   .broadcast-auth-notice {
     display: flex;
@@ -1076,25 +1076,25 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.45;
   }
   .eula-check input {
     margin: 2px 0 0;
-    accent-color: var(--msc2-status-ok);
+    accent-color: var(--msc-status-ok);
   }
   .status-line {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .status-label {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
     font-size: 12px;
     font-weight: 500;
   }
   .error {
     margin: 0;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -1103,7 +1103,7 @@
     align-items: center;
     gap: 8px;
     padding-top: 10px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .action-spacer {
     flex: 1;
@@ -1112,7 +1112,7 @@
   .connection-list {
     display: flex;
     flex-direction: column;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -1122,7 +1122,7 @@
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .transport-row:first-child,
   .connection-list > div:first-child {
@@ -1139,12 +1139,12 @@
   }
   strong,
   .connection-list span {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
     font-weight: 500;
   }
   .transport-row span {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .section {
@@ -1154,7 +1154,7 @@
   }
   .section-label {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -1162,13 +1162,13 @@
   }
   code {
     margin-left: auto;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 11px;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   .connection-note {
     flex: 1;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
     line-height: 1.4;
     text-align: right;
@@ -1186,7 +1186,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
     font-weight: 600;
   }
@@ -1196,7 +1196,7 @@
     gap: 8px;
   }
   .console-live {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
     font-size: 10px;
     font-weight: 500;
   }
@@ -1206,10 +1206,10 @@
     overflow-y: auto;
     scrollbar-width: none;
     padding: 8px 10px;
-    background: var(--msc2-tier-terminal);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-terminal);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 8px;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 10px;
     line-height: 1.45;
   }
@@ -1218,18 +1218,18 @@
   }
   .console-line {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     white-space: pre-wrap;
     word-break: break-word;
   }
   .console-line.error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .console-line.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .console-empty {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

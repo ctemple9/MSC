@@ -32,7 +32,7 @@ def action(platform: str, reason: str):
     if platform == "macos":
         return f'IOPMAssertionCreateWithName(PreventUserIdleSystemSleep, level=255, reason="MSC2: {reason}")'
     if platform == "linux":
-        return "systemd-inhibit --what=sleep --who=MSC2 --mode=block --why='{0}' /bin/sh -c 'trap '\\''exit 0'\\'' TERM INT; while :; do sleep 3600; done'".format(reason)
+        return "systemd-inhibit --what=sleep --who=MSC --mode=block --why='{0}' /bin/sh -c 'trap '\\''exit 0'\\'' TERM INT; while :; do sleep 3600; done'".format(reason)
     return "SetThreadExecutionState({0})".format(
         "ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED"
         if "dedicated/headless host" in reason

@@ -1,5 +1,5 @@
 /**
- * Presentation-only ordering for content the agent already serves unordered
+ * Presentation-only ordering for content the engine already serves unordered
  * (BTreeMap iteration for the help catalog; a flat array for router guides).
  * No prose lives here -- only the reading order and category labels MSC 1's
  * ServerHandbookView.swift / RouterPortForwardGuidePicker.swift use, so the

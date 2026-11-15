@@ -13,28 +13,28 @@ from pathlib import Path
 MANIFEST_LINE = re.compile(r"^([0-9a-f]{64})  (.+)$")
 RELEASE_VERSION = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
 EXPECTED_BETA_ASSETS = {
-    "macos desktop": re.compile(rf"^msc2-(?P<version>{RELEASE_VERSION})-macos-x86_64\.dmg$"),
+    "macos desktop": re.compile(rf"^msc-(?P<version>{RELEASE_VERSION})-macos-x86_64\.dmg$"),
     "macos headless": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-macos-x86_64\.tar\.gz$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-macos-x86_64\.tar\.gz$"
     ),
     "macos Apple Silicon desktop": re.compile(
-        rf"^msc2-(?P<version>{RELEASE_VERSION})-macos-aarch64\.dmg$"
+        rf"^msc-(?P<version>{RELEASE_VERSION})-macos-aarch64\.dmg$"
     ),
     "macos Apple Silicon headless": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-macos-aarch64\.tar\.gz$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-macos-aarch64\.tar\.gz$"
     ),
-    "windows desktop": re.compile(rf"^msc2-(?P<version>{RELEASE_VERSION})-windows-x86_64\.msi$"),
+    "windows desktop": re.compile(rf"^msc-(?P<version>{RELEASE_VERSION})-windows-x86_64\.msi$"),
     "windows headless": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-windows-x86_64\.zip$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-windows-x86_64\.zip$"
     ),
     "linux desktop deb": re.compile(
-        rf"^msc2-(?P<version>{RELEASE_VERSION})-linux-x86_64\.deb$"
+        rf"^msc-(?P<version>{RELEASE_VERSION})-linux-x86_64\.deb$"
     ),
     "linux desktop rpm": re.compile(
-        rf"^msc2-(?P<version>{RELEASE_VERSION})-linux-x86_64\.rpm$"
+        rf"^msc-(?P<version>{RELEASE_VERSION})-linux-x86_64\.rpm$"
     ),
     "linux headless": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-linux-x86_64\.tar\.gz$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-linux-x86_64\.tar\.gz$"
     ),
 }
 CHUNK_SIZE = 1024 * 1024

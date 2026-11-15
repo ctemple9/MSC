@@ -9,8 +9,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-EVIDENCE_DIR = ROOT / "docs" / "msc2" / "lifecycle" / "credential-evidence"
-SCHEMA = "msc2.phase4.credential-evidence.v1"
+EVIDENCE_DIR = ROOT / "docs" / "msc" / "lifecycle" / "credential-evidence"
+SCHEMA = "msc.phase4.credential-evidence.v1"
 
 REQUIRED_TRUE_FIELDS = [
     "credentialStoredInProductionStore",

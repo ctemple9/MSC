@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'msc2.upload-chunk-mib';
+const STORAGE_KEY = 'msc.upload-chunk-mib';
 export const MIN_UPLOAD_CHUNK_MIB = 1;
 export const MAX_UPLOAD_CHUNK_MIB = 8;
 export const DEFAULT_UPLOAD_CHUNK_MIB = 2;

@@ -7,7 +7,7 @@
     "line": 215
   },
   "input": {
-    "portPlanDimension": "atomic-write interruption (msc2-port-plan.md line 187, fourth sub-item)",
+    "portPlanDimension": "atomic-write interruption (msc-port-plan.md line 187, fourth sub-item)",
     "description": "ConfigManager.save() writes the encoded config via `data.write(to: configURL, options: [.atomic])` -- Foundation's own temp-write-then-rename primitive. A process interrupted between the temp write and the rename must leave the previous server_config_swift.json exactly as it was; the new content must never appear half-written."
   },
   "expected": {

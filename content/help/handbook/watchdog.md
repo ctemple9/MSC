@@ -15,7 +15,7 @@ Minecraft servers can crash — a buggy plugin, an out-of-memory condition, or a
 
 ### Bullet List
 
-- A background launchd agent (a macOS system service) polls periodically to check whether your server process is running
+- A background launchd engine (a macOS system service) polls periodically to check whether your server process is running
 - When you stop the server intentionally via the Stop button or the /stop command, the app writes a clean-quit marker to the server folder
 - If the watchdog finds the server stopped but no clean-quit marker present, it treats the stop as a crash and restarts the server automatically
 - If the clean-quit marker is present, the watchdog recognizes the intentional stop and leaves the server down
@@ -41,7 +41,7 @@ Enable the watchdog any time you’re leaving your server running overnight or w
 
 ### Advanced Details
 
-The launchd agent is a lightweight plist that macOS loads on login. It polls at a configurable interval (default: 60 seconds). The interval is intentionally not too short — a rapid restart loop after a repeating crash could hammer disk I/O unnecessarily.
+The launchd engine is a lightweight plist that macOS loads on login. It polls at a configurable interval (default: 60 seconds). The interval is intentionally not too short — a rapid restart loop after a repeating crash could hammer disk I/O unnecessarily.
 
 The clean-quit cookie is a file written to the server’s directory when MSC initiates an intentional stop, and removed when the server is started again. The watchdog reads this file before deciding whether to restart.
 

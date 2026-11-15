@@ -152,7 +152,7 @@ export class DesktopSessionAuth {
   }
 
   /**
-   * Builds an ApiClient-compatible fetch boundary for exactly one agent host.
+   * Builds an ApiClient-compatible fetch boundary for exactly one engine host.
    * Full URLs are reduced to their path before crossing into Rust; the shell
    * checks that path against the origin stored with this host's credential.
    */

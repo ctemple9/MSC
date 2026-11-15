@@ -21,7 +21,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "msc2-bedrock-storage-{label}-{}",
+            "msc-bedrock-storage-{label}-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&path);

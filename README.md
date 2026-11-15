@@ -1,31 +1,31 @@
-# MSC 2
+# Minecraft Server Controller (MSC)
 
 Built by ctemple9
 
 > **A free, self-hosted way to manage Minecraft servers.**
 >
 > Whether your players use Bedrock on Xbox, PlayStation 5, Nintendo Switch,
-> Windows, or mobile, Java on PC, or a combination of both, MSC 2 is being
+> Windows, or mobile, Java on PC, or a combination of both, MSC is being
 > built to manage the server behind that group.
 
-MSC 2 runs Minecraft servers on a computer you own and gives you a desktop
+MSC runs Minecraft servers on a computer you own and gives you a desktop
 app or terminal interface to manage them. Running a server still involves
 server files, Java settings, network ports, and configuration.
-MSC 2 puts as much of that as possible into guided controls and explains the
+MSC puts as much of that as possible into guided controls and explains the
 rest as you go, so you can learn what you need without having to master
 everything first.
 
 The terminal options are the scriptable `msc` commands and the keyboard-driven
-`msc tui` interface. The TUI runs on the computer hosting the agent, including
+`msc tui` interface. The TUI runs on the computer hosting the engine, including
 in an SSH session to that computer; it does not connect directly to another
 host.
 
 ## Download and install
 
-Download [MSC 2 v0.1.43](https://github.com/ctemple9/msc2/releases/tag/v0.1.43)
-and choose the file for your computer. The desktop app includes the agent.
+Download [MSC v0.1.43](https://github.com/ctemple9/msc2/releases/tag/v0.1.43)
+and choose the file for your computer. The desktop app includes the engine.
 
-- **Mac:** Open the `.dmg` and drag MSC 2 to Applications.
+- **Mac:** Open the `.dmg` and drag MSC to Applications.
 - **Windows:** Open the `.msi` and follow the installer.
 - **Linux:** Install the `.deb` or `.rpm` with your package manager.
 - **Headless host:** Download its archive and follow the included
@@ -39,43 +39,43 @@ then `msc update install --release-id 0.1.43`.
 
 The v0.1.43 download includes the desktop app, host-local CLI and full-screen
 `msc tui`, saved-terrain maps, and the server-management features below.
-The TUI runs locally on the agent host or through an SSH login to it.
+The TUI runs locally on the engine host or through an SSH login to it.
 
 Desktop builds also include a Minecraft-style helmet in the system bar while
-the local agent runs, including after the desktop window closes. Use the local
-Agent page to show or hide it. See the [indicator guide](docs/msc2/agent-indicator.md).
+the local engine runs, including after the desktop window closes. Use the local
+Engine page to show or hide it. See the [indicator guide](docs/msc/engine-indicator.md).
 
 ## Start your first server
 
-1. Open MSC 2, or use `msc` or `msc tui` on a headless host. The desktop app can
-   connect to a headless agent from another computer.
+1. Open MSC, or use `msc` or `msc tui` on a headless host. The desktop app can
+   connect to a headless engine from another computer.
 2. Choose **Add Server**.
 3. Choose **Java** or **Bedrock**, then select the Minecraft version and server
    software.
 4. Configure the world and connection method.
 5. Create and start the server.
-6. Complete the EULA and connection setup when MSC 2 asks you to.
+6. Complete the EULA and connection setup when MSC asks you to.
 
 For a first Java server, **Paper** is a good default. For a first Bedrock
 server, choose **Bedrock Dedicated Server**.
 
-## What MSC 2 does
+## What MSC does
 
 ### Manages Java and Bedrock servers
 
-MSC 2 helps you create, install, start, stop, and maintain both major
+MSC helps you create, install, start, stop, and maintain both major
 Minecraft server editions:
 
 - **Java Edition:** Vanilla, Paper, Purpur, Fabric, NeoForge, and Forge
 - **Bedrock Edition:** Bedrock Dedicated Server where Mojang supports it (no Docker needed!)
 
-MSC 2 manages the server, not the Minecraft game installed on each player's
+MSC manages the server, not the Minecraft game installed on each player's
 device. A player can join from a computer, Xbox, PlayStation 5, Nintendo
 Switch, or mobile device when the server and connection method support it.
 
 ### Supports mixed Java and Bedrock groups
 
-Java and Bedrock players normally use different server systems. MSC 2 can set
+Java and Bedrock players normally use different server systems. MSC can set
 up the tools that allow them to play together, including Geyser and Floodgate,
 where the selected server version and platform support that setup. To be clear, 
 these tools allow for Bedrock players to join Java (Paper) worlds, not the other
@@ -87,25 +87,25 @@ Switch.
 
 ### Manages players
 
-MSC 2 shows who is online and lets you see returning players' profiles,
+MSC shows who is online and lets you see returning players' profiles,
 including their last visit, stats, and inventory when the server provides
 that information. You can message players, kick or ban them, manage operator
 access, and control who can join with a whitelist or allowlist.
 
-You can also duplicate or delete saved player data. For Java players, MSC 2
+You can also duplicate or delete saved player data. For Java players, MSC
 can move that data to an offline or specified player ID when an account or
 server setup changes. The available actions depend on the server edition;
 Bedrock player data must be changed while the server is stopped.
 
 ### Keeps your worlds safe
 
-MSC 2 treats worlds as something you manage, not just folders on a disk. You
+MSC treats worlds as something you manage, not just folders on a disk. You
 can keep multiple worlds for a server and switch which one is active. Create,
 import, duplicate, rename, export, repair, or remove a world from the app. Each
-world keeps its own gameplay and generation settings when you switch. MSC 2
+world keeps its own gameplay and generation settings when you switch. MSC
 can also convert worlds between Java and Bedrock where supported with Chunker.
 
-Backups can run manually, on a schedule, or before risky changes. MSC 2 does
+Backups can run manually, on a schedule, or before risky changes. MSC does
 not call a backup successful until it has finished writing and passed its
 verification checks. Restores are handled as carefully as possible too.
 
@@ -122,7 +122,7 @@ map does not generate new chunks in the game.
 
 ### Handles mods, plugins, datapacks, and modpacks
 
-MSC 2 can find and install server software, mods, plugins, and modpacks from
+MSC can find and install server software, mods, plugins, and modpacks from
 supported providers such as Modrinth and CurseForge. It checks Minecraft
 versions and loaders, resolves dependencies, and keeps client-only mods off
 the server when it can identify them.
@@ -137,7 +137,7 @@ not rebuild terrain already saved in the world.
 
 Getting players connected usually requires choosing a connection method. MSC
 2's built-in handbook explains the common options, what each one does, and what
-you need to set up. Some options integrate with MSC 2; others require changes
+you need to set up. Some options integrate with MSC; others require changes
 to your router or a separate third-party service.
 
 - [**LAN**](content/help/handbook/networking-basics.md), when everyone is on
@@ -150,17 +150,17 @@ to your router or a separate third-party service.
 - [**DuckDNS**](content/help/handbook/port-forwarding-duckdns.md), for using a
   stable hostname
 - [**Tailscale**](content/help/handbook/tailscale.md), for privately managing
-  the computer that runs MSC 2 from another computer
+  the computer that runs MSC from another computer
 - [**Xboxbroadcast**](content/help/handbook/xbox-broadcast.md), which helps
   Bedrock players on consoles find a reachable server through their Friends
   tab
 
-MSC 2 does not automatically make every network setup work. It explains the
+MSC does not automatically make every network setup work. It explains the
 pieces involved and helps you understand what still needs to be configured.
 
 ### Explains problems in plain language
 
-When a server does not start, MSC 2 tries to identify the useful problem
+When a server does not start, MSC tries to identify the useful problem
 instead of showing you a wall of log output and leaving you there. It can
 recognise common issues such as the wrong Java version, a missing dependency,
 a port already in use, a full disk, or unsafe memory settings.
@@ -169,25 +169,25 @@ The raw log is still available when you want it. It just is not the only answer.
 
 ### Shows how the server and computer are doing
 
-MSC 2 watches the numbers that matter to a Minecraft server, including CPU,
+MSC watches the numbers that matter to a Minecraft server, including CPU,
 memory, disk space, player activity, and tick rate and warns when the computer 
 is running out of room for Minecraft.
 
 ## How it works
 
-MSC 2 has one part that runs your servers and several ways to control it.
+MSC has one part that runs your servers and several ways to control it.
 
-- **The server computer** runs the MSC 2 agent and the Minecraft server. This
+- **The server computer** runs the MSC engine and the Minecraft server. This
   can be your Mac, Windows PC, Linux computer, or an old machine with no
   monitor attached.
 - **The desktop app** gives you a graphical interface on the same computer or
   another computer.
 - **The CLI** gives you task commands from a local terminal or an SSH login
-  shell on the agent host. It authenticates as the installing OS account;
+  shell on the engine host. It authenticates as the installing OS account;
   remote host selection stays in the desktop app.
 - **The TUI** gives you a full-screen, keyboard-driven control surface on the
-  agent host, either in its local terminal or through SSH. It shares the CLI's
-  host-local authorization and agent API; use the desktop app to manage a
+  engine host, either in its local terminal or through SSH. It shares the CLI's
+  host-local authorization and engine API; use the desktop app to manage a
   different host remotely.
 
 The server keeps running when you close the desktop app or sign out. The app
@@ -195,21 +195,21 @@ is a control panel; it is not the thing keeping Minecraft alive.
 
 ## A simple way to think about it
 
-If you are new to MSC 2, there are two computers to think about:
+If you are new to MSC, there are two computers to think about:
 
 1. The **host** is the computer that runs the Minecraft world. It can sit in a
    closet with the lid closed and no monitor attached.
-2. The **control device** is the computer where you open the MSC 2 app. For
+2. The **control device** is the computer where you open the MSC app. For
    CLI work, use a terminal on the host or an SSH login to that host.
 
 They can be the same computer. They can also be different computers. The
 players' consoles, phones, and gaming PCs are separate again: they connect to
-the Minecraft server but do not need MSC 2 installed.
+the Minecraft server but do not need MSC installed.
 
 ## New here?
 
 You do not need to read a Minecraft server administration manual before using
-MSC 2. The application is meant to explain things as you go, and the built-in
+MSC. The application is meant to explain things as you go, and the built-in
 handbook covers the parts that tend to confuse people.
 
 - [Your first Java server](content/help/handbook/first-server.md)
@@ -223,7 +223,7 @@ handbook covers the parts that tend to confuse people.
 
 ## Local-first
 
-MSC 2 runs on hardware you control. There is no required MSC account, MSC
+MSC runs on hardware you control. There is no required MSC account, MSC
 subscription, telemetry backend, or MSC cloud that your server has to stay
 connected to. Your Minecraft server and worlds remain on your hardware.
 
@@ -232,7 +232,7 @@ Playit.gg, Tailscale, DuckDNS, Modrinth, or CurseForge.
 
 ## License and security
 
-MSC 2's original code is licensed under [Apache-2.0](LICENSE). This license
+MSC's original code is licensed under [Apache-2.0](LICENSE). This license
 does not replace the separate terms for third-party software and bundled
 runtime files; see [Third-party notices](THIRD-PARTY-NOTICES.md).
 
@@ -241,28 +241,28 @@ form](https://github.com/ctemple9/msc2/security/advisories/new). Please do not
 report vulnerabilities in public issues. The supported-version policy and
 disclosure guidance are in [SECURITY.md](SECURITY.md).
 
-## The story behind MSC 2
+## The story behind MSC
 
-The reason MSC 2 exists—and the story of moving from a rough Python script to
-MSC 1 and then to this cross-platform version—is in [MSC 2's origin story](docs/msc2/msc2-origin.md).
+The reason MSC exists—and the story of moving from a rough Python script to
+MSC 1 and then to this cross-platform version—is in [MSC's origin story](docs/msc/msc-origin.md).
 
 ## Project documentation
 
-If you are interested in how MSC 2 is built or want to contribute:
+If you are interested in how MSC is built or want to contribute:
 
 | Document | What it is |
 |---|---|
-| [Vision index](docs/msc2/MSC2-VISION.md) | How the MSC 2 documentation fits together |
-| [Product](docs/msc2/msc2-product.md) | The product's goals and user experience |
-| [Engineering](docs/msc2/msc2-engineering.md) | Architecture, API contract, and platform support |
-| [Decisions](docs/msc2/msc2-decisions.md) | Decisions, reasoning, and rejected alternatives |
-| [Port plan](docs/msc2/msc2-port-plan.md) | Implementation phases and exit gates |
+| [Vision index](docs/msc/MSC-VISION.md) | How the MSC documentation fits together |
+| [Product](docs/msc/msc-product.md) | The product's goals and user experience |
+| [Engineering](docs/msc/msc-engineering.md) | Architecture, API contract, and platform support |
+| [Decisions](docs/msc/msc-decisions.md) | Decisions, reasoning, and rejected alternatives |
+| [Port plan](docs/msc/msc-port-plan.md) | Implementation phases and exit gates |
 | [Contributing](CONTRIBUTING.md) | Development setup and contribution expectations |
 | [Third-party notices](THIRD-PARTY-NOTICES.md) | Credits, distribution boundaries, and bundled runtime provenance |
 
 ## Built on other people's work
 
-MSC 2 uses and builds on projects maintained by other people:
+MSC uses and builds on projects maintained by other people:
 
 | Project | What MSC uses it for |
 |---|---|
@@ -284,7 +284,7 @@ MSC 2 uses and builds on projects maintained by other people:
 | [Adoptium Temurin](https://adoptium.net) | The Java runtime that Java servers need |
 | [Mojang & Microsoft](https://www.minecraft.net) | Minecraft itself and the Bedrock Dedicated Server |
 
-MSC 2 uses Vantage's viewer and converts saved Bedrock terrain into private
+MSC uses Vantage's viewer and converts saved Bedrock terrain into private
 renderer input through its own server integration. Thank you to the Vantage and
 Bedrock community contributors for making that work possible.
 
@@ -298,27 +298,27 @@ Swift is used for the macOS Bedrock runtime.
 
 ## Current release and support
 
-The latest published build is [MSC 2 v0.1.43](https://github.com/ctemple9/msc2/releases/tag/v0.1.43),
+The latest published build is [MSC v0.1.43](https://github.com/ctemple9/msc2/releases/tag/v0.1.43),
 a prerelease. There is no stable release yet. Download the
 platform-specific installer or archive from that release page and verify its
 entry in `SHA256SUMS` before installing. The Phase 16 acceptance record
 (P16.29) is still open; this prerelease has not passed the full physical
 release acceptance gate.
 
-Read the [v0.1.43 release notes](docs/msc2/release/v0.1.43.md) for the latest
-fixes and the [release history](docs/msc2/release/) for earlier changes. On
-Intel macOS, use **Repair agent** after installing the updated app to register
-its matching agent and Bedrock helper before the next Bedrock start. Existing
+Read the [v0.1.43 release notes](docs/msc/release/v0.1.43.md) for the latest
+fixes and the [release history](docs/msc/release/) for earlier changes. On
+Intel macOS, use **Repair engine** after installing the updated app to register
+its matching engine and Bedrock helper before the next Bedrock start. Existing
 root-owned Bedrock data still requires a one-time ownership repair.
 
-**macOS 0.1.25/0.1.26:** stop the Minecraft server, quit MSC 2, manually install
-v0.1.42 from its disk image, and repair the agent once. The older updater's helper
+**macOS 0.1.25/0.1.26:** stop the Minecraft server, quit MSC, manually install
+v0.1.42 from its disk image, and repair the engine once. The older updater's helper
 contains the rollback bug; subsequent updates can use the corrected updater.
 
 | Installation | Published platform and architecture | Supported control surface |
 |---|---|---|
 | Desktop app | macOS Intel (`x86_64`) and Apple Silicon (`aarch64`); Windows 64-bit (`x86_64`); Linux 64-bit (`x86_64`) as `.deb` and `.rpm` | Tauri desktop app |
-| Headless agent | macOS Intel (`x86_64`) and Apple Silicon (`aarch64`); Windows 64-bit (`x86_64`); Linux 64-bit (`x86_64`) | CLI in a local terminal or SSH shell on the host; remote Tauri desktop app |
+| Headless engine | macOS Intel (`x86_64`) and Apple Silicon (`aarch64`); Windows 64-bit (`x86_64`); Linux 64-bit (`x86_64`) | CLI in a local terminal or SSH shell on the host; remote Tauri desktop app |
 
 The Linux minimum is Debian 12 (Bookworm), or another distribution with
 `systemd` 250 or newer. Linux `.deb` and `.rpm` desktop packages are built for
@@ -339,10 +339,10 @@ download matches those published bytes, not who published them.
 Desktop app updates use the signed in-app update flow on macOS and Windows;
 Linux desktop packages remain managed by `apt` or `dnf`. Standalone headless
 archives use `msc update check` and `msc update install`; package-managed Linux
-installations remain with their package manager. The client/agent compatibility
-mechanism refuses clients below the agent's minimum supported version, but
+installations remain with their package manager. The client/engine compatibility
+mechanism refuses clients below the engine's minimum supported version, but
 the project has not set a numeric version window such as N-3. Keep clients and
-agents current.
+engines current.
 
 Security fixes are currently promised only for the latest stable release, as
 described in [SECURITY.md](SECURITY.md). Since the published builds are prereleases and no

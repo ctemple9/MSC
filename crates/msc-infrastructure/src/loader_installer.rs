@@ -1,6 +1,6 @@
 //! Runs a Forge or NeoForge loader installer JAR as a supervised
 //! subprocess through [`crate::process::ProcessSupervisor`] -- the second
-//! boundary where MSC 2 hands control to a third party, after P7.13's
+//! boundary where MSC hands control to a third party, after P7.13's
 //! network fetch. P7.13 only downloads the installer jar; this module is
 //! what actually runs `java -jar <installer> --installServer`
 //! (`NeoForgeInstaller.swift`'s/`ForgeInstaller.swift`'s shared

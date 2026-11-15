@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc2-cli-smoke.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc-cli-smoke.XXXXXX")"
 PORT="$(python3 - <<'PY'
 import socket
 s = socket.socket()
@@ -14,12 +14,12 @@ PY
 BASE_URL="http://127.0.0.1:${PORT}"
 TOKEN="msc2_cli_smoke_bootstrap_secret"
 MSC_BIN="${ROOT}/target/debug/msc"
-AGENT_PID=""
+ENGINE_PID=""
 
 cleanup() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
   rm -rf "${TMP_DIR}"
 }
@@ -85,7 +85,7 @@ EOF
 
 (
   cd "${ROOT}"
-  cargo build -p msc-agent >/dev/null
+  cargo build -p msc-engine >/dev/null
 )
 
 export MSC2_TEST_BOOTSTRAP_TOKEN="${TOKEN}"
@@ -93,7 +93,7 @@ export MSC2_OPERATION_JOURNAL_DIR="${TMP_DIR}/journal"
 mkdir -p "${MSC2_OPERATION_JOURNAL_DIR}"
 
 "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >"${TMP_DIR}/agent.log" 2>&1 &
-AGENT_PID="$!"
+ENGINE_PID="$!"
 
 python3 - "${BASE_URL}" <<'PY'
 import sys
@@ -110,7 +110,7 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy")
+raise SystemExit("engine did not become healthy")
 PY
 
 TOKEN_FROM_CLI="$("${MSC_BIN}" token print --test)"

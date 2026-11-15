@@ -22,7 +22,7 @@
   // itself is owned by the parent (WorldsSection.svelte), same as those two
   // -- one shared overlay instance, not one per card. Selecting a card (for
   // the Backups panel below) is unchanged, just recolored to the same blue
-  // `--msc2-selection` token those rows use for their own selected state,
+  // `--msc-selection` token those rows use for their own selected state,
   // instead of a plain brighter-white border.
   import { onDestroy } from 'svelte';
   import Card from '../../components/base/Card.svelte';
@@ -261,7 +261,7 @@
   }
   .slot.selected {
     background: rgba(59, 130, 246, 0.06);
-    border-color: var(--msc2-selection);
+    border-color: var(--msc-selection);
   }
   .thumb-wrap {
     position: relative;
@@ -314,7 +314,7 @@
   .thumbnail-error {
     margin: 6px 12px 0;
     font-size: 10px;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .thumb {
     position: relative;
@@ -347,7 +347,7 @@
     font-size: 9px;
     font-weight: 700;
     color: #0d2416;
-    background: var(--msc2-status-ok);
+    background: var(--msc-status-ok);
     padding: 3px 7px;
     border-radius: 99px;
   }
@@ -377,7 +377,7 @@
   .name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -386,13 +386,13 @@
   .seed,
   .saved-profile {
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .saved-profile {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .confirm-block {
     display: flex;
@@ -404,7 +404,7 @@
     margin: 0 0 4px;
     font-size: 11px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .actions-row {
     display: flex;

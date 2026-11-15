@@ -1,6 +1,6 @@
 //! Hand-written coverage of `CredentialRepository`, in the same style
 //! P4.9's `crates/msc-infrastructure/tests/operation_journal.rs` used: no
-//! MSC 1 fixture to port from (greenfield MSC 2 construction -- see the
+//! MSC 1 fixture to port from (greenfield MSC construction -- see the
 //! module's own doc comment), so these exercise the implementation
 //! directly against its own written contract.
 //!
@@ -10,7 +10,7 @@
 use msc_infrastructure::credential_repository::{CredentialRegistryEntry, CredentialRepository};
 use msc_infrastructure::fs::FakeFileSystem;
 
-const PATH: &str = "/srv/agent/credentials.json";
+const PATH: &str = "/srv/engine/credentials.json";
 
 fn owner_entry() -> CredentialRegistryEntry {
     CredentialRegistryEntry {
@@ -38,7 +38,7 @@ fn guest_entry() -> CredentialRegistryEntry {
 
 #[test]
 fn credential_repository_load_of_missing_file_returns_empty() {
-    let fs = FakeFileSystem::new().with_dir("/srv/agent");
+    let fs = FakeFileSystem::new().with_dir("/srv/engine");
     let repo = CredentialRepository::new(&fs, PATH);
 
     assert_eq!(repo.load().expect("load"), Vec::new());
@@ -46,7 +46,7 @@ fn credential_repository_load_of_missing_file_returns_empty() {
 
 #[test]
 fn credential_repository_save_then_load_round_trips_every_field() {
-    let fs = FakeFileSystem::new().with_dir("/srv/agent");
+    let fs = FakeFileSystem::new().with_dir("/srv/engine");
     let repo = CredentialRepository::new(&fs, PATH);
     let entries = vec![owner_entry(), guest_entry()];
 
@@ -57,7 +57,7 @@ fn credential_repository_save_then_load_round_trips_every_field() {
 
 #[test]
 fn credential_repository_save_is_a_full_overwrite_not_an_append() {
-    let fs = FakeFileSystem::new().with_dir("/srv/agent");
+    let fs = FakeFileSystem::new().with_dir("/srv/engine");
     let repo = CredentialRepository::new(&fs, PATH);
 
     repo.save(&[owner_entry()]).expect("first save");
@@ -68,11 +68,11 @@ fn credential_repository_save_is_a_full_overwrite_not_an_append() {
 
 #[test]
 fn credential_repository_survives_a_second_repository_over_the_same_file() {
-    // Simulates the msc-agent restart scenario one layer down: a fresh
+    // Simulates the msc-engine restart scenario one layer down: a fresh
     // `CredentialRepository` value, constructed after the first one is
     // dropped but pointed at the same `fs`/`path`, sees exactly what was
     // last saved.
-    let fs = FakeFileSystem::new().with_dir("/srv/agent");
+    let fs = FakeFileSystem::new().with_dir("/srv/engine");
     {
         let repo = CredentialRepository::new(&fs, PATH);
         repo.save(&[owner_entry()]).expect("save");

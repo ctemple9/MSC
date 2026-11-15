@@ -149,7 +149,7 @@ describe('shared host-aware transport', () => {
     });
   });
 
-  it('rejects a short file chunk before sending it to the agent', async () => {
+  it('rejects a short file chunk before sending it to the engine', async () => {
     const requests: { url: string; method: string }[] = [];
     const client = new ApiClient({
       baseUrl: 'http://alpha.test',

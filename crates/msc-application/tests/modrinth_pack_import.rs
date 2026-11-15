@@ -21,7 +21,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "msc2-mrpack-import-test-{label}-{}",
+            "msc-mrpack-import-test-{label}-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&dir);

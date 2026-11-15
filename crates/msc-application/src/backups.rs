@@ -73,7 +73,7 @@ pub fn prune_backups(fs: &dyn FileSystem, server_dir: &Path, max_count: i64) -> 
 /// applies no clamp at all
 /// (`fixtures/backups/auto-backup-max-count-editor-clamps-to-3-through-50.json`'s
 /// own notes: "the model layer performs no validation or clamping").
-/// MSC 2 has no editor control of its own yet (P6.20+ builds the routes;
+/// MSC has no editor control of its own yet (P6.20+ builds the routes;
 /// a client builds the control), so this gives the 3...50 bound an
 /// application-layer home a future settings route/CLI command can call
 /// before persisting, rather than leaving it unenforced anywhere in the
@@ -107,7 +107,7 @@ pub fn clamp_auto_backup_max_count(requested: i64) -> i64 {
 // fakeable runtime port but unavailable in production until Phase 10").
 // A real implementation — wiring `send`/`wait_for_line` to
 // `LifecycleService::send_command` and an actual console-line wait with
-// real wall-clock timing — is P6.21's job (route/agent wiring), the same
+// real wall-clock timing — is P6.21's job (route/engine wiring), the same
 // deferred-wiring shape `worlds::activate_slot`'s own `backup: impl
 // FnOnce() -> bool` closure parameter already established; nothing here
 // depends on that wiring existing yet, since every fixture this step
@@ -507,8 +507,8 @@ pub fn wait_for_bedrock_save_ready(console: &dyn BackupConsole) -> (bool, u32) {
 //
 // `startAutoBackupTimer(for:)`'s closure body (source lines 774-787),
 // minus the `Timer` construction itself: real wall-clock pacing is
-// `msc-agent`'s job (`BackupScheduler`, tokio-driven, tested in
-// `crates/msc-agent/tests/backup_scheduler.rs`), kept out of this crate
+// `msc-engine`'s job (`BackupScheduler`, tokio-driven, tested in
+// `crates/msc-engine/tests/backup_scheduler.rs`), kept out of this crate
 // the same way this phase keeps every other real-runtime concern
 // (process supervision, console waiting) behind a caller-supplied
 // signal rather than owning the clock itself. [`scheduled_tick`] is the
@@ -534,7 +534,7 @@ pub enum ScheduledTickOutcome {
     /// isn't running. Source stops the timer here; deciding whether to
     /// do the equivalent (or just skip this one tick) is the caller's
     /// call — see [`crate::backups`]'s module doc and
-    /// `msc-agent::backup_scheduler` for how the real scheduler handles
+    /// `msc-engine::backup_scheduler` for how the real scheduler handles
     /// it.
     SkippedNotRunning,
     /// `fixtures/backups/scheduled-auto-backup-skipped-when-no-players-online.json`:
@@ -890,7 +890,7 @@ pub enum RestoreRecovery {
     RecoveredToRestoredWorld,
 }
 
-/// Call once per server on agent startup, before any restore route is
+/// Call once per server on engine startup, before any restore route is
 /// reachable for it — the same "before routes are reachable" timing
 /// [`crate::worlds::reconcile_imported_worlds`]/
 /// [`crate::worlds::reconcile_interrupted_activation`] already

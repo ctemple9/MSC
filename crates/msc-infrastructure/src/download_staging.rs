@@ -1,7 +1,7 @@
 //! `stage_download`: the shared stage-verify-move primitive for every
 //! download-and-install workflow.
 //!
-//! `msc2-engineering.md` §7: "Downloads land in a temporary location, are
+//! `msc-engineering.md` §7: "Downloads land in a temporary location, are
 //! checksum-verified where the provider publishes one, and are moved into
 //! active use only after validation. Interrupted downloads are safely
 //! retryable. Cached files record origin and version." Every real MSC 1
@@ -118,7 +118,7 @@ impl ExpectedChecksum {
 }
 
 /// What survives a successful [`stage_download`] call: the final path,
-/// plus the origin URL and version `msc2-engineering.md` §7 requires
+/// plus the origin URL and version `msc-engineering.md` §7 requires
 /// every cached file to carry.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CachedFile {

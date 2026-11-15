@@ -29,7 +29,7 @@
 //! [`import_mrpack`] builds on this same module's own [`inspect_staged_archive`]
 //! (P8.18): given the manifest and staged directory that call already
 //! produced, it downloads every server-relevant manifest file (verifying
-//! each against its own declared hash — new agent-owned safety, closing
+//! each against its own declared hash — new engine-owned safety, closing
 //! `fixtures/modpack-archive-safety/manifest-declares-per-file-hashes-but-download-never-verifies-them.json`'s
 //! gap, since the oracle never checks these hashes at all), merges
 //! `overrides/` then `server-overrides/` (server-overrides wins on
@@ -126,7 +126,7 @@ impl std::error::Error for ModpackInspectionError {}
 pub enum InspectedFormat {
     Mrpack(MrpackManifest),
     CurseForge(CurseForgeManifestMetadata),
-    /// New MSC 2 classification, not an oracle port — `detect_kind`'s own
+    /// New MSC classification, not an oracle port — `detect_kind`'s own
     /// literal port reports this shape as `Unknown` (`fixtures/
     /// curseforge-modpack/detect-kind-plain-zip-is-unknown.json`), the
     /// same as a genuinely unrecognized archive. `rolling-plan.md`'s own

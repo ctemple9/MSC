@@ -3,7 +3,7 @@
   "case": "copied-slots-only-archive-less-fresh",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "createFreshWorldSlot(...)'s no-backing-archive case, reused for Phase 6 reconciliation State 2 (world_slots only, archive-less) — see docs/msc2/worlds/phase6-scope.md §\"State 2 — world_slots only\"",
+    "test": "createFreshWorldSlot(...)'s no-backing-archive case, reused for Phase 6 reconciliation State 2 (world_slots only, archive-less) — see docs/msc/worlds/phase6-scope.md §\"State 2 — world_slots only\"",
     "line": 549
   },
   "input": {

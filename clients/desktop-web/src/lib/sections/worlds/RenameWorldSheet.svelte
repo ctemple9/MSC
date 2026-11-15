@@ -63,8 +63,8 @@
   .error {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-status-warn);
-    background: var(--msc2-status-warn-tint);
+    color: var(--msc-status-warn);
+    background: var(--msc-status-warn-tint);
     border-radius: 8px;
     padding: 8px 10px;
   }

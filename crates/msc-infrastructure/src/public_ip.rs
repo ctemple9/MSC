@@ -14,8 +14,8 @@ pub fn detect(timeout: Duration) -> Option<String> {
     let config = ureq::Agent::config_builder()
         .timeout_global(Some(timeout))
         .build();
-    let agent = ureq::Agent::new_with_config(config);
-    let mut response = agent
+    let engine = ureq::Agent::new_with_config(config);
+    let mut response = engine
         .get(PUBLIC_IP_URL)
         .header("Accept", "text/plain")
         .call()

@@ -8,12 +8,12 @@
 //! and saving config — is deliberately not ported here: this crate has no
 //! loaded `AppConfig` or credential store to act on (this module has no
 //! dependency beyond `msc-domain`'s types plus `zip`/`serde_json`), and the
-//! replace-all backup orchestration (P5.16, in `msc-agent`) is what owns
+//! replace-all backup orchestration (P5.16, in `msc-engine`) is what owns
 //! calling this function only after a safety backup succeeds. P5.16's
-//! files list (`msc-api`/`msc-agent`, not this module) is where that
+//! files list (`msc-api`/`msc-engine`, not this module) is where that
 //! commit-stage work — and the transfer mode itself — belongs.
 //!
-//! Format pinned in `docs/msc2/config-migration/transfer-package-format.md`
+//! Format pinned in `docs/msc/config-migration/transfer-package-format.md`
 //! from the 7 fixtures in `fixtures/transfer-package/` (P5.12): no MSC 1
 //! test exercises any of `exportServerTransfer`/`inspectTransferPackage`/
 //! `applyTransferImport`, so both functions here are ported straight from

@@ -2,7 +2,7 @@
   "domain": "pack-managed-guard",
   "case": "pack-managed-allows-explicit-whole-pack-replacement",
   "source": {
-    "file": "docs/msc2/addons/phase8-scope.md",
+    "file": "docs/msc/addons/phase8-scope.md",
     "test": "Pack-managed guard section -- whole-pack escape hatch",
     "line": 89
   },

@@ -7,7 +7,7 @@
     "line": 68
   },
   "input": {
-    "portPlanDimension": "atomic-write interruption's sibling recovery path (msc2-port-plan.md's Configuration corpus, and this step's own \"recovery merge skips conflicts against the initial live set\" clause) -- what happens once a duplicate/conflicting-identity config (see the dimension above) meets an existing live config during a corrupt-backup restore",
+    "portPlanDimension": "atomic-write interruption's sibling recovery path (msc-port-plan.md's Configuration corpus, and this step's own \"recovery merge skips conflicts against the initial live set\" clause) -- what happens once a duplicate/conflicting-identity config (see the dimension above) meets an existing live config during a corrupt-backup restore",
     "subCases": [
       { "name": "pure restore, no collisions", "coveredBy": "fixtures/config-recovery/pure-restore.json" },
       { "name": "backup entry's path collides with a live entry", "coveredBy": "fixtures/config-recovery/live-path-collision.json" },

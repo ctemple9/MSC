@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """P4.17 live check: lifecycle operation restart reconciliation.
 
-The script owns its temporary agent process. It uses the narrow
+The script owns its temporary engine process. It uses the narrow
 MSC2_TEST_BOOTSTRAP_TOKEN hook because the real CLI token helper lands in
 P4.18, one step after this check.
 """
@@ -46,24 +46,24 @@ def wait_for_health(base_url: str, proc: subprocess.Popen) -> None:
     while time.time() < deadline:
         if proc.poll() is not None:
             stderr = proc.stderr.read() if proc.stderr else ""
-            raise RuntimeError(f"agent exited early with code {proc.returncode}: {stderr[-2000:]}")
+            raise RuntimeError(f"engine exited early with code {proc.returncode}: {stderr[-2000:]}")
         try:
             with urllib.request.urlopen(base_url.rstrip("/") + "/v1/health", timeout=1) as resp:
                 if resp.status == 200:
                     return
         except (urllib.error.URLError, TimeoutError):
             time.sleep(0.25)
-    raise RuntimeError("agent did not become healthy")
+    raise RuntimeError("engine did not become healthy")
 
 
-def start_agent(base_url: str, journal_dir: Path) -> subprocess.Popen:
+def start_engine(base_url: str, journal_dir: Path) -> subprocess.Popen:
     parsed = urllib.parse.urlparse(base_url)
     bind = f"{parsed.hostname}:{parsed.port or 80}"
     env = os.environ.copy()
     env["MSC2_TEST_BOOTSTRAP_TOKEN"] = TOKEN
     env["MSC2_OPERATION_JOURNAL_DIR"] = str(journal_dir)
     proc = subprocess.Popen(
-        ["cargo", "run", "-p", "msc-agent", "--", "serve", "--bind", bind],
+        ["cargo", "run", "-p", "msc-engine", "--", "serve", "--bind", bind],
         cwd=Path(__file__).resolve().parents[2],
         env=env,
         stdout=subprocess.PIPE,
@@ -74,7 +74,7 @@ def start_agent(base_url: str, journal_dir: Path) -> subprocess.Popen:
     return proc
 
 
-def stop_agent(proc: subprocess.Popen) -> None:
+def stop_engine(proc: subprocess.Popen) -> None:
     if proc.poll() is not None:
         return
     proc.terminate()
@@ -132,7 +132,7 @@ def main() -> int:
     parser.add_argument("--base-url", required=True)
     args = parser.parse_args()
 
-    with tempfile.TemporaryDirectory(prefix="msc2-p4-operation-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="msc-p4-operation-") as tmp:
         tmp_path = Path(tmp)
         journal_dir = tmp_path / "journal"
         journal_dir.mkdir()
@@ -140,7 +140,7 @@ def main() -> int:
         server_dir.mkdir()
         build_fake_paper(server_dir)
 
-        first = start_agent(args.base_url, journal_dir)
+        first = start_engine(args.base_url, journal_dir)
         try:
             _, imported = request(
                 args.base_url,
@@ -164,9 +164,9 @@ def main() -> int:
             if running.get("state") != "running":
                 raise RuntimeError(f"expected running operation before restart, got {running}")
         finally:
-            stop_agent(first)
+            stop_engine(first)
 
-        second = start_agent(args.base_url, journal_dir)
+        second = start_engine(args.base_url, journal_dir)
         try:
             _, reconciled = request(args.base_url, "GET", f"/v1/operations/{operation_id}")
             if reconciled.get("state") != "failed":
@@ -175,7 +175,7 @@ def main() -> int:
             if error.get("code") != "operation_interrupted":
                 raise RuntimeError(f"expected operation_interrupted error, got {reconciled}")
         finally:
-            stop_agent(second)
+            stop_engine(second)
 
     print("ok live-operation-restart")
     return 0

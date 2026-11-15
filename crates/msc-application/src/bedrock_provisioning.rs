@@ -27,7 +27,7 @@ const PRESERVED_FILES: [&str; 4] = [
 ];
 
 /// Returns the production manifest URL, with a host/test override that keeps
-/// the downloader itself unchanged while allowing an agent to use a mirror.
+/// the downloader itself unchanged while allowing an engine to use a mirror.
 pub fn production_manifest_url() -> String {
     std::env::var("MSC2_BEDROCK_MANIFEST_URL")
         .ok()

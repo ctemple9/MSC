@@ -6,7 +6,7 @@
   // The sheet frame. Three fixed widths only — 480 / 640 / 820. Not locked in
   // a rendering specimen; built to the same law as the rest of S0 (flat tier
   // surfaces, no glass, shadow only because this genuinely floats above the
-  // shell — the one place a blur scrim is sanctioned, docs/msc2/antiAIslop.md #4).
+  // shell — the one place a blur scrim is sanctioned, docs/msc/antiAIslop.md #4).
   import { onDestroy } from 'svelte';
   import { onboardingAnchor } from '../../help/tourAnchors';
 
@@ -108,9 +108,9 @@
     max-width: calc(100vw - 32px);
     max-height: calc(100vh - 32px);
     overflow: auto;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 14px;
-    box-shadow: var(--msc2-shadow-float);
+    box-shadow: var(--msc-shadow-float);
     scrollbar-width: none;
   }
   .sheet::-webkit-scrollbar {
@@ -137,13 +137,13 @@
     justify-content: space-between;
     gap: 12px;
     padding: 16px 16px 16px 20px;
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    border-bottom: 1px solid var(--msc-hairline-faint);
   }
 
   .title {
     font-size: 15px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 
   .close {

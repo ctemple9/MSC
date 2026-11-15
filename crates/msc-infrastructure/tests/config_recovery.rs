@@ -56,7 +56,7 @@ fn run_merge_fixture(case: &str) -> (AppConfig, BackupRestoreResult, Value) {
     let mut backup_config = defaults.clone();
     backup_config.servers = backup_servers;
 
-    let backup_path = PathBuf::from("/srv/msc2/server_config_swift.json.corrupt-1");
+    let backup_path = PathBuf::from("/srv/msc/server_config_swift.json.corrupt-1");
     let fs = FakeFileSystem::new().with_file(
         backup_path.clone(),
         serde_json::to_vec(&backup_config.encode()).unwrap(),
@@ -140,7 +140,7 @@ fn unreadable_backup_no_mutation() {
     // No `with_file` call for the backup path: `fs.read` fails exactly
     // like `Data(contentsOf:)` failing in source, line 56.
     let fs = FakeFileSystem::new();
-    let backup_path = PathBuf::from("/srv/msc2/server_config_swift.json.corrupt-1");
+    let backup_path = PathBuf::from("/srv/msc/server_config_swift.json.corrupt-1");
 
     let (merged, result) = restore_servers_from_backup(&fs, &backup_path, &defaults, &live);
 
@@ -182,7 +182,7 @@ fn discovery_ordering() {
 
 #[test]
 fn server_count_in_backup_reads_cheaply_without_full_decode() {
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json.corrupt-1");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json.corrupt-1");
     let raw = br#"{"servers": [{"id": "a"}, {"id": "b"}, {"id": "c"}]}"#.to_vec();
     let fs = FakeFileSystem::new().with_file(path.clone(), raw, false);
     assert_eq!(server_count_in_backup(&fs, &path), Some(3));
@@ -191,14 +191,14 @@ fn server_count_in_backup_reads_cheaply_without_full_decode() {
 #[test]
 fn server_count_in_backup_returns_none_when_unreadable_or_malformed() {
     let fs = FakeFileSystem::new();
-    let missing = PathBuf::from("/srv/msc2/server_config_swift.json.corrupt-1");
+    let missing = PathBuf::from("/srv/msc/server_config_swift.json.corrupt-1");
     assert_eq!(server_count_in_backup(&fs, &missing), None);
 
-    let malformed_path = PathBuf::from("/srv/msc2/server_config_swift.json.corrupt-2");
+    let malformed_path = PathBuf::from("/srv/msc/server_config_swift.json.corrupt-2");
     let fs = FakeFileSystem::new().with_file(malformed_path.clone(), b"not json".to_vec(), false);
     assert_eq!(server_count_in_backup(&fs, &malformed_path), None);
 
-    let no_servers_path = PathBuf::from("/srv/msc2/server_config_swift.json.corrupt-3");
+    let no_servers_path = PathBuf::from("/srv/msc/server_config_swift.json.corrupt-3");
     let fs = FakeFileSystem::new().with_file(no_servers_path.clone(), b"{}".to_vec(), false);
     assert_eq!(server_count_in_backup(&fs, &no_servers_path), None);
 }

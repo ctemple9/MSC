@@ -50,7 +50,7 @@
         <Property Id="MSC_UPDATE_MANAGED" Secure="yes" />
         <Property Id="MSC_UPDATE_PROTOCOL" Value="1" />
         <Property Id="MSC_UPDATER_OWNS_RELAUNCH" Secure="yes" />
-        <Condition Message="A newer MSC 2 version is installed. Use verified update recovery, or deliberately restore the previous package with MSC_RESTORE_PREVIOUS=1.">REMOVE OR UPGRADINGPRODUCTCODE OR NOT MSC_NEWER_INSTALLED OR MSC_RESTORE_PREVIOUS="1"</Condition>
+        <Condition Message="A newer MSC version is installed. Use verified update recovery, or deliberately restore the previous package with MSC_RESTORE_PREVIOUS=1.">REMOVE OR UPGRADINGPRODUCTCODE OR NOT MSC_NEWER_INSTALLED OR MSC_RESTORE_PREVIOUS="1"</Condition>
 
         <InstallExecuteSequence>
             <!-- Flush only the queued service preparation before old-package

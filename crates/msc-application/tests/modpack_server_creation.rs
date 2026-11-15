@@ -38,7 +38,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "msc2-pack-server-creation-test-{label}-{}-{}",
+            "msc-pack-server-creation-test-{label}-{}-{}",
             std::process::id(),
             uuid::Uuid::new_v4()
         ));

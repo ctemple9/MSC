@@ -9,7 +9,7 @@ pub(super) fn install() -> Result<(), String> {
     }
     let status = super::service_manager()?
         .execute(msc_infrastructure::service::ServiceManagerCommand::Status {
-            service_name: msc_infrastructure::service::ServiceName::new(super::AGENT_SERVICE_NAME),
+            service_name: msc_infrastructure::service::ServiceName::new(super::ENGINE_SERVICE_NAME),
         })
         .map_err(|error| error.to_string())?;
     if status.state == msc_infrastructure::service::ServiceState::NotInstalled {
@@ -69,7 +69,7 @@ pub(super) fn install() -> Result<(), String> {
             .replace('$', "\\$")
             .replace('%', "%%");
         std::fs::write(directory.join("msc2-agent-indicator.desktop"), format!(
-            "[Desktop Entry]\nType=Application\nName=MSC 2 Agent Indicator\nExec=\"{escaped}\" --agent-indicator\nTerminal=false\n"
+            "[Desktop Entry]\nType=Application\nName=MSC Engine Indicator\nExec=\"{escaped}\" --agent-indicator\nTerminal=false\n"
         )).map_err(|error| error.to_string())?;
     }
     let mut command = std::process::Command::new(executable);
@@ -84,14 +84,14 @@ pub(super) fn install() -> Result<(), String> {
 }
 
 pub(super) fn enabled() -> Result<bool, String> {
-    let path = super::agent_data_directory()?.join("agent-indicator-disabled");
+    let path = super::engine_data_directory()?.join("engine-indicator-disabled");
     Ok(!path.exists())
 }
 
 pub(super) fn set_enabled(enabled: bool) -> Result<(), String> {
-    let directory = super::agent_data_directory()?;
+    let directory = super::engine_data_directory()?;
     std::fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
-    let path = directory.join("agent-indicator-disabled");
+    let path = directory.join("engine-indicator-disabled");
     if !enabled {
         std::fs::write(path, b"disabled\n").map_err(|error| error.to_string())?;
         return remove();
@@ -113,7 +113,7 @@ pub(super) fn set_enabled(enabled: bool) -> Result<(), String> {
 }
 
 pub(super) fn remove() -> Result<(), String> {
-    super::agent_indicator::stop()?;
+    super::engine_indicator::stop()?;
     remove_registration()
 }
 

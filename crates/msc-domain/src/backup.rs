@@ -37,7 +37,7 @@ pub struct BackupMeta {
     pub slot_name: Option<String>,
     pub world_seed: Option<String>,
     pub trigger_reason: String,
-    /// MSC 2's slot-local metadata extension. Optional so historical MSC 1
+    /// MSC's slot-local metadata extension. Optional so historical MSC 1
     /// backup sidecars remain readable without fabricating a profile.
     pub world_profile: Option<Value>,
 }

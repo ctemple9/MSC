@@ -19,15 +19,15 @@ UTC_TIMESTAMP = re.compile(r"20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 TAG = re.compile(r"v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?")
 
 ARTIFACTS = {
-    "desktop-macos-x86_64": ("Desktop", "macOS Intel", "msc2-{version}-macos-x86_64.dmg"),
-    "desktop-macos-aarch64": ("Desktop", "macOS Apple Silicon", "msc2-{version}-macos-aarch64.dmg"),
-    "desktop-windows-x86_64": ("Desktop", "Windows x86_64", "msc2-{version}-windows-x86_64.msi"),
-    "desktop-linux-deb-x86_64": ("Desktop .deb", "Linux x86_64", "msc2-{version}-linux-x86_64.deb"),
-    "desktop-linux-rpm-x86_64": ("Desktop .rpm", "Linux x86_64", "msc2-{version}-linux-x86_64.rpm"),
-    "headless-macos-x86_64": ("Headless", "macOS Intel", "msc2-headless-{version}-macos-x86_64.tar.gz"),
-    "headless-macos-aarch64": ("Headless", "macOS Apple Silicon", "msc2-headless-{version}-macos-aarch64.tar.gz"),
-    "headless-windows-x86_64": ("Headless", "Windows x86_64", "msc2-headless-{version}-windows-x86_64.zip"),
-    "headless-linux-x86_64": ("Headless", "Linux x86_64", "msc2-headless-{version}-linux-x86_64.tar.gz"),
+    "desktop-macos-x86_64": ("Desktop", "macOS Intel", "msc-{version}-macos-x86_64.dmg"),
+    "desktop-macos-aarch64": ("Desktop", "macOS Apple Silicon", "msc-{version}-macos-aarch64.dmg"),
+    "desktop-windows-x86_64": ("Desktop", "Windows x86_64", "msc-{version}-windows-x86_64.msi"),
+    "desktop-linux-deb-x86_64": ("Desktop .deb", "Linux x86_64", "msc-{version}-linux-x86_64.deb"),
+    "desktop-linux-rpm-x86_64": ("Desktop .rpm", "Linux x86_64", "msc-{version}-linux-x86_64.rpm"),
+    "headless-macos-x86_64": ("Headless", "macOS Intel", "msc-headless-{version}-macos-x86_64.tar.gz"),
+    "headless-macos-aarch64": ("Headless", "macOS Apple Silicon", "msc-headless-{version}-macos-aarch64.tar.gz"),
+    "headless-windows-x86_64": ("Headless", "Windows x86_64", "msc-headless-{version}-windows-x86_64.zip"),
+    "headless-linux-x86_64": ("Headless", "Linux x86_64", "msc-headless-{version}-linux-x86_64.tar.gz"),
 }
 
 GATE_IDS = {

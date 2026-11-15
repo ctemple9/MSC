@@ -10,7 +10,7 @@
   //
   // Xbox's fourth row uses the authenticated gamertag from the existing
   // /v1/broadcast/status route. Credentials remain write-only; the gamertag is
-  // the safe, displayable value the agent already exposes.
+  // the safe, displayable value the engine already exposes.
   import { onMount } from 'svelte';
   import type { Schema, ScreenApi } from '../../../sections/shared/types';
   import { call } from '../../../sections/shared/types';
@@ -262,12 +262,12 @@
   }
   .row-label {
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .unavailable {
     margin: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .pill {
     display: flex;
@@ -279,9 +279,9 @@
     font: inherit;
     text-align: left;
     border-radius: 8px;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-surface);
-    border: 1px solid var(--msc2-hairline-subtle);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-surface);
+    border: 1px solid var(--msc-hairline-subtle);
     cursor: pointer;
   }
   .pill svg {
@@ -308,7 +308,7 @@
     display: none;
   }
   .mono {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
   }
   .sr-only {
     position: absolute;

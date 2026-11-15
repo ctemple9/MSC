@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # Phase 5 CLI smoke harness. Owns one temporary application root and one
-# running agent for every portion of Phase 5's public CLI/API surface this
+# running engine for every portion of Phase 5's public CLI/API surface this
 # script proves. Each portion is gated behind its own flag so a single step
 # can run only what it owns (P5.11: --settings); later steps (transfer
 # import, raw import) extend this same script and its shared setup/teardown
-# rather than starting a separately-running agent or relying on an
+# rather than starting a separately-running engine or relying on an
 # installed `msc` binary.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -58,7 +58,7 @@ else
   done
 fi
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc2-phase5-cli-smoke.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc-phase5-cli-smoke.XXXXXX")"
 PORT="$(python3 - <<'PY'
 import socket
 s = socket.socket()
@@ -70,14 +70,14 @@ PY
 BASE_URL="http://127.0.0.1:${PORT}"
 TOKEN="msc2_phase5_cli_smoke_bootstrap_secret"
 MSC_BIN="${ROOT}/target/debug/msc"
-AGENT_PID=""
+ENGINE_PID=""
 KEYCHAIN_SERVICE="com.msc2.phase5.cli-smoke.$(date +%Y%m%d%H%M%S).$$"
 MIGRATED_CREDENTIAL_ID=""
 
 cleanup() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
   if [[ "$(uname -s)" == "Darwin" ]]; then
     /usr/bin/security delete-generic-password \
@@ -127,7 +127,7 @@ chmod 755 "${MSC2_JAVA_PATH}"
 
 (
   cd "${ROOT}"
-  cargo build -p msc-agent >/dev/null
+  cargo build -p msc-engine >/dev/null
 )
 
 export MSC2_TEST_BOOTSTRAP_TOKEN="${TOKEN}"
@@ -141,7 +141,7 @@ elif [[ "$(uname -s)" == "Linux" ]]; then
   export MSC2_LINUX_FOREGROUND_SECRET_STORE_DIR="${TMP_DIR}/linux-secret-store"
 fi
 # Shared by transfer, raw, and no-serverType importExisting routes.
-export MSC2_AGENT_SERVERS_ROOT="${TMP_DIR}/agent-servers"
+export MSC2_AGENT_SERVERS_ROOT="${TMP_DIR}/engine-servers"
 mkdir -p "${MSC2_OPERATION_JOURNAL_DIR}" "${MSC2_DATA_DIR}"
 
 if [[ "${RUN_MIGRATION_RESTART}" -eq 1 ]]; then
@@ -169,9 +169,9 @@ EOF
 fi
 
 "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >"${TMP_DIR}/agent.log" 2>&1 &
-AGENT_PID="$!"
+ENGINE_PID="$!"
 
-wait_for_agent_healthy() {
+wait_for_engine_healthy() {
   python3 - "${BASE_URL}" <<'PY'
 import sys
 import time
@@ -187,11 +187,11 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy")
+raise SystemExit("engine did not become healthy")
 PY
 }
 
-wait_for_agent_healthy
+wait_for_engine_healthy
 
 TOKEN_FROM_CLI="$("${MSC_BIN}" token print --test)"
 
@@ -749,12 +749,12 @@ if not settings["editable"] or settings["serverName"] != "rescan smoke java":
     raise SystemExit(f"expected rescanned Java server to be settings-capable, got {settings!r}")
 PY
 
-  kill "${AGENT_PID}"
-  wait "${AGENT_PID}" 2>/dev/null || true
-  AGENT_PID=""
-  "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >"${TMP_DIR}/agent-restarted.log" 2>&1 &
-  AGENT_PID="$!"
-  wait_for_agent_healthy
+  kill "${ENGINE_PID}"
+  wait "${ENGINE_PID}" 2>/dev/null || true
+  ENGINE_PID=""
+  "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >"${TMP_DIR}/engine-restarted.log" 2>&1 &
+  ENGINE_PID="$!"
+  wait_for_engine_healthy
 
   assert_servers_present "${BASE_URL}" "${TOKEN_FROM_CLI}" "rescan smoke java"
 
@@ -795,7 +795,7 @@ while time.time() < deadline:
             print(token)
             raise SystemExit(0)
     time.sleep(0.1)
-raise SystemExit("agent did not print migrated bearer token")
+raise SystemExit("engine did not print migrated bearer token")
 PY
 )"
   local token_tail="${migrated_token#msc2_}"
@@ -809,12 +809,12 @@ PY
     exit 1
   fi
 
-  kill "${AGENT_PID}"
-  wait "${AGENT_PID}" 2>/dev/null || true
-  AGENT_PID=""
-  "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >"${TMP_DIR}/agent-migration-restarted.log" 2>&1 &
-  AGENT_PID="$!"
-  wait_for_agent_healthy
+  kill "${ENGINE_PID}"
+  wait "${ENGINE_PID}" 2>/dev/null || true
+  ENGINE_PID=""
+  "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >"${TMP_DIR}/engine-migration-restarted.log" 2>&1 &
+  ENGINE_PID="$!"
+  wait_for_engine_healthy
 
   "${MSC_BIN}" --base-url "${BASE_URL}" --token "${migrated_token}" --json status >/dev/null
 

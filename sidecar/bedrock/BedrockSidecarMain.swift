@@ -181,7 +181,7 @@ private final class UnixSocketListener: @unchecked Sendable {
         // The listener must be nonblocking so the service can notice shutdown,
         // but a session's FileHandle read is intentionally blocking. Darwin
         // can carry O_NONBLOCK onto the accepted descriptor; leaving it set
-        // makes an idle, newly connected agent look like a closed protocol
+        // makes an idle, newly connected engine look like a closed protocol
         // session before it has sent its first request.
         let flags = fcntl(client, F_GETFL, 0)
         guard flags >= 0, fcntl(client, F_SETFL, flags & ~O_NONBLOCK) == 0 else {
@@ -481,7 +481,7 @@ private struct BedrockSidecarMain {
                 // A client can disconnect while a response is being written.
                 // Ignore SIGPIPE so FileHandle.write reports that broken
                 // connection as an error instead of launchd killing the
-                // privileged helper and leaving the agent without a runtime.
+                // privileged helper and leaving the engine without a runtime.
                 signal(SIGPIPE, SIG_IGN)
                 signal(SIGTERM, SIG_IGN)
                 signalSource.setEventHandler { service.stop() }

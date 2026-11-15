@@ -1,6 +1,6 @@
 <script lang="ts">
   // Ports ServerEditorView.swift, reduced to two tabs per the 2026-08-27
-  // design decision recorded in docs/msc2/rolling-plan.md's P12.12 entry:
+  // design decision recorded in docs/msc/rolling-plan.md's P12.12 entry:
   // Settings/JARs/Backups/World all already live in Details (P12.7/P12.8/
   // P12.4/P12.4k) and are not rebuilt here; Docker is excluded while D-008
   // stays Proposed. Reached from ManageSheet.svelte's per-card "Edit..."

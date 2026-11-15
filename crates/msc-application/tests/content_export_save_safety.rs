@@ -1,6 +1,6 @@
 //! Essential P24.18: host overwrite consent must identify existing bytes, and
 //! cancelled/stale saves must leave them untouched. Native transfer coverage
-//! does not exercise agent-host destinations. Tiny local files, expected <50ms.
+//! does not exercise engine-host destinations. Tiny local files, expected <50ms.
 use msc_application::content_export_saving::{self as saves, HostDestination};
 use msc_domain::app_config_schema::ConfigServer;
 #[test]

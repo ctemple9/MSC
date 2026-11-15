@@ -11,7 +11,7 @@ Usage: $0 --real-config <server_config_swift.json> --real-transfer <package.msct
 
 Runs the Phase 5 public-path gate smoke on this host. The real config and
 transfer package are read from their original locations but copied/imported
-through isolated MSC 2 data roots.
+through isolated MSC data roots.
 USAGE
 }
 
@@ -52,14 +52,14 @@ fi
 
 MSC_BIN="${ROOT}/target/debug/msc"
 TOKEN="msc2_phase5_gate_bootstrap_secret"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc2-phase5-gate.XXXXXX")"
-AGENT_PID=""
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc-phase5-gate.XXXXXX")"
+ENGINE_PID=""
 KEYCHAIN_SERVICE="com.msc2.phase5.gate.$(date +%Y%m%d%H%M%S).$$"
 
 cleanup() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
   if [[ "$(uname -s)" == "Darwin" ]]; then
     /usr/bin/security delete-generic-password \
@@ -87,7 +87,7 @@ s.close()
 PY
 }
 
-wait_for_agent_healthy() {
+wait_for_engine_healthy() {
   local base_url="$1"
   python3 - "${base_url}" <<'PY'
 import sys
@@ -104,11 +104,11 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy")
+raise SystemExit("engine did not become healthy")
 PY
 }
 
-start_agent() {
+start_engine() {
   local port="$1" data_dir="$2" config_path="$3" servers_root="$4" log_path="$5"
   export MSC2_TEST_BOOTSTRAP_TOKEN="${TOKEN}"
   export MSC2_DATA_DIR="${data_dir}"
@@ -123,16 +123,16 @@ start_agent() {
   fi
   mkdir -p "${data_dir}" "${servers_root}" "${MSC2_OPERATION_JOURNAL_DIR}"
   "${MSC_BIN}" serve --bind "127.0.0.1:${port}" >"${log_path}" 2>&1 &
-  AGENT_PID="$!"
-  wait_for_agent_healthy "http://127.0.0.1:${port}"
+  ENGINE_PID="$!"
+  wait_for_engine_healthy "http://127.0.0.1:${port}"
 }
 
-stop_agent() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+stop_engine() {
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
-  AGENT_PID=""
+  ENGINE_PID=""
 }
 
 require_tool cargo
@@ -140,7 +140,7 @@ require_tool python3
 
 (
   cd "${ROOT}"
-  cargo build -p msc-agent >/dev/null
+  cargo build -p msc-engine >/dev/null
 )
 
 tools/phase5/cli-smoke.sh --migration-restart
@@ -155,7 +155,7 @@ REAL_CONFIG_PATH="${REAL_CONFIG_DATA}/server_config_swift.json"
 mkdir -p "${REAL_CONFIG_DATA}" "${REAL_CONFIG_SERVERS}"
 cp "${REAL_CONFIG}" "${REAL_CONFIG_PATH}"
 REAL_CONFIG_PORT="$(free_port)"
-start_agent "${REAL_CONFIG_PORT}" "${REAL_CONFIG_DATA}" "${REAL_CONFIG_PATH}" "${REAL_CONFIG_SERVERS}" "${REAL_CONFIG_ROOT}/agent.log"
+start_engine "${REAL_CONFIG_PORT}" "${REAL_CONFIG_DATA}" "${REAL_CONFIG_PATH}" "${REAL_CONFIG_SERVERS}" "${REAL_CONFIG_ROOT}/agent.log"
 "${MSC_BIN}" --base-url "http://127.0.0.1:${REAL_CONFIG_PORT}" --token "${TOKEN}" --json status >/dev/null
 python3 - "http://127.0.0.1:${REAL_CONFIG_PORT}" "${TOKEN}" <<'PY'
 import json
@@ -171,14 +171,14 @@ with urllib.request.urlopen(request, timeout=5) as resp:
 if not isinstance(servers, list):
     raise SystemExit(f"expected server list from real config startup, got {servers!r}")
 PY
-stop_agent
+stop_engine
 
 REAL_TRANSFER_ROOT="${TMP_DIR}/real-transfer"
 REAL_TRANSFER_DATA="${REAL_TRANSFER_ROOT}/data"
 REAL_TRANSFER_SERVERS="${REAL_TRANSFER_ROOT}/servers"
 REAL_TRANSFER_CONFIG="${REAL_TRANSFER_DATA}/server_config_swift.json"
 REAL_TRANSFER_PORT="$(free_port)"
-start_agent "${REAL_TRANSFER_PORT}" "${REAL_TRANSFER_DATA}" "${REAL_TRANSFER_CONFIG}" "${REAL_TRANSFER_SERVERS}" "${REAL_TRANSFER_ROOT}/agent.log"
+start_engine "${REAL_TRANSFER_PORT}" "${REAL_TRANSFER_DATA}" "${REAL_TRANSFER_CONFIG}" "${REAL_TRANSFER_SERVERS}" "${REAL_TRANSFER_ROOT}/agent.log"
 MSC2_CLI_RESPONSE_TIMEOUT_SECS=300 "${MSC_BIN}" --base-url "http://127.0.0.1:${REAL_TRANSFER_PORT}" --token "${TOKEN}" --json \
   server import "${REAL_TRANSFER}" --kind transfer >/dev/null
 python3 - "http://127.0.0.1:${REAL_TRANSFER_PORT}" "${TOKEN}" <<'PY'
@@ -195,7 +195,7 @@ with urllib.request.urlopen(request, timeout=5) as resp:
 if len(servers) < 1:
     raise SystemExit("real transfer public import produced no registered servers")
 PY
-stop_agent
+stop_engine
 
 python3 tools/phase5/real-corpus-check.py \
   --exercise \

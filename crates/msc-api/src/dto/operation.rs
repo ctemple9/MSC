@@ -2,10 +2,10 @@
 //! operation, and the `state` enum from §3's closed state machine.
 //!
 //! Deliberately independent of `msc_domain::operation`: per
-//! `msc2-engineering.md` §6's module-boundary rule, `msc-domain` carries no
+//! `msc-engineering.md` §6's module-boundary rule, `msc-domain` carries no
 //! serde dependency, so the wire representation is defined fresh here
 //! rather than derived from the domain type. Converting between the two is
-//! `msc-agent`'s job once P2.13/P2.14 wire real handlers.
+//! `msc-engine`'s job once P2.13/P2.14 wire real handlers.
 
 use super::error::ErrorDto;
 use serde::{Deserialize, Serialize};

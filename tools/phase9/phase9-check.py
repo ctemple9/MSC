@@ -22,14 +22,14 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-EVIDENCE_PATH = ROOT / "docs/msc2/networking/evidence/phase9-evidence.json"
-SCOPE_PATH = ROOT / "docs/msc2/networking/phase9-scope.md"
-MATRIX_PATH = ROOT / "docs/msc2/client-capability-matrix.csv"
-AGENT_MAIN_PATH = ROOT / "crates/msc-agent/src/main.rs"
-AGENT_CLI_PATH = ROOT / "crates/msc-agent/src/cli/mod.rs"
-USER_ROUTES_PATH = ROOT / "crates/msc-agent/src/routes/users.rs"
-NETWORKING_ROUTES_PATH = ROOT / "crates/msc-agent/src/routes/networking.rs"
-EVIDENCE_DIR = ROOT / "docs/msc2/networking/evidence"
+EVIDENCE_PATH = ROOT / "docs/msc/networking/evidence/phase9-evidence.json"
+SCOPE_PATH = ROOT / "docs/msc/networking/phase9-scope.md"
+MATRIX_PATH = ROOT / "docs/msc/client-capability-matrix.csv"
+ENGINE_MAIN_PATH = ROOT / "crates/msc-engine/src/main.rs"
+ENGINE_CLI_PATH = ROOT / "crates/msc-engine/src/cli/mod.rs"
+USER_ROUTES_PATH = ROOT / "crates/msc-engine/src/routes/users.rs"
+NETWORKING_ROUTES_PATH = ROOT / "crates/msc-engine/src/routes/networking.rs"
+EVIDENCE_DIR = ROOT / "docs/msc/networking/evidence"
 FIXTURE_DIRS = {
     "networking": ROOT / "fixtures/networking",
     "helper-lifecycle": ROOT / "fixtures/helper-lifecycle",
@@ -104,7 +104,7 @@ def read_json(path: Path) -> dict:
 def check_evidence_manifest() -> list[str]:
     manifest = read_json(EVIDENCE_PATH)
     require(
-        manifest.get("schema") == "msc2.phase9.evidence.v1",
+        manifest.get("schema") == "msc.phase9.evidence.v1",
         f"{EVIDENCE_PATH.relative_to(ROOT)}: unexpected schema",
     )
     records = manifest.get("integrations")
@@ -154,18 +154,18 @@ def check_capability_matrix() -> list[str]:
     not_implemented = [
         operation
         for operation in sorted(PHASE9_ROUTES)
-        if found[operation]["agent_status"] != "Implemented"
+        if found[operation]["engine_status"] != "Implemented"
     ]
     require(
         not not_implemented,
-        f"capability matrix: Phase 9 agent routes not marked Implemented {not_implemented}",
+        f"capability matrix: Phase 9 engine routes not marked Implemented {not_implemented}",
     )
     return [f"capabilities: {len(PHASE9_ROUTES)} Phase 9 routes marked Implemented"]
 
 
 def check_management_boundary() -> list[str]:
-    main = AGENT_MAIN_PATH.read_text(encoding="utf-8")
-    cli = AGENT_CLI_PATH.read_text(encoding="utf-8")
+    main = ENGINE_MAIN_PATH.read_text(encoding="utf-8")
+    cli = ENGINE_CLI_PATH.read_text(encoding="utf-8")
     users = USER_ROUTES_PATH.read_text(encoding="utf-8")
     networking = NETWORKING_ROUTES_PATH.read_text(encoding="utf-8")
 

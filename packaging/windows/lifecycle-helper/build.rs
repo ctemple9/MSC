@@ -20,7 +20,7 @@ fn main() {
         println!("cargo:rerun-if-changed={}", path.display());
         let bytes = std::fs::read(&path).unwrap_or_else(|error| {
             panic!(
-                "stage the Windows agent payload before building its lifecycle helper: {}: {error}",
+                "stage the Windows engine payload before building its lifecycle helper: {}: {error}",
                 path.display()
             )
         });

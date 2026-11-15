@@ -3,7 +3,7 @@
   "case": "live-plus-stale-different-active-slot",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "createSlot(name:for:...) reused as a recovery-snapshot archive — see docs/msc2/worlds/phase6-scope.md §\"State 3 — both together\", step 3, \"Different, or equality cannot be established\"",
+    "test": "createSlot(name:for:...) reused as a recovery-snapshot archive — see docs/msc/worlds/phase6-scope.md §\"State 3 — both together\", step 3, \"Different, or equality cannot be established\"",
     "line": 391
   },
   "input": {

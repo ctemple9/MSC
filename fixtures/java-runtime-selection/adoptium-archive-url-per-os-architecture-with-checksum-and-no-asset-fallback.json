@@ -2,7 +2,7 @@
   "domain": "java-runtime-selection",
   "case": "adoptium-archive-url-per-os-architecture-with-checksum-and-no-asset-fallback",
   "source": {
-    "file": "docs/msc2/families/phase7-scope.md",
+    "file": "docs/msc/families/phase7-scope.md",
     "test": "D-006 addendum -- Java runtime install, characterized fresh against a live Adoptium API capture rather than ported from JavaInstaller.swift (which is macOS/.pkg-only, hardcodes os=mac, and has no checksum step at all)",
     "line": 19
   },

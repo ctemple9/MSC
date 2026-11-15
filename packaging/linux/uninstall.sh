@@ -10,13 +10,13 @@ INSTALL_MODE_MARKER="$INSTALL_ROOT/.msc2-installation-mode"
 PATH_LINK="/usr/local/bin/msc"
 UNIT_DIR="/etc/systemd/system"
 TMPFILES_DIR="/usr/lib/tmpfiles.d"
-AGENT_UNIT="com.ctemple.msc2.agent.service"
+ENGINE_UNIT="com.ctemple.msc2.agent.service"
 HELPER_SOCKET_UNIT="msc2-credential-helper.socket"
 HELPER_SERVICE_UNIT="msc2-credential-helper.service"
 TMPFILES_UNIT="msc2.conf"
 
 fail() {
-  printf 'msc 2 linux uninstaller: %s\n' "$1" >&2
+  printf 'MSC linux uninstaller: %s\n' "$1" >&2
   exit 1
 }
 
@@ -35,7 +35,7 @@ if (($# > 0)); then
   cat <<'USAGE'
 Usage: uninstall.sh
 
-Stop and remove the MSC 2 Linux service definitions and installed binary.
+Stop and remove the MSC Linux service definitions and installed binary.
 Managed server data, logs, configuration, and credential blobs are retained.
 USAGE
   exit 0
@@ -43,15 +43,15 @@ fi
 
 # Keep this list explicit. Uninstall only controls the three MSC units and
 # never asks systemd to stop an unrelated service on the host.
-if [[ -f "$UNIT_DIR/$AGENT_UNIT" ]]; then
-  systemctl stop "$AGENT_UNIT"
+if [[ -f "$UNIT_DIR/$ENGINE_UNIT" ]]; then
+  systemctl stop "$ENGINE_UNIT"
 fi
 systemctl stop "$HELPER_SERVICE_UNIT" "$HELPER_SOCKET_UNIT" >/dev/null 2>&1 || true
-systemctl disable "$AGENT_UNIT" "$HELPER_SERVICE_UNIT" "$HELPER_SOCKET_UNIT" >/dev/null 2>&1 || true
+systemctl disable "$ENGINE_UNIT" "$HELPER_SERVICE_UNIT" "$HELPER_SOCKET_UNIT" >/dev/null 2>&1 || true
 systemctl daemon-reload
 
 rm -f \
-  "$UNIT_DIR/$AGENT_UNIT" \
+  "$UNIT_DIR/$ENGINE_UNIT" \
   "$UNIT_DIR/$HELPER_SOCKET_UNIT" \
   "$UNIT_DIR/$HELPER_SERVICE_UNIT" \
   "$TMPFILES_DIR/$TMPFILES_UNIT" \
@@ -67,7 +67,7 @@ if [[ -L "$PATH_LINK" ]]; then
     rm -f "$PATH_LINK"
     PATH_LINK_STATE="removed"
   else
-    PATH_LINK_STATE="left unchanged (the link no longer targets MSC 2)"
+    PATH_LINK_STATE="left unchanged (the link no longer targets MSC)"
   fi
 elif [[ -e "$PATH_LINK" ]]; then
   PATH_LINK_STATE="left unchanged (the path is not an MSC-owned symlink)"
@@ -78,7 +78,7 @@ systemctl daemon-reload
 rmdir /run/msc2 >/dev/null 2>&1 || true
 
 cat <<'MESSAGE'
-MSC 2 Linux service definitions and binary removed.
+MSC Linux service definitions and binary removed.
 
 The MSC-owned command link at ${PATH_LINK} was ${PATH_LINK_STATE}.
 

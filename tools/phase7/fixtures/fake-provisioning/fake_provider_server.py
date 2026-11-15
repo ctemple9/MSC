@@ -7,7 +7,7 @@ network call happens anywhere in this process.
 
 `crates/msc-infrastructure/src/jar_provider.rs`'s per-family base-URL env
 vars (`MSC2_PROVIDER_*_BASE`, added alongside this smoke) are the only
-thing that makes a real `msc-agent` process reachable this way -- every
+thing that makes a real `msc-engine` process reachable this way -- every
 URL path below is otherwise byte-for-byte what the real provider would be
 asked for, since only the *host* is overridden, never the path shape.
 

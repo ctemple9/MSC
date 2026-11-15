@@ -28,5 +28,5 @@
     "serverTypes.bedrock.runtime.state": "available",
     "serverTypes.bedrock.runtime.backend": "native"
   },
-  "notes": "Recorded from the production Linux fixture agent; the response is emitted by the Rust DTO serializer and consumed by the same-binary CLI."
+  "notes": "Recorded from the production Linux fixture engine; the response is emitted by the Rust DTO serializer and consumed by the same-binary CLI."
 }

@@ -282,7 +282,7 @@ fn legacy_app_support_directory() -> PathBuf {
             return home.join(".msc2");
         }
     }
-    std::env::temp_dir().join("msc2")
+    std::env::temp_dir().join("msc")
 }
 
 fn is_safe_asset_name(name: &str) -> bool {

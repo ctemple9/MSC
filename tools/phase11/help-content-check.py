@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Phase 11's agent-owned educational-content handoff.
+"""Validate Phase 11's engine-owned educational-content handoff.
 
 The checker deliberately reads only portable standard-library formats.  P11.24
 will embed this corpus; P11.16 will add the separate ``--client`` assertion
@@ -155,7 +155,7 @@ def check_client_boundary() -> None:
         text = path.read_text()
         hits.extend(f"{path.relative_to(ROOT)}: {needle}" for needle in forbidden if needle in text)
     if hits:
-        fail("client duplicates agent-owned guide prose: " + "; ".join(hits))
+        fail("client duplicates engine-owned guide prose: " + "; ".join(hits))
 
 
 def main() -> int:

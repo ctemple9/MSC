@@ -1,7 +1,7 @@
 <script lang="ts">
   import { observeServerRun, serverRuns, serverRunKey } from '../shared/server-uptime';
   // MSC 1 DetailsPerformanceTabView / DetailsPerformanceTabContent.swift,
-  // rebuilt to the S0 disciplined system (docs/msc2/antiAIslop.md). Same
+  // rebuilt to the S0 disciplined system (docs/msc/antiAIslop.md). Same
   // shared-component pattern HomeSection/WorldsSection use (D-003).
   //
   // Two real gaps found while wiring this, handled like P12.4a-e/f's
@@ -13,7 +13,7 @@
   //     exposed t1, silently dropping t5/t15 before they reached the wire.
   //     Added `tps5m`/`tps15m` to the contract, DTO, and both snapshot
   //     constructors (msc-application/src/lifecycle.rs,
-  //     msc-agent/src/routes/{lifecycle,status,performance}.rs) so the
+  //     msc-engine/src/routes/{lifecycle,status,performance}.rs) so the
   //     TPS (5m avg)/(15m avg) tiles show the same real figures MSC 1 does,
   //     instead of a fabricated or honestly-blank pair of headline cards.
   //  2. Bedrock's Load 1m/5m/15m and both "Over Time" charts are NOT
@@ -28,7 +28,7 @@
   // oversight: MSC 1 only ever sets `serverStartTime` when its own running
   // app process issues the Start action, because MSC 1's server is a child
   // process of the app itself -- a client can never observe an
-  // already-running server it didn't start. MSC 2's agent is a persistent
+  // already-running server it didn't start. MSC's engine is a persistent
   // background service multiple clients can connect to after the fact
   // (Phase 9/11), so porting that guard literally would show "Offline" in
   // the Uptime tile while Status says "Online" for any client that simply
@@ -186,9 +186,9 @@
   $: ramDomainMax = Math.max(1024, ramMax ?? 0, ...ramHistory);
 
   const toneColor: Record<'ok' | 'warn' | 'error', string> = {
-    ok: 'var(--msc2-status-ok)',
-    warn: 'var(--msc2-status-warn)',
-    error: 'var(--msc2-status-error)',
+    ok: 'var(--msc-status-ok)',
+    warn: 'var(--msc-status-warn)',
+    error: 'var(--msc-status-error)',
   };
   function css(tone: 'ok' | 'warn' | 'error' | undefined): string {
     return tone ? `color: ${toneColor[tone]};` : '';
@@ -353,7 +353,7 @@
   .unavailable {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .metrics-grid,
   .footer-grid {
@@ -367,9 +367,9 @@
     gap: 12px;
   }
   .chart-panel {
-    background: var(--msc2-tier-content);
+    background: var(--msc-tier-content);
     border-radius: 12px;
-    box-shadow: var(--msc2-shadow-card);
+    box-shadow: var(--msc-shadow-card);
     padding: 14px;
     display: flex;
     flex-direction: column;
@@ -380,18 +380,18 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .panel-title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .panel-value {
     margin-left: auto;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 
   @media (max-width: 900px) {

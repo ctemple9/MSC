@@ -4,7 +4,7 @@ use msc_domain::operation::{OperationId, OperationState};
 use msc_infrastructure::fs::{FakeFileSystem, FileSystem};
 use std::sync::{Arc, Barrier};
 
-const DIR: &str = "/srv/agent/operations";
+const DIR: &str = "/srv/engine/operations";
 
 fn make_operations(fs: &FakeFileSystem) -> LifecycleOperations<'_> {
     LifecycleOperations::new(fs, DIR)
@@ -248,10 +248,10 @@ fn lifecycle_operations_cancel_and_terminal_race_has_only_atomic_outcomes() {
     }
 }
 
-/// P7.33: a `"server-create"` operation still `running` when the agent
+/// P7.33: a `"server-create"` operation still `running` when the engine
 /// restarts is reconciled to `Failed` exactly as before, but now also
 /// sweeps the half-provisioned server directory it named — the gap
-/// `docs/msc2/families/phase7-scope.md`'s P7.1 note flagged and P7.30's
+/// `docs/msc/families/phase7-scope.md`'s P7.1 note flagged and P7.30's
 /// gate audit confirmed was still open.
 #[test]
 fn lifecycle_operations_reconcile_sweeps_orphaned_create_directory() {

@@ -56,8 +56,8 @@ export class HostConnectionManager {
     const auth = new DesktopSessionAuth(await loadTauriDesktopCredentialBridge());
     if (options.sshPassword) this.rememberSessionPassword(host.id, options.sshPassword);
 
-    if (host.manualAgentAddress) {
-      const baseUrl = host.manualAgentAddress;
+    if (host.manualEngineAddress) {
+      const baseUrl = host.manualEngineAddress;
       const probe = await this.probe(auth, host.id, baseUrl);
       if (probe.reachable)
         return { baseUrl, route: 'manual', detail: 'Connected through the saved tunnel.' };
@@ -78,7 +78,7 @@ export class HostConnectionManager {
       throw new Error(
         formatConnectionFailure(
           latestTunnel.exitReason ??
-            (latestTunnel.stderr || 'The managed SSH tunnel did not reach the remote agent.'),
+            (latestTunnel.stderr || 'The managed SSH tunnel did not reach the remote engine.'),
           latestTunnel.errorCategory ?? 'ssh',
         ),
       );

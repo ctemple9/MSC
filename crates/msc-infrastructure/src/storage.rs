@@ -20,7 +20,8 @@ use std::{
 pub enum Category {
     Servers,
     DesktopApp,
-    Agent,
+    #[serde(rename = "agent")]
+    Engine,
     SharedTools,
     Cache,
 }
@@ -485,7 +486,7 @@ impl Walker<'_> {
             .filter(|child| !child.is_empty());
         let group = rule.map_or_else(
             || match category {
-                Category::Servers | Category::Agent => Group::Other,
+                Category::Servers | Category::Engine => Group::Other,
                 Category::DesktopApp => Group::Installation,
                 Category::SharedTools => Group::Tools,
                 Category::Cache => Group::Cache,
@@ -837,7 +838,7 @@ mod tests {
         )
         .unwrap();
         let manifest = fixture.manifest(vec![
-            fixture.root("data", Category::Agent),
+            fixture.root("data", Category::Engine),
             fixture.root("data/cache", Category::Cache),
         ]);
         let snapshot = scan(&manifest, Limits::default(), &|| false, &mut |_| {});
@@ -847,7 +848,7 @@ mod tests {
             snapshot
                 .items
                 .iter()
-                .filter(|i| i.category == Category::Agent)
+                .filter(|i| i.category == Category::Engine)
                 .map(|i| i.logical_bytes)
                 .sum::<u64>(),
             3
@@ -894,7 +895,7 @@ mod tests {
         std::fs::write(fixture.0.join("data/known"), b"123").unwrap();
         std::fs::write(fixture.0.join("data/denied"), b"1234567").unwrap();
         std::fs::write(fixture.0.join("data/blocked/private"), b"do not inspect").unwrap();
-        let mut manifest = fixture.manifest(vec![fixture.root("data", Category::Agent)]);
+        let mut manifest = fixture.manifest(vec![fixture.root("data", Category::Engine)]);
         manifest.excluded_roots.push(fixture.0.join("data/blocked"));
         manifest.issues.push("Child ownership is unknown".into());
         let result = scan_with(
@@ -940,11 +941,11 @@ mod tests {
         .unwrap();
         std::os::unix::fs::symlink(fixture.0.join("outside"), fixture.0.join("owned/link"))
             .unwrap();
-        let manifest = fixture.manifest(vec![fixture.root("owned", Category::Agent)]);
+        let manifest = fixture.manifest(vec![fixture.root("owned", Category::Engine)]);
         let snapshot = scan(&manifest, Limits::default(), &|| false, &mut |_| {});
         assert!(snapshot.partial);
         assert_eq!(snapshot.logical_bytes, 0);
-        let manifest = fixture.manifest(vec![fixture.root("owned/link/nested", Category::Agent)]);
+        let manifest = fixture.manifest(vec![fixture.root("owned/link/nested", Category::Engine)]);
         let snapshot = scan(&manifest, Limits::default(), &|| false, &mut |_| {});
         assert!(snapshot.partial);
         assert_eq!(snapshot.logical_bytes, 0);

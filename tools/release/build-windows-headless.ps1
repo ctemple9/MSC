@@ -6,24 +6,24 @@ $ErrorActionPreference = 'Stop'
 
 $workspaceRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $rustTarget = 'x86_64-pc-windows-msvc'
-$agentPackage = Join-Path $workspaceRoot 'crates/msc-agent/Cargo.toml'
+$enginePackage = Join-Path $workspaceRoot 'crates/msc-engine/Cargo.toml'
 $sourceBinary = Join-Path $workspaceRoot "target/$rustTarget/release/msc.exe"
 $packageRoot = Join-Path $workspaceRoot "$OutputRoot/.windows-package"
 
 function Fail([string]$Message) {
-    Write-Error "msc 2 Windows headless build: $Message"
+    Write-Error "MSC Windows headless build: $Message"
     exit 1
 }
 
-$versionLine = Select-String -Path $agentPackage -Pattern '^\s*version\s*=\s*"([^"]+)"' | Select-Object -First 1
+$versionLine = Select-String -Path $enginePackage -Pattern '^\s*version\s*=\s*"([^"]+)"' | Select-Object -First 1
 $version = $versionLine.Matches[0].Groups[1].Value
 if ([string]::IsNullOrWhiteSpace($version)) {
-    Fail 'could not read the msc-agent version'
+    Fail 'could not read the msc-engine version'
 }
 
 Push-Location $workspaceRoot
 try {
-    cargo build --release --no-default-features --target $rustTarget -p msc-agent
+    cargo build --release --no-default-features --target $rustTarget -p msc-engine
     cargo build --release --locked --target $rustTarget --manifest-path (Join-Path $workspaceRoot 'tools/world-map-proof/Cargo.toml')
     if ($LASTEXITCODE -ne 0) {
         Fail 'could not build the Bedrock terrain exporter'
@@ -33,7 +33,7 @@ try {
     }
 
     $platformDirectory = Join-Path $workspaceRoot "$OutputRoot/windows"
-    $archive = Join-Path $workspaceRoot "$OutputRoot/msc2-headless-$version-windows-x86_64.zip"
+    $archive = Join-Path $workspaceRoot "$OutputRoot/msc-headless-$version-windows-x86_64.zip"
     if (Test-Path $packageRoot) {
         Remove-Item -Recurse -Force $packageRoot
     }
@@ -50,10 +50,10 @@ try {
     if ($LASTEXITCODE -ne 0) {
         Fail 'could not stage the pinned Vantage Windows renderer'
     }
-    Set-Content -LiteralPath (Join-Path $packageRoot 'MSC2-VERSION') -Value $version
+    Set-Content -LiteralPath (Join-Path $packageRoot 'MSC-VERSION') -Value $version
     Copy-Item (Join-Path $workspaceRoot 'packaging/windows/install.ps1') (Join-Path $packageRoot 'install.ps1')
     Copy-Item (Join-Path $workspaceRoot 'packaging/windows/uninstall.ps1') (Join-Path $packageRoot 'uninstall.ps1')
-    Copy-Item (Join-Path $workspaceRoot 'docs/msc2/clients/headless-installation.md') (Join-Path $packageRoot 'HEADLESS-INSTALL.md')
+    Copy-Item (Join-Path $workspaceRoot 'docs/msc/clients/headless-installation.md') (Join-Path $packageRoot 'HEADLESS-INSTALL.md')
     if (Test-Path $archive) {
         Remove-Item -Force $archive
     }

@@ -7,7 +7,7 @@
     "line": 336
   },
   "input": {
-    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc2-port-plan.md line 187, first sub-item)",
+    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc-port-plan.md line 187, first sub-item)",
     "description": "A single per-server entry inside servers[] carrying only the handful of keys an early MSC 1 release wrote for a server: id, displayName, serverDir, paperJarPath, and RAM -- none of xboxBroadcastEnabled, autoBackup*, notificationPrefs, playit*, etc."
   },
   "expected": {

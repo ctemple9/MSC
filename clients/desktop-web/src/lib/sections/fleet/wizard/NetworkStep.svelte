@@ -64,7 +64,7 @@
   <div class="ports" use:onboardingAnchor={'ob_server_connectivity_ports'}>
     {#if isBedrock}
       <section class="block">
-        <p class="msc2-type-overline">
+        <p class="msc-type-overline">
           {draft.enablePlayit ? 'Local Port (UDP)' : 'Server Port (UDP)'}
         </p>
         <NumberField
@@ -78,7 +78,7 @@
     {:else}
       <div class="port-row">
         <section class="block">
-          <p class="msc2-type-overline">
+          <p class="msc-type-overline">
             {draft.enablePlayit ? 'Local Port (TCP)' : 'Java Port (TCP)'}
           </p>
           <NumberField
@@ -91,7 +91,7 @@
         </section>
         {#if draft.enableCrossPlay}
           <section class="block">
-            <p class="msc2-type-overline">Bedrock / Geyser Port (UDP)</p>
+            <p class="msc-type-overline">Bedrock / Geyser Port (UDP)</p>
             <NumberField
               value={draft.crossPlayBedrockPort}
               min={1}
@@ -134,12 +134,12 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p {
     margin: 0;
     font-size: 12.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .cards {
@@ -156,8 +156,8 @@
     gap: 4px;
     text-align: left;
     padding: 12px 14px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
     font: inherit;
     cursor: pointer;
@@ -169,12 +169,12 @@
   .card-title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .card-subtitle {
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .ports {
@@ -196,6 +196,6 @@
     margin: 0;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

@@ -39,42 +39,42 @@
       "target": "x86_64-apple-darwin",
       "installMode": "tauri-coordinated",
       "requiredArtifacts": ["desktop"],
-      "includedComponents": ["agent", "sidecar"],
+      "includedComponents": ["engine", "sidecar"],
       "forbiddenArtifacts": []
     },
     "macos-headless-x86_64": {
       "target": "x86_64-apple-darwin",
       "installMode": "standalone-archive",
       "requiredArtifacts": ["archive"],
-      "includedComponents": ["agent", "sidecar"],
+      "includedComponents": ["engine", "sidecar"],
       "forbiddenArtifacts": []
     },
     "macos-desktop-aarch64": {
       "target": "aarch64-apple-darwin",
       "installMode": "tauri-coordinated",
       "requiredArtifacts": ["desktop"],
-      "includedComponents": ["agent"],
+      "includedComponents": ["engine"],
       "forbiddenArtifacts": ["sidecar"]
     },
     "macos-headless-aarch64": {
       "target": "aarch64-apple-darwin",
       "installMode": "standalone-archive",
       "requiredArtifacts": ["archive"],
-      "includedComponents": ["agent"],
+      "includedComponents": ["engine"],
       "forbiddenArtifacts": ["sidecar"]
     },
     "windows-desktop-x86_64": {
       "target": "x86_64-pc-windows-msvc",
       "installMode": "tauri-coordinated",
       "requiredArtifacts": ["desktop"],
-      "includedComponents": ["agent"],
+      "includedComponents": ["engine"],
       "forbiddenArtifacts": ["sidecar"]
     },
     "windows-headless-x86_64": {
       "target": "x86_64-pc-windows-msvc",
       "installMode": "standalone-archive",
       "requiredArtifacts": ["archive"],
-      "includedComponents": ["agent"],
+      "includedComponents": ["engine"],
       "forbiddenArtifacts": ["sidecar"]
     },
     "linux-desktop-deb-x86_64": {
@@ -93,7 +93,7 @@
       "target": "x86_64-unknown-linux-gnu",
       "installMode": "standalone-archive",
       "requiredArtifacts": ["archive"],
-      "includedComponents": ["agent"],
+      "includedComponents": ["engine"],
       "forbiddenArtifacts": ["sidecar"]
     }
   },
@@ -112,7 +112,7 @@
   },
   "installation": {
     "confirmation": "explicit and repeated for the staged releaseId",
-    "staging": "local agent data updates/<releaseId>",
+    "staging": "local engine data updates/<releaseId>",
     "rollback": "restore previous release after failed replacement or health check",
     "remoteServiceControl": "forbidden"
   },

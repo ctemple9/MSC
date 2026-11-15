@@ -134,7 +134,7 @@ export async function mutate<T>(
   path: string,
   body?: unknown,
 ): Promise<T> {
-  if (!api) throw new Error('Connect to an agent before changing server state.');
+  if (!api) throw new Error('Connect to an engine before changing server state.');
   return api.post<T>(path, body);
 }
 

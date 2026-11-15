@@ -243,7 +243,7 @@
         await staged.api?.delete?.(`/v1/staged-uploads/${staged.stagedUploadId}`);
         draft = { ...draft, stagedServerSource: undefined };
       } catch (error) {
-        cleanupError = `Agent cleanup could not be confirmed: ${errorMessage(error)}`;
+        cleanupError = `Engine cleanup could not be confirmed: ${errorMessage(error)}`;
         return;
       }
     }
@@ -251,7 +251,7 @@
       try {
         await discardUpload(input.api, input.id);
       } catch (error) {
-        cleanupError = `Agent cleanup could not be confirmed: ${errorMessage(error)}`;
+        cleanupError = `Engine cleanup could not be confirmed: ${errorMessage(error)}`;
         return;
       }
     }
@@ -714,33 +714,33 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     font-size: 10px;
     font-weight: 600;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .dot.current {
     border-color: rgba(255, 255, 255, 0.4);
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .dot.done {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .label {
     font-size: 11.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     white-space: nowrap;
   }
   .label.seen {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .connector {
     flex: 1;
     height: 1px;
     margin: 0 8px;
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
   }
   .connector.done {
     background: rgba(255, 255, 255, 0.28);
@@ -768,12 +768,12 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p {
     margin: 0;
     font-size: 12.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .paths {
@@ -789,8 +789,8 @@
     text-align: left;
     padding: 16px;
     min-height: 96px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
     font: inherit;
     cursor: pointer;
@@ -806,18 +806,18 @@
   .path-title {
     font-size: 13.5px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .path-subtitle {
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .stub {
     margin: 0;
     font-size: 12.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .footer {
@@ -825,7 +825,7 @@
     align-items: center;
     gap: 8px;
     padding-top: 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     flex-shrink: 0;
   }
   .spacer {
@@ -841,12 +841,12 @@
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .recovery-copy .recovery-title {
     font-size: 14px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .recovery-actions {
     display: flex;
@@ -859,10 +859,10 @@
     margin: 0 0 12px;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .selection-explain.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .runtime-list {
     display: flex;
@@ -879,10 +879,10 @@
     gap: 12px;
     width: 100%;
     padding: 11px 14px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border: 1px solid transparent;
     border-radius: 8px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     text-align: left;
     cursor: pointer;
@@ -912,7 +912,7 @@
   .runtime-name,
   .runtime-path {
     overflow: hidden;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -920,12 +920,12 @@
     font-size: 11px;
   }
   .runtime-path {
-    font-family: var(--msc2-font-mono, monospace);
+    font-family: var(--msc-font-mono, monospace);
     font-size: 10.5px;
   }
   .runtime-action {
     flex-shrink: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 10px;
   }
   .selection-footer {

@@ -92,7 +92,7 @@ struct TroubleshootingFile {
     symptoms: Vec<RouterSymptom>,
 }
 
-/// Parses the complete router catalog compiled into the agent binary.
+/// Parses the complete router catalog compiled into the engine binary.
 /// Parsing here makes malformed content a startup/test failure, never a
 /// partially rendered guide in one client only.
 pub fn embedded_catalog() -> Result<Vec<RouterGuide>, serde_json::Error> {
@@ -102,7 +102,7 @@ pub fn embedded_catalog() -> Result<Vec<RouterGuide>, serde_json::Error> {
     .map(|catalog| catalog.guides)
 }
 
-/// Parses the complete troubleshooting topic catalog compiled into the agent
+/// Parses the complete troubleshooting topic catalog compiled into the engine
 /// binary. The symptom checklist is returned separately because it is
 /// client-owned reference copy, not input to the rule engine.
 pub fn embedded_troubleshooting_topics()

@@ -58,7 +58,7 @@ an unsupported setting as unavailable instead of pretending it was applied.
 Creative, cheats, and some experiments can permanently disable Xbox
 achievements for that world. MSC therefore asks for a separate acknowledgement
 before applying the change. Turning the setting off later does not restore the
-achievement state. This confirmation is agent-enforced across Settings,
+achievement state. This confirmation is engine-enforced across Settings,
 Quick Commands, the in-app console, the CLI, and the API.
 
 Java has different semantics: Creative and command settings affect gameplay

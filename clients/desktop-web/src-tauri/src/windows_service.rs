@@ -10,7 +10,7 @@ pub fn repair(request: &ServiceInstallRequest, owner_window: isize) -> Result<()
     };
     let status = msc_platform_windows::service::WindowsServiceManager::new()
         .execute(ServiceManagerCommand::Status {
-            service_name: ServiceName::new(super::AGENT_SERVICE_NAME),
+            service_name: ServiceName::new(super::ENGINE_SERVICE_NAME),
         })
         .map_err(|error| error.to_string())?;
     if status.state == ServiceState::NotInstalled {
@@ -56,21 +56,21 @@ pub fn install(request: &ServiceInstallRequest, owner_window: isize) -> Result<(
     };
     let existing = msc_platform_windows::service::WindowsServiceManager::new()
         .execute(ServiceManagerCommand::Status {
-            service_name: ServiceName::new(super::AGENT_SERVICE_NAME),
+            service_name: ServiceName::new(super::ENGINE_SERVICE_NAME),
         })
         .map_err(|error| error.to_string())?;
     if existing.state != ServiceState::NotInstalled {
-        return Err("A local agent service already exists. Use the MSC installer to replace its package without changing the service account or asking for its password again.".into());
+        return Err("A local engine service already exists. Use the MSC installer to replace its package without changing the service account or asking for its password again.".into());
     }
     let account = request
         .run_user
         .as_deref()
-        .ok_or("The Windows agent service needs the installing account.")?;
+        .ok_or("The Windows engine service needs the installing account.")?;
     let mut args = vec![
         "service".into(),
         "install".into(),
         "--service-name".into(),
-        super::AGENT_SERVICE_NAME.into(),
+        super::ENGINE_SERVICE_NAME.into(),
         "--binary-path".into(),
         request.binary_path.to_string_lossy().into_owned(),
         "--working-directory".into(),
@@ -123,16 +123,16 @@ fn elevate(
     operation: &str,
 ) -> Result<(), String> {
     let directory = ResultDirectory(
-        std::env::temp_dir().join(format!("msc2-service-{:032x}", rand::random::<u128>())),
+        std::env::temp_dir().join(format!("msc-service-{:032x}", rand::random::<u128>())),
     );
     std::fs::create_dir(&directory.0)
         .map_err(|error| format!("Could not prepare the service helper: {error}"))?;
     let result_path = directory.0.join("result.json");
     let mut script = format!(
-        "$agent={}\n$account={}\n$owner=[IntPtr]{owner_window}\n$serviceName={}\n$installArgs=@({})\n$resultPath={}\n$operation={}\n$nativeSource={}\n{}",
+        "$engine={}\n$account={}\n$owner=[IntPtr]{owner_window}\n$serviceName={}\n$installArgs=@({})\n$resultPath={}\n$operation={}\n$nativeSource={}\n{}",
         literal(&binary.to_string_lossy()),
         literal(account),
-        literal(super::AGENT_SERVICE_NAME),
+        literal(super::ENGINE_SERVICE_NAME),
         args.iter().map(|arg| literal(arg)).collect::<Vec<_>>().join(","),
         literal(&result_path.to_string_lossy()),
         literal(operation),

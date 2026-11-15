@@ -98,7 +98,7 @@ pub struct BedrockRuntimeEligibility {
 }
 
 impl BedrockRuntimeEligibility {
-    /// Detect the real host and inspect only files owned by the agent. The
+    /// Detect the real host and inspect only files owned by the engine. The
     /// compatibility CSV is deliberately not read here: it is published
     /// evidence, not a runtime switch.
     pub fn detect(fs: &dyn FileSystem, paths: &BedrockRuntimePaths) -> Self {
@@ -222,7 +222,7 @@ impl BedrockRuntimeEligibility {
     }
 
     /// Eligibility for the installed macOS helper path. The helper owns the
-    /// VM appliance and Swift executable, so the installing-user agent must
+    /// VM appliance and Swift executable, so the installing-user engine must
     /// inspect only the server's verified guest distribution here. Socket
     /// ownership and mode are checked by the transport before connection.
     pub fn for_mac_helper(

@@ -50,7 +50,7 @@
       const bytes = await api.getBytes('/v1/worlds/map/progress');
       const result = JSON.parse(new TextDecoder().decode(bytes)) as PreparationProgress | null;
       if (alive && busy && generation === loadGeneration) preparation = result?.dimension === selectedDimension ? result : undefined;
-    } catch { /* Older agents still use the ordinary loading status. */ }
+    } catch { /* Older engines still use the ordinary loading status. */ }
     finally { progressRequest = false; }
   }
   let refreshing = false;
@@ -137,7 +137,7 @@
       if (preRenderPollCount % 5 === 0) void readPreRenderEstimate();
       if (updated.state !== 'running' && updated.state !== 'queued') void readPreRenderEstimate();
     } catch {
-      /* The next poll can recover after a brief agent disconnect. */
+      /* The next poll can recover after a brief engine disconnect. */
     }
   }
   async function startPreRender(): Promise<void> {
@@ -363,7 +363,7 @@
       return;
     }
     if (!api?.getBytes) {
-      status = 'Connect to an MSC agent to load saved terrain.';
+      status = 'Connect to an MSC engine to load saved terrain.';
       busy = false;
       return;
     }
@@ -382,7 +382,7 @@
         if (path.startsWith('tiles/') && path.endsWith('.vtile') && mapTiming &&
             mapTiming.firstTileResponseAt === undefined) {
           mapTiming.firstTileResponseAt = performance.now();
-          console.info(`${mapTiming.edition} map: first tile received from agent`, {
+          console.info(`${mapTiming.edition} map: first tile received from engine`, {
             seconds: Number(((mapTiming.firstTileResponseAt - mapTiming.startedAt) / 1000).toFixed(1)),
             requestMs: Number((mapTiming.firstTileResponseAt - started).toFixed(1)),
             bytes: bytes.byteLength,
@@ -469,7 +469,7 @@
 
   async function loadDimensions(): Promise<void> {
     if (!api) {
-      status = 'Connect to an MSC agent to view saved terrain.';
+      status = 'Connect to an MSC engine to view saved terrain.';
       busy = false;
       return;
     }
@@ -1149,7 +1149,7 @@
               }}>{preset.name}</button>
           {/each}
         </div>
-        <p>Higher budgets load more terrain and can increase agent work.</p>
+        <p>Higher budgets load more terrain and can increase engine work.</p>
         <div class="quality-sliders">
           {#each qualitySliders as slider}
               <label title={slider.hint}>
@@ -1268,8 +1268,8 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    background: var(--msc2-bg-content, #1c1c21);
-    border: 1px solid var(--msc2-border, #34343a);
+    background: var(--msc-bg-content, #1c1c21);
+    border: 1px solid var(--msc-border, #34343a);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -1389,7 +1389,7 @@
     display: block;
     width: 100%;
     height: 6px;
-    accent-color: var(--msc2-text-secondary, #b7b7bd);
+    accent-color: var(--msc-text-secondary, #b7b7bd);
   }
   .map-state {
     position: absolute;

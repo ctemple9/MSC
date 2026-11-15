@@ -74,7 +74,7 @@ pub fn discover(input: &Discovery<'_>) -> Manifest {
             continue;
         }
         let category = match entry.kind {
-            EntryKind::DataTree | EntryKind::Configuration => Category::Agent,
+            EntryKind::DataTree | EntryKind::Configuration => Category::Engine,
             EntryKind::ServerTree => Category::Servers,
             EntryKind::ClientState => {
                 if path.components().any(|part| {
@@ -84,7 +84,7 @@ pub fn discover(input: &Discovery<'_>) -> Manifest {
                 }) {
                     Category::DesktopApp
                 } else {
-                    Category::Agent
+                    Category::Engine
                 }
             }
             EntryKind::Installer => Category::Cache,
@@ -92,7 +92,7 @@ pub fn discover(input: &Discovery<'_>) -> Manifest {
                 if input.desktop_installations.contains(path) {
                     Category::DesktopApp
                 } else {
-                    Category::Agent
+                    Category::Engine
                 }
             }
             _ => continue,
@@ -106,7 +106,7 @@ pub fn discover(input: &Discovery<'_>) -> Manifest {
             path: path.clone(),
             category,
             label: match category {
-                Category::Agent => "Agent and protected data",
+                Category::Engine => "Engine and protected data",
                 Category::DesktopApp => "Desktop app",
                 Category::Servers => "Unregistered server files (protected)",
                 Category::Cache => "Verified installer download",
@@ -512,7 +512,7 @@ fn rule(
             Category::Cache => Group::Cache,
             Category::SharedTools => Group::Tools,
             Category::DesktopApp => Group::Installation,
-            Category::Agent => Group::Other,
+            Category::Engine => Group::Other,
         }
     };
     Rule {
@@ -563,8 +563,8 @@ fn data_rules() -> Vec<Rule> {
         ),
         rule(
             "agent/builds",
-            Category::Agent,
-            "Staged agent builds (protected)",
+            Category::Engine,
+            "Staged engine builds (protected)",
             None,
             true,
         ),

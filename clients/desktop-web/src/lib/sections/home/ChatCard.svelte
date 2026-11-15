@@ -22,7 +22,7 @@
 
 <Card padding="14px 16px">
   <div class="overline">
-    <span class="msc2-type-overline">Chat</span>
+    <span class="msc-type-overline">Chat</span>
   </div>
 
   {#if messages.length === 0}
@@ -66,14 +66,14 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     padding: 20px 8px;
     text-align: center;
   }
@@ -81,7 +81,7 @@
     margin: 6px 0 0;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .empty .hint {
     margin: 0;
@@ -105,14 +105,14 @@
   }
   .player {
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .text {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     margin-left: 4px;
   }
   .muted {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .gold {
     color: #d9b34a;

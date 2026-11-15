@@ -1,5 +1,5 @@
 //! `PluginSourceDetector.swift`'s URL-to-source classification and
-//! per-provider URL parsing, per `docs/msc2/addons/phase8-scope.md` and
+//! per-provider URL parsing, per `docs/msc/addons/phase8-scope.md` and
 //! `fixtures/plugin-source-resolution/` (P8.4). `PluginSourceType` is a
 //! closed four-case enum (`AppModels.swift:74-78`); everything here is pure
 //! string manipulation, no I/O.

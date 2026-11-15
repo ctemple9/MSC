@@ -1,7 +1,7 @@
 import type { Schema, ScreenApi } from '../shared/types';
 
-// Real, frozen routes (Phase 6/7) -- see docs/msc2/worlds/phase6-api.md and
-// crates/msc-agent/src/routes/{worlds,backups}.rs. P12.4k (2026-08-27)
+// Real, frozen routes (Phase 6/7) -- see docs/msc/worlds/phase6-api.md and
+// crates/msc-engine/src/routes/{worlds,backups}.rs. P12.4k (2026-08-27)
 // reverses P12.4's original call: Import ZIP / Replace World / Duplicate
 // Slot -- `ServerEditorWorldTab.swift`'s three actions -- now live in this
 // same Worlds tab instead of a World-shaped Server Editor sub-tab, so world
@@ -163,7 +163,7 @@ export type WorldSettingsValues = {
   startingMap: boolean | null;
   supportedToggles: Record<string, boolean>;
   /** Runtime capability context is carried through the shared form only so
-   *  profile writes can omit fields the agent did not advertise. It is not a
+   *  profile writes can omit fields the engine did not advertise. It is not a
    *  persisted world-profile property. */
   capabilities?: WorldSettingsCapabilities;
 };
@@ -347,7 +347,7 @@ export function worldSettingsChanges(
     'gameplay.supported-toggles': { ...values.supportedToggles },
   };
 
-  // The profile schema is shared by Java and Bedrock, but the agent must not
+  // The profile schema is shared by Java and Bedrock, but the engine must not
   // receive keys belonging to the other edition. Leaving those keys in a
   // sparse update would turn an otherwise valid save into an unsupported
   // field error on the backend.
@@ -590,7 +590,7 @@ export function compatibleTargetServers(
 const OPERATION_POLL_MS = 900;
 
 /** Every world/backup mutation that touches real files (activate, convert,
- *  back-up-now, restore) is operation-backed (docs/msc2/worlds/phase6-api.md)
+ *  back-up-now, restore) is operation-backed (docs/msc/worlds/phase6-api.md)
  *  -- the route returns immediately with an operationId, and the real
  *  outcome lands on GET /v1/operations/{id}. Polls until a terminal state. */
 export async function pollOperation(

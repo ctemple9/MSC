@@ -1,15 +1,15 @@
 //! `CredentialRepository`: the durable, non-secret half of the Phase 4/P5.9
-//! credential registry `docs/msc2/lifecycle/pairing-phase4.md` describes --
+//! credential registry `docs/msc/lifecycle/pairing-phase4.md` describes --
 //! "the non-secret registry stores the ... credential id, label, role,
 //! permission categories, ... optional expiry, revoked state". Verifier
 //! records (the salted hash Phase 4's bearer-token auth checks a presented
 //! secret against) stay in `SecretStore`; this module never touches that
 //! trait or reads a raw token.
 //!
-//! Greenfield MSC 2 construction, not a port -- D-019's admin/guest/named
+//! Greenfield MSC construction, not a port -- D-019's admin/guest/named
 //! multi-credential model has no MSC 1 oracle (MSC 1 keeps exactly two
 //! global tokens in Keychain, no registry at all). `role`/`permissions` are
-//! stored as plain strings here rather than `msc-agent`'s `CredentialRole`
+//! stored as plain strings here rather than `msc-engine`'s `CredentialRole`
 //! or `msc-api`'s `PermissionCategoryDto`: this crate depends on neither,
 //! the same crate-boundary [`crate::operation_journal`] draws around its
 //! own `operation_type` field.
@@ -200,15 +200,15 @@ mod tests {
 
     #[test]
     fn load_of_missing_file_returns_empty() {
-        let fs = FakeFileSystem::new().with_dir("/srv/agent");
-        let repo = CredentialRepository::new(&fs, "/srv/agent/credentials.json");
+        let fs = FakeFileSystem::new().with_dir("/srv/engine");
+        let repo = CredentialRepository::new(&fs, "/srv/engine/credentials.json");
         assert_eq!(repo.load().expect("load"), Vec::new());
     }
 
     #[test]
     fn save_then_load_round_trips() {
-        let fs = FakeFileSystem::new().with_dir("/srv/agent");
-        let repo = CredentialRepository::new(&fs, "/srv/agent/credentials.json");
+        let fs = FakeFileSystem::new().with_dir("/srv/engine");
+        let repo = CredentialRepository::new(&fs, "/srv/engine/credentials.json");
         let entries = vec![entry("cred-1"), entry("cred-2")];
 
         repo.save(&entries).expect("save");
@@ -218,8 +218,8 @@ mod tests {
 
     #[test]
     fn save_overwrites_rather_than_appends() {
-        let fs = FakeFileSystem::new().with_dir("/srv/agent");
-        let repo = CredentialRepository::new(&fs, "/srv/agent/credentials.json");
+        let fs = FakeFileSystem::new().with_dir("/srv/engine");
+        let repo = CredentialRepository::new(&fs, "/srv/engine/credentials.json");
 
         repo.save(&[entry("cred-1")]).expect("save");
         repo.save(&[entry("cred-2")]).expect("save");

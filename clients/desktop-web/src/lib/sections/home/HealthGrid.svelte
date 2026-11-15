@@ -1,6 +1,6 @@
 <script lang="ts">
   // MSC 1 HealthCardsGridView, rebuilt to the locked status card
-  // (docs/msc2/renderings/status-card.html): no side rail, no colored
+  // (docs/msc/renderings/status-card.html): no side rail, no colored
   // icon-in-box — status is a quiet label. Restores MSC 1's real
   // flip interaction (HealthGridCardTile's rotation3DEffect) that an
   // earlier pass had flattened away: the front face is title + status only,
@@ -8,9 +8,9 @@
   // and any repair action, one card flipped at a time (matching MSC 1's
   // single `flippedCardID`). Server Directory is dropped per the owner's
   // 2026-08-26 call -- not useful enough to earn a card. The backend's
-  // real card ids (crates/msc-agent/src/routes/health.rs) differ from
+  // real card ids (crates/msc-engine/src/routes/health.rs) differ from
   // MSC 1's id set. Overview keeps the three actionable checks plus Bedrock's
-  // runtime availability in this compact first-read; the agent may continue
+  // runtime availability in this compact first-read; the engine may continue
   // to return additional health data for other clients and future screens.
   import Icon from '../../components/base/Icon.svelte';
   import Button from '../../components/base/Button.svelte';
@@ -33,7 +33,7 @@
     toggle(id);
   }
 
-  // The only card action codes the agent emits today are "locateFolder"
+  // The only card action codes the engine emits today are "locateFolder"
   // (needs a native folder picker this web/Tauri build doesn't wire yet)
   // and "openURL:<url>" (crates/msc-application/src/diagnostics.rs). Only
   // the second is something this client can honestly fulfill.
@@ -50,7 +50,7 @@
 </script>
 
 <div class="overline">
-  <span class="msc2-type-overline">Server Health</span>
+  <span class="msc-type-overline">Server Health</span>
 </div>
 
 <div class="grid">
@@ -103,7 +103,7 @@
     <div class="tile-flip placeholder">
       <div class="tile-inner">
         <div class="face front">
-          <p class="detail">Waiting for the agent to report health data.</p>
+          <p class="detail">Waiting for the engine to report health data.</p>
         </div>
       </div>
     </div>
@@ -141,10 +141,10 @@
     position: absolute;
     inset: 0;
     backface-visibility: hidden;
-    background: var(--msc2-tier-content);
+    background: var(--msc-tier-content);
     border-radius: 12px;
     padding: 13px 14px;
-    box-shadow: var(--msc2-shadow-card);
+    box-shadow: var(--msc-shadow-card);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -156,18 +156,18 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin-bottom: 2px;
   }
   .title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .hint {
     margin-left: auto;
     display: inline-flex;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     opacity: 0.6;
   }
   .back-hint {
@@ -176,12 +176,12 @@
   .status-label {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .detail {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     line-height: 1.4;
     overflow: hidden;
     display: -webkit-box;

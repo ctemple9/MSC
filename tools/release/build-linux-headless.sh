@@ -4,10 +4,10 @@ set -Eeuo pipefail
 WORKSPACE_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_ROOT="${MSC2_HEADLESS_OUTPUT:-$WORKSPACE_ROOT/target/release-headless}"
 RUST_TARGET="${MSC2_RUST_TARGET:-x86_64-unknown-linux-gnu}"
-AGENT_PACKAGE="${WORKSPACE_ROOT}/crates/msc-agent/Cargo.toml"
+ENGINE_PACKAGE="${WORKSPACE_ROOT}/crates/msc-engine/Cargo.toml"
 
 fail() {
-  printf 'msc 2 linux headless build: %s\n' "$1" >&2
+  printf 'MSC linux headless build: %s\n' "$1" >&2
   exit 1
 }
 
@@ -21,11 +21,11 @@ if (($# > 0)); then
   OUTPUT_ROOT="$1"
 fi
 
-VERSION="$(awk -F'"' '/^[[:space:]]*version[[:space:]]*=/ { print $2; exit }' "$AGENT_PACKAGE")"
-[[ -n "$VERSION" ]] || fail "could not read the msc-agent version"
+VERSION="$(awk -F'"' '/^[[:space:]]*version[[:space:]]*=/ { print $2; exit }' "$ENGINE_PACKAGE")"
+[[ -n "$VERSION" ]] || fail "could not read the msc-engine version"
 
 cd "$WORKSPACE_ROOT"
-cargo build --release --locked --no-default-features --target "$RUST_TARGET" -p msc-agent
+cargo build --release --locked --no-default-features --target "$RUST_TARGET" -p msc-engine
 cargo build --release --locked --target "$RUST_TARGET" \
   --manifest-path "$WORKSPACE_ROOT/tools/world-map-proof/Cargo.toml"
 
@@ -34,7 +34,7 @@ SOURCE_BINARY="$WORKSPACE_ROOT/target/$RUST_TARGET/release/msc"
 
 PLATFORM_DIR="$OUTPUT_ROOT/linux"
 PACKAGE_ROOT="$OUTPUT_ROOT/.linux-package"
-ARCHIVE="$OUTPUT_ROOT/msc2-headless-${VERSION}-linux-x86_64.tar.gz"
+ARCHIVE="$OUTPUT_ROOT/msc-headless-${VERSION}-linux-x86_64.tar.gz"
 mkdir -p "$PLATFORM_DIR" "$PACKAGE_ROOT/systemd"
 install -m 0755 "$SOURCE_BINARY" "$PLATFORM_DIR/msc"
 install -m 0755 "$SOURCE_BINARY" "$PACKAGE_ROOT/msc"
@@ -44,16 +44,16 @@ python3 "$WORKSPACE_ROOT/tools/release/stage-vantage.py" \
   --platform linux-x86_64 --output-dir "$PACKAGE_ROOT"
 install -m 0755 "$WORKSPACE_ROOT/packaging/linux/install.sh" "$PACKAGE_ROOT/install.sh"
 install -m 0755 "$WORKSPACE_ROOT/packaging/linux/uninstall.sh" "$PACKAGE_ROOT/uninstall.sh"
-install -m 0644 "$WORKSPACE_ROOT/docs/msc2/clients/headless-installation.md" \
+install -m 0644 "$WORKSPACE_ROOT/docs/msc/clients/headless-installation.md" \
   "$PACKAGE_ROOT/HEADLESS-INSTALL.md"
-install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/com.ctemple.msc2.agent.service.in" \
-  "$PACKAGE_ROOT/systemd/com.ctemple.msc2.agent.service.in"
-install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/msc2-credential-helper.socket.in" \
-  "$PACKAGE_ROOT/systemd/msc2-credential-helper.socket.in"
-install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/msc2-credential-helper.service.in" \
-  "$PACKAGE_ROOT/systemd/msc2-credential-helper.service.in"
-install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/msc2.conf.in" \
-  "$PACKAGE_ROOT/systemd/msc2.conf.in"
+install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/com.ctemple.msc.engine.service.in" \
+  "$PACKAGE_ROOT/systemd/com.ctemple.msc.engine.service.in"
+install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/msc-credential-helper.socket.in" \
+  "$PACKAGE_ROOT/systemd/msc-credential-helper.socket.in"
+install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/msc-credential-helper.service.in" \
+  "$PACKAGE_ROOT/systemd/msc-credential-helper.service.in"
+install -m 0644 "$WORKSPACE_ROOT/packaging/linux/systemd/msc.conf.in" \
+  "$PACKAGE_ROOT/systemd/msc.conf.in"
 
 rm -f "$ARCHIVE"
 tar -czf "$ARCHIVE" -C "$PACKAGE_ROOT" .

@@ -16,7 +16,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "msc2-bedrock-imports-{label}-{}-{}",
+            "msc-bedrock-imports-{label}-{}-{}",
             std::process::id(),
             uuid::Uuid::new_v4()
         ));
@@ -135,7 +135,7 @@ fn fresh_bedrock_creation_writes_native_config_and_active_slot_transactionally()
     assert_eq!(created.world_slot.name, "New Realm");
     assert_eq!(
         fs::read_to_string(server_dir.join("server.properties")).unwrap(),
-        "# Modified via MSC 2\nallow-cheats=false\ndifficulty=easy\ngamemode=survival\nlevel-name=New Realm\nlevel-seed=12345\nmax-players=20\nonline-mode=true\nserver-name=Survival Realm\nserver-port=19132\nserver-portv6=19133\ntexturepack-required=false\n"
+        "# Modified via MSC\nallow-cheats=false\ndifficulty=easy\ngamemode=survival\nlevel-name=New Realm\nlevel-seed=12345\nmax-players=20\nonline-mode=true\nserver-name=Survival Realm\nserver-port=19132\nserver-portv6=19133\ntexturepack-required=false\n"
     );
     assert_eq!(
         fs::read_to_string(server_dir.join("allowlist.json")).unwrap(),

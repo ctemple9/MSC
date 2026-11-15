@@ -7,7 +7,7 @@
 //! (given the captured `java -version` text; capturing it is the caller's
 //! job). Detecting installed runtimes on disk and normalizing candidate
 //! filesystem paths stay unported here — `msc-domain` carries no I/O, per
-//! `msc2-engineering.md` §6 — and live in `msc-infrastructure`'s
+//! `msc-engineering.md` §6 — and live in `msc-infrastructure`'s
 //! `java_runtime_detection` (Phase 3).
 //!
 //! P7.12 additions: `validateLooksLikeJava` (`ServerProcessManager.swift`,
@@ -220,7 +220,7 @@ pub fn recommended_option(minecraft_version: Option<&str>) -> JavaInstallOption 
 /// (`AppViewModel+ServerCreation.swift:144`): a create call's explicit
 /// per-call override wins over the app-wide default. MSC 1 has no
 /// persisted per-server java path — this override is scoped to one create
-/// call, not saved for later starts of that server. MSC 2 D-043 now saves
+/// call, not saved for later starts of that server. MSC D-043 now saves
 /// an explicit create-time selection on the created server.
 pub fn resolve_create_time_java_path<'a>(
     create_request_java_path: Option<&'a str>,
@@ -236,7 +236,7 @@ pub fn resolve_create_time_java_path<'a>(
 // found both ported and unit-tested but never wired into creation or
 // start. This is that wiring's pure half: given one already-resolved
 // Java executable's captured `-version` probe (the I/O half stays in
-// `msc-infrastructure`/`msc-agent`, per this module's own no-I/O rule),
+// `msc-infrastructure`/`msc-engine`, per this module's own no-I/O rule),
 // decide refuse / warn / proceed.
 // ---------------------------------------------------------------------
 
@@ -266,7 +266,7 @@ pub enum UnusableJavaRuntimeReason {
 
 /// The typed "unusable runtime" error this phase's working exit criteria
 /// promises in place of letting the JVM itself fail at launch
-/// (`docs/msc2/rolling-plan.md`'s P7.31 entry).
+/// (`docs/msc/rolling-plan.md`'s P7.31 entry).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnusableJavaRuntime {
     pub java_path: String,

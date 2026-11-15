@@ -1,4 +1,4 @@
-//! `ErrorDTO` — `docs/msc2/api-contract/versioning-and-errors.md` §5-6's
+//! `ErrorDTO` — `docs/msc/api-contract/versioning-and-errors.md` §5-6's
 //! single error envelope, used by every non-2xx `/v1/` response and reused
 //! verbatim by `OperationDto.error` (`operation-model.md` §2).
 

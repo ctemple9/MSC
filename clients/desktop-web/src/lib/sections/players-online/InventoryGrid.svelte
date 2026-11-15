@@ -98,7 +98,7 @@
   .label {
     font-size: 11px;
     font-weight: 500;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .row {
     display: flex;
@@ -111,7 +111,7 @@
   }
   .divider {
     height: 1px;
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
   }
   .hotbar-divider {
     height: 1px;
@@ -128,7 +128,7 @@
   }
   .offhand-label {
     font-size: 9px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .slot {
     position: relative;
@@ -137,8 +137,8 @@
     flex: none;
     box-sizing: border-box;
     border-radius: 4px;
-    background: var(--msc2-tier-terminal);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-terminal);
+    border: 1px solid var(--msc-hairline-subtle);
   }
   .slot.highlighted {
     border-color: rgba(255, 255, 255, 0.18);

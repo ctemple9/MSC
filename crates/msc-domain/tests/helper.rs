@@ -74,7 +74,7 @@ fn helper_exit_clears_running_state_and_address() {
 fn helper_restart_never_claims_a_leftover_pid_is_running() {
     let fixture = load("restart-reconciles-helper-state-honestly");
     assert_eq!(
-        HelperSnapshot::after_agent_restart().status,
+        HelperSnapshot::after_engine_restart().status,
         HelperStatus::UnknownUntilReconciled
     );
     assert_eq!(fixture.expected["mustNotReport"], "running");

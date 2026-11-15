@@ -200,7 +200,7 @@ public static class MscLifecyclePaths {
         try {
             return (New-Object Security.Principal.NTAccount($lookup)).Translate([Security.Principal.SecurityIdentifier]).Value
         } catch {
-            throw 'Windows could not resolve the recorded local agent account. Package maintenance cannot safely continue; retain the service and its metadata for inspection.'
+            throw 'Windows could not resolve the recorded local engine account. Package maintenance cannot safely continue; retain the service and its metadata for inspection.'
         }
     }
     function Assert-Definition($svc, $meta) {
@@ -223,6 +223,13 @@ public static class MscLifecyclePaths {
             throw 'The service command is not the fixed local MSC service entry point.'
         }
         return $tail
+    }
+    function Previous-Desktop([string]$directory) {
+        foreach ($name in @('msc-desktop-web.exe', 'msc2-desktop-web.exe')) {
+            $candidate = Guard-Path (Join-Path $directory $name)
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+        }
+        throw 'The previous desktop executable is missing; retain the installation for recovery.'
     }
     function Bundle-Digest([string]$directory) {
         $null = Guard-Path $directory
@@ -263,7 +270,7 @@ public static class MscLifecyclePaths {
             throw 'The service data directory does not establish desktop ownership.'
         }
         $build = Split-Path -Leaf (Split-Path -Parent $binary)
-        if ($build -notmatch '^[0-9a-f]{64}$' -or -not (Same-Path $binary (Join-Path $dataRoot "agent\builds\$build\msc.exe"))) { throw 'The existing service is not a recognized copied desktop build.' }
+        if ($build -notmatch '^[0-9a-f]{64}$' -or -not (Same-Path $binary (Join-Path $dataRoot "engine\builds\$build\msc.exe"))) { throw 'The existing service is not a recognized copied desktop build.' }
         if ((Bundle-Digest (Split-Path -Parent $binary)) -ne $build) { throw 'The copied desktop build has changed.' }
         # Same-product repair can restore missing package files. Its embedded
         # manifest proves the copied payload without relying on damaged files.
@@ -272,7 +279,7 @@ public static class MscLifecyclePaths {
             if ((Get-FileHash -LiteralPath (Join-Path (Split-Path -Parent $binary) $name)).Hash -ine $expectedHashes.$name) { $repairMatch = $false }
         }
         if (-not $request.repair -and -not $repairMatch -and (-not $previousRoot -or (Bundle-Digest (Join-Path (Guard-Path $previousRoot) 'agent')) -ne $build)) {
-            throw 'The copied agent cannot be matched to this desktop package. Keep the installation for inspection.'
+            throw 'The copied engine cannot be matched to this desktop package. Keep the installation for inspection.'
         }
         return $true
     }
@@ -282,19 +289,19 @@ public static class MscLifecyclePaths {
             $svc = Service
             if (-not $svc) { throw 'The service disappeared during package maintenance.' }
             if ($svc.State -eq $state) {
-                if ($state -eq 'Stopped' -and $svc.ExitCode -ne 0) { throw 'The agent did not report a successful shutdown.' }
+                if ($state -eq 'Stopped' -and $svc.ExitCode -ne 0) { throw 'The engine did not report a successful shutdown.' }
                 return
             }
             Start-Sleep -Milliseconds 250
         } while ([DateTime]::UtcNow -lt $deadline)
-        throw "The local agent did not reach $state; package changes are refused."
+        throw "The local engine did not reach $state; package changes are refused."
     }
     function Stop-Owned($svc, $meta) {
         if ($svc.State -eq 'Stopped') { return }
         if ($svc.State -ne 'Running') { throw 'The local service is already changing state; retry after it settles.' }
         $environment = Decode-Hex $meta.environment_hex
         if (($environment -split '\n') -notcontains 'MSC2_SERVICE_MAINTENANCE_PROTOCOL=1') {
-            throw 'This older running agent cannot acknowledge safe package shutdown. Stop Minecraft and then the local agent explicitly before running Setup again.'
+            throw 'This older running engine cannot acknowledge safe package shutdown. Stop Minecraft and then the local engine explicitly before running Setup again.'
         }
         # No STOP fallback and no process killing if the graceful handshake fails.
         Invoke-Sc @('control', $serviceName, '128')
@@ -411,7 +418,7 @@ public static class MscLifecyclePaths {
             if ($request.managed) {
                 Protect-Directory $stateRoot
                 if (Get-ChildItem -LiteralPath $stateRoot -File | Where-Object { $_.Name -match '^[0-9a-f-]{36}(?:\.recovery)?\.json(?:\.(?:[0-9a-f]{32}\.)?tmp)?$' }) { throw 'An unfinished update requires recovery before retrying.' }
-                $previousDesktop = Guard-Path (Join-Path $request.previousRoot 'msc2-desktop-web.exe')
+                $previousDesktop = Previous-Desktop $request.previousRoot
                 $transaction = @{ version=1; noService=$true; oldDesktopHash=(Get-FileHash -LiteralPath $previousDesktop).Hash.ToLowerInvariant(); wasRunning=$false }
                 Save-State
             }
@@ -422,13 +429,13 @@ public static class MscLifecyclePaths {
             if ($request.managed) {
                 Protect-Directory $stateRoot
                 if (Get-ChildItem -LiteralPath $stateRoot -File | Where-Object { $_.Name -match '^[0-9a-f-]{36}(?:\.recovery)?\.json(?:\.(?:[0-9a-f]{32}\.)?tmp)?$' }) { throw 'An unfinished update requires recovery before retrying.' }
-                $previousDesktop = Guard-Path (Join-Path $request.previousRoot 'msc2-desktop-web.exe')
+                $previousDesktop = Previous-Desktop $request.previousRoot
                 $transaction = @{ version=1; independentService=$true; originalCommand=$svc.PathName; accountSid=(Account-Sid $svc.StartName); startMode=$svc.StartMode; oldDesktopHash=(Get-FileHash -LiteralPath $previousDesktop).Hash.ToLowerInvariant(); wasRunning=($svc.State -eq 'Running') }
                 Save-State
             }
             return
         }
-        if ($svc.State -notin @('Running','Stopped')) { throw 'The local agent is already changing state.' }
+        if ($svc.State -notin @('Running','Stopped')) { throw 'The local engine is already changing state.' }
         Protect-Directory $stateRoot
         if (Get-ChildItem -LiteralPath $stateRoot -File | Where-Object { $_.Name -match '^[0-9a-f-]{36}(?:\.recovery)?\.json(?:\.(?:[0-9a-f]{32}\.)?tmp)?$' }) {
             throw 'An unfinished package transaction requires recovery before retrying.'
@@ -436,7 +443,7 @@ public static class MscLifecyclePaths {
         $delayed = Get-ItemProperty -LiteralPath "Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\$serviceName" -Name DelayedAutoStart -ErrorAction SilentlyContinue
         $transaction = @{ version=1; originalCommand=$svc.PathName; accountSid=(Account-Sid $svc.StartName); startMode=$svc.StartMode; delayedAuto=($delayed.DelayedAutoStart -eq 1); wasRunning=($svc.State -eq 'Running'); metadata=$meta.Raw; previousRoot=$request.previousRoot; packageRoot=$request.packageRoot; oldOwner=$null; applying=$false; newCommand=$null; bootTemporarilyEnabled=$false; removing=$request.remove; removalDisabled=$false }
         if ($request.managed) {
-            $previousDesktop = Guard-Path (Join-Path $request.previousRoot 'msc2-desktop-web.exe')
+            $previousDesktop = Previous-Desktop $request.previousRoot
             $transaction.oldDesktopHash = (Get-FileHash -LiteralPath $previousDesktop).Hash.ToLowerInvariant()
         }
         if (Test-Path -LiteralPath $ownerPath) { $transaction.oldOwner = [IO.File]::ReadAllText($ownerPath) }
@@ -473,9 +480,11 @@ public static class MscLifecyclePaths {
             if ($transaction.noService -or $transaction.independentService) { return }
             $svc = Service
             Assert-Unchanged $svc
-            if ($svc.State -ne 'Stopped') { throw 'The agent must remain stopped while its payload changes.' }
+            if ($svc.State -ne 'Stopped') { throw 'The engine must remain stopped while its payload changes.' }
             if (-not (Same-Path $request.packageRoot $transaction.packageRoot)) { throw 'The package destination changed during maintenance.' }
-            $source = Join-Path (Guard-Path $transaction.packageRoot) 'agent'
+            & sc.exe config $serviceName DisplayName= 'MSC Background Service' | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Could not update the background service display name.' }
+        $source = Join-Path (Guard-Path $transaction.packageRoot) 'agent'
             foreach ($entry in $expectedHashes.PSObject.Properties) {
                 $file = Guard-Path (Join-Path $source $entry.Name)
                 if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -ine $entry.Value) { throw 'The installed payload differs from the payload bound to the native lifecycle helper.' }

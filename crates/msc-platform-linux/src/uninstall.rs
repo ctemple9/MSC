@@ -109,6 +109,8 @@ impl Drop for PrivilegedSession {
 
 fn installed_helper() -> Result<PathBuf, String> {
     for path in [
+        "/usr/lib/Minecraft Server Controller/agent/msc",
+        "/usr/lib/msc-desktop-web/agent/msc",
         "/usr/lib/MSC 2/agent/msc",
         "/usr/lib/msc2-desktop-web/agent/msc",
         "/usr/lib/msc2/msc",
@@ -134,7 +136,7 @@ fn installed_helper() -> Result<PathBuf, String> {
 }
 impl LocalServices for LinuxUninstall {
     fn inspect(&self) -> Result<Vec<ServiceStatusReport>, String> {
-        let agent = LinuxSystemdServiceManager::new()
+        let engine = LinuxSystemdServiceManager::new()
             .execute(ServiceManagerCommand::Status {
                 service_name: ServiceName::new("com.ctemple.msc2.agent"),
             })
@@ -160,7 +162,7 @@ impl LocalServices for LinuxUninstall {
                 )
             }),
         };
-        Ok(vec![agent, helper])
+        Ok(vec![engine, helper])
     }
     fn remove(&self) -> Result<(), String> {
         self.privileged("STOP")
@@ -195,7 +197,15 @@ impl LocalServices for LinuxUninstall {
     }
 }
 fn known_package(name: &str) -> bool {
-    matches!(name, "msc2" | "msc2-desktop-web" | "msc-2")
+    matches!(
+        name,
+        "msc"
+            | "msc-desktop-web"
+            | "minecraft-server-controller"
+            | "msc2"
+            | "msc2-desktop-web"
+            | "msc-2"
+    )
 }
 
 /// Runs only from a protected installed executable after one OS authorization.
@@ -207,7 +217,9 @@ pub fn run_privileged_uninstall() -> Result<(), String> {
     let binary = fs::canonicalize(std::env::current_exe().map_err(|error| error.to_string())?)
         .map_err(|error| error.to_string())?;
     if installed_helper()? != binary {
-        return Err("Privileged uninstall must run from the protected installed MSC agent.".into());
+        return Err(
+            "Privileged uninstall must run from the protected installed MSC engine.".into(),
+        );
     }
     let mut output = std::io::stdout().lock();
     writeln!(output, "READY").map_err(|error| error.to_string())?;
@@ -362,7 +374,7 @@ fn remove_marked_archive() -> Result<(), String> {
         .next()
         .is_some()
     {
-        return Err("Unrecognized content remains in /usr/lib/msc2; retained for review.".into());
+        return Err("Unrecognized content remains in /usr/lib/msc; retained for review.".into());
     }
     fs::remove_dir(path).map_err(|error| error.to_string())
 }

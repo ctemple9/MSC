@@ -17,12 +17,12 @@ describe('storage host ownership', () => {
         }),
     } as unknown as StorageBridge;
     const session = new StorageSession(bridge);
-    const late = session.cached('agent-one');
-    session.invalidate('agent-one');
+    const late = session.cached('engine-one');
+    session.invalidate('engine-one');
     resolve(null);
     await expect(late).rejects.toThrow('authorization changed');
-    const wrong = session.cached('agent-one');
-    resolve({ hostId: 'agent-two' } as StorageSnapshot);
+    const wrong = session.cached('engine-one');
+    resolve({ hostId: 'engine-two' } as StorageSnapshot);
     await expect(wrong).rejects.toThrow('another computer');
   });
 });

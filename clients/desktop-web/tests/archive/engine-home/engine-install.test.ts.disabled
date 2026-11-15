@@ -1,0 +1,104 @@
+import { describe, expect, it, vi } from 'vitest';
+import {
+  prepareInstalledEngine,
+  type EnginePreparationPlatform,
+  type EngineServiceStatus,
+} from '../../src/lib/platform';
+
+const status = (state: EngineServiceStatus['state']): EngineServiceStatus => ({
+  available: state !== 'unavailable',
+  platform: 'macos',
+  serviceName: 'com.ctemple.msc2.agent',
+  state,
+  detail: state,
+});
+import appSource from '../../src/App.svelte?raw';
+import setupSource from '../../src/lib/sections/setup/EngineSetupSection.svelte?raw';
+import platformSource from '../../src/lib/platform/index.ts?raw';
+import tauriSource from '../../src/lib/platform/tauri.ts?raw';
+
+describe('local engine installation boundary', () => {
+  it('keeps setup shared while only the shell invokes native service commands', () => {
+    expect(setupSource).toContain('getPlatform()');
+    expect(setupSource).not.toContain('isTauri');
+    expect(tauriSource).toContain("invoke<EngineServiceStatus>('engine_service_status')");
+    expect(tauriSource).toContain("invoke<EngineServiceStatus>('manage_engine_service'");
+    expect(appSource).toContain("scope: 'host'");
+    expect(appSource).toContain("await selectSection('engine-setup')");
+  });
+
+  it('keeps service controls scoped to the selected local host', () => {
+    expect(platformSource).toContain('baseUrl: configuredBaseUrl ?? LOCAL_ENGINE_ORIGIN');
+    expect(platformSource).not.toContain('window.location.origin');
+    expect(appSource).toContain('isLocalHost={hostId === localEngineHostId}');
+    expect(setupSource).toContain("export let hostId = '';");
+    expect(setupSource).toContain('isDesktopShell && isLocalHost');
+    expect(setupSource).toContain('Manage the engine on {hostLabel}');
+    expect(setupSource).toContain('label={`Managed on ${hostLabel}`}');
+  });
+
+  it('states that closing the window does not stop a service or server', () => {
+    expect(setupSource).toContain('Closing this window is safe.');
+  });
+
+  it('labels a healthy connection as connected', () => {
+    expect(setupSource).toContain("ready: 'Engine connected'");
+    expect(setupSource).toContain('connected and ready for server management');
+  });
+
+  it('keeps connection, service, and service controls in equal columns', () => {
+    expect(setupSource).toContain('<div class="actions">');
+    expect(setupSource).toContain('Install, start, stop, or repair the background service.');
+    expect(setupSource).toContain(
+      'onclick={() => void (onEngineRetry ? onEngineRetry() : refresh())}',
+    );
+    expect(setupSource).toContain('grid-template-columns: repeat(2, minmax(0, 1fr));');
+  });
+
+  it('explains the control panel and engine relationship', () => {
+    expect(setupSource).toContain('MSC has two parts');
+    expect(setupSource).toContain('The control panel');
+    expect(setupSource).toContain('The engine');
+    expect(setupSource).toContain('The control panel (what you can see) is the app you use.');
+    expect(setupSource).toContain("The engine (what you can't see)");
+    expect(setupSource).toContain('same or different computer');
+    expect(setupSource).toContain('The engine owns the work.');
+  });
+
+  it('keeps an explicitly stopped engine stopped until the user starts it', async () => {
+    const platform: EnginePreparationPlatform = {
+      kind: 'tauri',
+      engineHealthCheck: vi.fn(async () => true),
+      engineServiceStatus: vi.fn(async () => status('stopped')),
+      manageEngineService: vi.fn(async () => status('running')),
+    };
+    const healthCheck = vi.fn().mockResolvedValue(true);
+
+    await expect(
+      prepareInstalledEngine(platform, healthCheck, { attempts: 2, delayMs: 0 }),
+    ).resolves.toMatchObject({ state: 'stopped' });
+    expect(platform.manageEngineService).not.toHaveBeenCalled();
+    expect(healthCheck).not.toHaveBeenCalled();
+  });
+
+  it('does not install a missing service during automatic launch', async () => {
+    const platform: EnginePreparationPlatform = {
+      kind: 'tauri',
+      engineHealthCheck: vi.fn(async () => true),
+      engineServiceStatus: vi.fn(async () => status('not-installed')),
+      manageEngineService: vi.fn(async () => status('running')),
+    };
+    const healthCheck = vi.fn().mockResolvedValue(true);
+
+    await expect(prepareInstalledEngine(platform, healthCheck)).resolves.toMatchObject({
+      state: 'not-installed',
+    });
+    expect(platform.manageEngineService).not.toHaveBeenCalled();
+    expect(healthCheck).not.toHaveBeenCalled();
+  });
+
+  it('shows native service errors instead of leaving install feedback blank', () => {
+    expect(setupSource).toContain("formatConnectionFailure(error, 'msc-engine')");
+    expect(setupSource).toContain('Could not change the engine service');
+  });
+});

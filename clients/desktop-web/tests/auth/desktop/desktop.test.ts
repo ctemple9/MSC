@@ -10,8 +10,8 @@ type AuthorizedRequest = Parameters<DesktopCredentialBridge['authorizedRequest']
 
 function bridge() {
   return {
-    bootstrapLocal: vi.fn(async () => ({ agentHostId: 'agent-local' })),
-    exchangePairing: vi.fn(async () => ({ agentHostId: 'agent-beta' })),
+    bootstrapLocal: vi.fn(async () => ({ agentHostId: 'engine-local' })),
+    exchangePairing: vi.fn(async () => ({ agentHostId: 'engine-beta' })),
     forgetCredentials: vi.fn(async () => undefined),
     authorizedRequest: vi.fn(async (_request: AuthorizedRequest): Promise<DesktopResponse> => ({
       status: 200,
@@ -29,7 +29,7 @@ describe('desktop credentials', () => {
     await expect(
       session.redeemRemotePairing('https://beta.example', 'pairing-code'),
     ).resolves.toEqual({
-      agentHostId: 'agent-beta',
+      agentHostId: 'engine-beta',
     });
     expect(native.exchangePairing).toHaveBeenCalledWith({
       baseUrl: 'https://beta.example',
@@ -42,13 +42,13 @@ describe('desktop credentials', () => {
     const session = new DesktopSessionAuth(native);
     const beta = new ApiClient({
       baseUrl: 'https://beta.example',
-      hostId: 'agent-beta',
-      fetchImpl: session.fetchForHost('agent-beta'),
+      hostId: 'engine-beta',
+      fetchImpl: session.fetchForHost('engine-beta'),
     });
     const alpha = new ApiClient({
       baseUrl: 'https://alpha.example',
-      hostId: 'agent-alpha',
-      fetchImpl: session.fetchForHost('agent-alpha'),
+      hostId: 'engine-alpha',
+      fetchImpl: session.fetchForHost('engine-alpha'),
     });
 
     await beta.requestJson('GET', '/v1/me');
@@ -56,11 +56,11 @@ describe('desktop credentials', () => {
 
     expect(native.authorizedRequest).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ agentHostId: 'agent-beta', path: '/v1/me' }),
+      expect.objectContaining({ agentHostId: 'engine-beta', path: '/v1/me' }),
     );
     expect(native.authorizedRequest).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ agentHostId: 'agent-alpha', path: '/v1/me' }),
+      expect.objectContaining({ agentHostId: 'engine-alpha', path: '/v1/me' }),
     );
     expect(JSON.stringify(vi.mocked(native.authorizedRequest).mock.calls)).not.toContain('msc2_');
   });
@@ -70,8 +70,8 @@ describe('desktop credentials', () => {
     const session = new DesktopSessionAuth(native);
     const client = new ApiClient({
       baseUrl: 'https://beta.example',
-      hostId: 'agent-beta',
-      fetchImpl: session.fetchForHost('agent-beta'),
+      hostId: 'engine-beta',
+      fetchImpl: session.fetchForHost('engine-beta'),
     });
 
     await client.requestJson('POST', '/v1/config/ram', {
@@ -131,8 +131,8 @@ describe('desktop credentials', () => {
     const session = new DesktopSessionAuth(native);
     const client = new ApiClient({
       baseUrl: 'https://xubuntu.example',
-      hostId: 'agent-xubuntu',
-      fetchImpl: session.fetchForHost('agent-xubuntu'),
+      hostId: 'engine-xubuntu',
+      fetchImpl: session.fetchForHost('engine-xubuntu'),
     });
     const source = {
       name: 'All the Mods 10.zip',
@@ -165,10 +165,10 @@ describe('desktop credentials', () => {
     const native = bridge();
     const session = new DesktopSessionAuth(native);
 
-    await session.forgetCredentials(['agent-beta'], true);
+    await session.forgetCredentials(['engine-beta'], true);
 
     expect(native.forgetCredentials).toHaveBeenCalledWith({
-      hostIds: ['agent-beta'],
+      hostIds: ['engine-beta'],
       includeLocalHost: true,
     });
   });

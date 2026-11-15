@@ -1,8 +1,8 @@
-//! Windows Service management for the headless agent.
+//! Windows Service management for the headless engine.
 //!
-//! Phase 4's Windows proof registers the agent with the Service Control
+//! Phase 4's Windows proof registers the engine with the Service Control
 //! Manager under the installing user's account, not `LocalSystem`
-//! (`docs/msc2/substrate/service-identity.md` §2). Windows does not expose
+//! (`docs/msc/substrate/service-identity.md` §2). Windows does not expose
 //! rich service metadata back out through one query call, so this module
 //! stores the shared `ServiceInstallRequest` beside the installed service and
 //! reconstructs it for `status`.
@@ -18,7 +18,7 @@ use std::process::Command;
 
 const PASSWORD_ENV: &str = "MSC2_WINDOWS_SERVICE_PASSWORD";
 
-pub fn local_agent_boot_enabled() -> Result<bool, ServiceError> {
+pub fn local_engine_boot_enabled() -> Result<bool, ServiceError> {
     let output = run_sc(&["qc".to_string(), "com.ctemple.msc2.agent".to_string()])?;
     let start_type = output
         .lines()
@@ -36,7 +36,7 @@ pub fn local_agent_boot_enabled() -> Result<bool, ServiceError> {
     }
 }
 
-pub fn set_local_agent_boot_enabled(enabled: bool) -> Result<(), ServiceError> {
+pub fn set_local_engine_boot_enabled(enabled: bool) -> Result<(), ServiceError> {
     run_sc(&[
         "config".to_string(),
         "com.ctemple.msc2.agent".to_string(),
@@ -83,6 +83,12 @@ impl Sc for SystemSc {
             "obj=".to_string(),
             run_user.to_string(),
         ];
+        if service_name == "com.ctemple.msc2.agent" {
+            args.extend([
+                "DisplayName=".to_string(),
+                "MSC Background Service".to_string(),
+            ]);
+        }
         if let Some(password) = password {
             args.push("password=".to_string());
             args.push(password.to_string());
@@ -216,7 +222,7 @@ impl<S: Sc> WindowsServiceManager<S> {
     ) -> Result<ServiceStatusReport, ServiceError> {
         validate_request(&request)?;
         let mut request = request;
-        // The production agent must enter its SCM dispatcher. Keep other
+        // The production engine must enter its SCM dispatcher. Keep other
         // executable definitions intact for callers using this adapter.
         let binary_path = request.binary_path.to_string_lossy();
         if binary_path
@@ -651,7 +657,7 @@ fn sc_error(args: &[String], stdout: &[u8], stderr: &[u8]) -> ServiceError {
 mod credential_error_tests {
     #[test]
     fn registration_failure_does_not_disclose_the_password() {
-        let args = ["create", "msc-agent", "password=", "private-password"].map(String::from);
+        let args = ["create", "msc-engine", "password=", "private-password"].map(String::from);
         let error = super::sc_error(
             &args,
             b"Access is denied. private-password",

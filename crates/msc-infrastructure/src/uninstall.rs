@@ -12,8 +12,8 @@ use std::collections::BTreeMap;
 use std::io;
 use std::path::{Component, Path, PathBuf};
 
-pub const CONFIRMATION: &str = "UNINSTALL MSC 2";
-const AGENT: &str = "com.ctemple.msc2.agent";
+pub const CONFIRMATION: &str = "UNINSTALL MSC";
+const ENGINE: &str = "com.ctemple.msc2.agent";
 const CONFIG: &str = "server_config_swift.json";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -130,7 +130,7 @@ pub fn inventory(fs: &dyn FileSystem, request: &Request) -> Inventory {
         platform: request.platform,
         entries: Vec::new(),
         exclusions: vec![
-            "Remote agents and their servers (no remote requests are made)".into(),
+            "Remote engines and their servers (no remote requests are made)".into(),
             "MSC 1, source checkouts, and unrelated files".into(),
             "Separately installed Java, Tailscale, Docker, and OS package caches".into(),
         ],
@@ -177,7 +177,7 @@ pub fn inventory(fs: &dyn FileSystem, request: &Request) -> Inventory {
     for report in &request.services {
         if !matches!(
             report.service_name.as_str(),
-            AGENT | "com.ctemple.msc2.bedrock-helper" | "msc2-credential-helper"
+            ENGINE | "com.ctemple.msc2.bedrock-helper" | "msc2-credential-helper"
         ) {
             result.entries.push(Entry {
                 kind: EntryKind::Service,
@@ -206,7 +206,7 @@ pub fn inventory(fs: &dyn FileSystem, request: &Request) -> Inventory {
             result.entries.last_mut().unwrap().problem =
                 Some("Installed service definition could not be inspected.".into());
         }
-        if report.service_name.as_str() == AGENT
+        if report.service_name.as_str() == ENGINE
             && let Some(definition) = &report.definition
         {
             add_service_roots(definition, &mut roots);
@@ -216,11 +216,11 @@ pub fn inventory(fs: &dyn FileSystem, request: &Request) -> Inventory {
         result.entries.push(Entry {
             kind: EntryKind::Service,
             path: None,
-            identity: AGENT.into(),
+            identity: ENGINE.into(),
             evidence: "Local inspection required".into(),
             state: EntryState::Blocked,
             problem: Some(
-                "No local service inspection was supplied; do not assume the agent is absent."
+                "No local service inspection was supplied; do not assume the engine is absent."
                     .into(),
             ),
         });
@@ -341,7 +341,7 @@ fn add_data(
         result,
         EntryKind::Configuration,
         &config,
-        "Local agent configuration path",
+        "Local engine configuration path",
     );
     let bytes = match fs.read_bounded(&config, 8 * 1024 * 1024) {
         Ok(bytes) => bytes,

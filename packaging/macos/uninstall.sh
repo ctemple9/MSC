@@ -6,7 +6,7 @@ PATH_LINK="$PATH_DIR/msc"
 INSTALL_BASE="/usr/local/lib/msc2"
 
 fail() {
-  printf 'msc 2 macOS headless uninstaller: %s\n' "$1" >&2
+  printf 'MSC macOS headless uninstaller: %s\n' "$1" >&2
   exit 1
 }
 
@@ -14,7 +14,7 @@ usage() {
   cat <<'USAGE'
 Usage: uninstall.sh
 
-Remove the macOS headless MSC 2 command and its launchd agent service.
+Remove the macOS headless MSC command and its launchd engine service.
 Managed server data remains in place.
 USAGE
 }
@@ -48,14 +48,14 @@ esac
 
 ARCH_ROOT="$INSTALL_BASE/$ARCHITECTURE"
 PATH_LINK_STATE="not present"
-AGENT_PLIST="/Library/LaunchDaemons/com.ctemple.msc2.agent.plist"
-if [[ -f "$AGENT_PLIST" ]]; then
-  SERVICE_BINARY="$(plutil -extract ProgramArguments.0 raw -o - "$AGENT_PLIST" 2>/dev/null)" || \
-    fail "could not inspect the installed agent service"
+ENGINE_PLIST="/Library/LaunchDaemons/com.ctemple.msc2.agent.plist"
+if [[ -f "$ENGINE_PLIST" ]]; then
+  SERVICE_BINARY="$(plutil -extract ProgramArguments.0 raw -o - "$ENGINE_PLIST" 2>/dev/null)" || \
+    fail "could not inspect the installed engine service"
   [[ "$SERVICE_BINARY" == "$ARCH_ROOT/"*/msc ]] || fail \
-    "the installed agent service belongs to another MSC installation"
-  /bin/launchctl bootout system "$AGENT_PLIST"
-  rm -f "$AGENT_PLIST"
+    "the installed engine service belongs to another MSC installation"
+  /bin/launchctl bootout system "$ENGINE_PLIST"
+  rm -f "$ENGINE_PLIST"
 fi
 
 # Only remove a command link when its target is inside MSC's architecture root
@@ -95,7 +95,7 @@ rmdir "$ARCH_ROOT" >/dev/null 2>&1 || true
 rmdir "$INSTALL_BASE" >/dev/null 2>&1 || true
 
 cat <<MESSAGE
-MSC 2 macOS headless command removed.
+MSC macOS headless command removed.
 
 The MSC-owned command link at $PATH_LINK was $PATH_LINK_STATE.
 Managed server data was retained.

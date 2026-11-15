@@ -16,7 +16,7 @@ use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 
 const SERVER_DIR: &str = "/servers/bedrock/survival";
-const OPERATIONS_DIR: &str = "/agent/operations";
+const OPERATIONS_DIR: &str = "/engine/operations";
 
 struct FakeRuntime {
     state: BedrockRuntimeState,

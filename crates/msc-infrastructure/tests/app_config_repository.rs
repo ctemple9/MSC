@@ -42,7 +42,7 @@ use serde_json::Value;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-const TMP_ROOT: &str = "/private/tmp/msc2-fixture-app-config-repository";
+const TMP_ROOT: &str = "/private/tmp/msc-fixture-app-config-repository";
 
 fn resolve_tmp(s: &str) -> String {
     s.replace("<TMP>", TMP_ROOT)
@@ -71,16 +71,16 @@ fn fixed_now() -> SystemTime {
 
 #[test]
 fn app_config_repository_normal_load_returns_typed_config() {
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json");
     let raw = r#"{
         "schemaVersion": 1,
         "config_version": 1,
         "java_path": "/usr/bin/java",
-        "servers_root": "/srv/msc2/servers",
+        "servers_root": "/srv/msc/servers",
         "remote_api_port": 25585
     }"#;
     let fs = FakeFileSystem::new().with_file(path.clone(), raw.as_bytes().to_vec(), false);
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
 
     let outcome = load_app_config(&fs, &path, &defaults, fixed_now())
         .unwrap_or_else(|e| panic!("load_app_config failed: {e}"));
@@ -90,15 +90,15 @@ fn app_config_repository_normal_load_returns_typed_config() {
         "a clean file must not produce a corrupt backup"
     );
     assert_eq!(outcome.config.java_path, "/usr/bin/java");
-    assert_eq!(outcome.config.servers_root, "/srv/msc2/servers");
+    assert_eq!(outcome.config.servers_root, "/srv/msc/servers");
     assert_eq!(outcome.config.remote_api_port, 25585);
 }
 
 #[test]
 fn app_config_repository_save_then_load_round_trips() {
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json");
-    let fs = FakeFileSystem::new().with_dir("/srv/msc2");
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json");
+    let fs = FakeFileSystem::new().with_dir("/srv/msc");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
 
     let mut config = defaults.clone();
     config.java_path = "/opt/java21/bin/java".to_string();
@@ -126,10 +126,10 @@ fn app_config_repository_save_then_load_round_trips() {
 
 #[test]
 fn app_config_repository_malformed_json_backs_up_then_replaces_original_with_defaults() {
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json");
     let garbage = b"this is not json {{{ :::".to_vec();
     let fs = FakeFileSystem::new().with_file(path.clone(), garbage.clone(), false);
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
     let now = fixed_now();
 
     let outcome = load_app_config(&fs, &path, &defaults, now)
@@ -154,10 +154,10 @@ fn app_config_repository_malformed_json_backs_up_then_replaces_original_with_def
 
 #[test]
 fn app_config_repository_clamps_out_of_range_remote_api_port_to_default() {
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json");
     let raw = r#"{ "schemaVersion": 1, "config_version": 1, "remote_api_port": 70000 }"#;
     let fs = FakeFileSystem::new().with_file(path.clone(), raw.as_bytes().to_vec(), false);
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
 
     let outcome = load_app_config(&fs, &path, &defaults, fixed_now())
         .unwrap_or_else(|e| panic!("load_app_config failed: {e}"));
@@ -189,7 +189,7 @@ fn app_config_repository_r3_corrupt_file_algorithm() {
         .as_bytes()
         .to_vec();
     let fs = FakeFileSystem::new().with_file(config_path.clone(), garbage.clone(), false);
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
     let now = fixed_now();
 
     let outcome = load_app_config(&fs, &config_path, &defaults, now)
@@ -232,7 +232,7 @@ fn app_config_repository_r3_corrupt_file_does_not_wipe_original() {
         .as_bytes()
         .to_vec();
     let fs = FakeFileSystem::new().with_file(config_path.clone(), garbage.clone(), false);
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
     let now = fixed_now();
 
     let outcome = load_app_config(&fs, &config_path, &defaults, now)
@@ -250,7 +250,7 @@ fn app_config_repository_r3_corrupt_file_does_not_wipe_original() {
 
 #[test]
 fn config_corpus_dimensions_wrong_type_field_triggers_corruption_recovery() {
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json");
     // Valid JSON syntax -- `serde_json::from_slice` succeeds -- but
     // `initial_setup_done` is a string where `AppConfig::decode` needs a
     // bool, so the *struct* decode fails. MSC 1's `ConfigManager.init`
@@ -266,7 +266,7 @@ fn config_corpus_dimensions_wrong_type_field_triggers_corruption_recovery() {
     }"#
     .to_vec();
     let fs = FakeFileSystem::new().with_file(path.clone(), raw.clone(), false);
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
     let now = fixed_now();
 
     let outcome = load_app_config(&fs, &path, &defaults, now)
@@ -299,7 +299,7 @@ fn config_corpus_dimensions_unknown_top_level_field_does_not_survive_a_save_cycl
     // the keys named in `CodingKeys` are ever read or written, so a key
     // outside that set is silently dropped, not preserved the way a
     // catch-all `[String: Any]` dictionary would.
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json");
     let raw = br#"{
         "schemaVersion": 1,
         "config_version": 1,
@@ -308,7 +308,7 @@ fn config_corpus_dimensions_unknown_top_level_field_does_not_survive_a_save_cycl
     }"#
     .to_vec();
     let fs = FakeFileSystem::new().with_file(path.clone(), raw, false);
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
     let now = fixed_now();
 
     let outcome = load_app_config(&fs, &path, &defaults, now)
@@ -340,12 +340,12 @@ fn config_corpus_dimensions_atomic_write_interruption_leaves_previous_config_int
     // `save_app_config`) still behaves that way if either changed how it
     // calls the primitive. This test drives the actual composed
     // `save_app_config` call and injects the rename failure inside it.
-    let path = PathBuf::from("/srv/msc2/server_config_swift.json");
+    let path = PathBuf::from("/srv/msc/server_config_swift.json");
     let previous = br#"{"schemaVersion":1,"config_version":1,"java_path":"/usr/bin/java"}"#;
     let fs = FakeFileSystem::new()
         .with_file(path.clone(), previous.to_vec(), false)
         .with_failing_rename(path.clone());
-    let defaults = AppConfig::default_config("/srv/msc2/servers");
+    let defaults = AppConfig::default_config("/srv/msc/servers");
     let mut config = defaults.clone();
     config.java_path = "/opt/java21/bin/java".to_string();
 

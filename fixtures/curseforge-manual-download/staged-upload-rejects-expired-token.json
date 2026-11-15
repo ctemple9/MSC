@@ -2,7 +2,7 @@
   "domain": "curseforge-manual-download",
   "case": "staged-upload-rejects-expired-token",
   "source": {
-    "file": "docs/msc2/addons/phase8-scope.md",
+    "file": "docs/msc/addons/phase8-scope.md",
     "test": "D-027 section -- expired staged-upload rejection",
     "line": 17
   },

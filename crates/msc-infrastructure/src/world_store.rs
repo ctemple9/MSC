@@ -99,7 +99,7 @@ pub fn set_active_slot_id(
 /// `world.zip`, then sorts newest-`created_at`-first via
 /// [`msc_domain::world::sort_newest_first`]. A missing `world_slots/`
 /// directory returns an empty list, the ordinary state for any server
-/// never yet stopped inside MSC 1/MSC 2.
+/// never yet stopped inside MSC 1/MSC.
 pub fn load_slots(fs: &dyn FileSystem, server_dir: &Path) -> Vec<WorldSlot> {
     load_slots_inner(fs, server_dir, true)
 }
@@ -145,7 +145,7 @@ fn load_slots_inner(fs: &dyn FileSystem, server_dir: &Path, migrate: bool) -> Ve
             continue;
         }
         if migrate && value.get("profile").is_none() {
-            // Legacy MSC 1/early MSC 2 metadata has no profile. Persisting
+            // Legacy MSC 1/early MSC metadata has no profile. Persisting
             // the identity-only migration here means every later reader sees
             // an explicit, honest profile instead of silently inventing
             // gameplay defaults.
@@ -207,7 +207,7 @@ pub fn load_profile(fs: &dyn FileSystem, server_dir: &Path, slot: &WorldSlot) ->
 }
 
 /// Returns the raw profile object for sidecars and portable slot metadata.
-/// Keeping it as JSON preserves pack fields introduced by a newer agent.
+/// Keeping it as JSON preserves pack fields introduced by a newer engine.
 pub fn load_profile_value(fs: &dyn FileSystem, server_dir: &Path, slot: &WorldSlot) -> Value {
     fs.read(&metadata_path(server_dir, &slot.id))
         .ok()
@@ -255,7 +255,7 @@ pub fn profile_value(profile: &WorldProfile) -> Value {
 }
 
 /// Copies the raw profile object with a slot operation. This is intentionally
-/// a metadata copy rather than a typed copy: fields added by a newer agent
+/// a metadata copy rather than a typed copy: fields added by a newer engine
 /// must survive duplicate, restore, and cross-edition conversion.
 pub fn copy_profile(
     fs: &dyn FileSystem,

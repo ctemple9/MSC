@@ -17,7 +17,7 @@ Inventory mode checks an add-on evidence corpus directory (default
     came from (`source_url`), when it was captured (`captured`), its
     SHA-256 (`sha256`), and its byte size (`byte_size`). A missing field
     fails loudly.
-  - `provider` must be one of the five `docs/msc2/addons/phase8-scope.md`'s
+  - `provider` must be one of the five `docs/msc/addons/phase8-scope.md`'s
     "Provider purposes" table names (`modrinth`, `hangar`, `curseforge`,
     `github`, `direct`) -- a typo or a provider outside this phase's scope
     fails loudly rather than silently miscounting coverage later.
@@ -73,13 +73,13 @@ an add-on corpus:
     `corpus_source` field -- a list of paths, relative to the add-on
     corpus root, naming which recorded response(s) that case was
     characterized from. This is additive to the six required fields
-    `docs/msc2/fixture-format.md` already defines; existing tooling ignores
+    `docs/msc/fixture-format.md` already defines; existing tooling ignores
     unknown fields, so this doesn't touch that spec.
   - Every path a fixture cites must actually have a manifest entry in the
     add-on corpus -- a fixture cannot claim a response that was never
     recorded.
   - A fixture may also carry a top-level `workflow` field naming which of
-    Phase 8's eight symbol-ledger domains (`docs/msc2/addons/
+    Phase 8's eight symbol-ledger domains (`docs/msc/addons/
     phase8-scope.md`'s "Symbol-ledger rows owned by this phase" table:
     `addon-updates`, `modpack-client-only`, `modpack-import`, `modpacks`,
     `modrinth-deps`, `mods`, `plugin-management`, `plugins`) it
@@ -139,11 +139,11 @@ DEFAULT_ADDONS_DIR = Path("corpus/addons")
 DEFAULT_PACKS_DIR = Path("corpus/packs")
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 REPO_ROOT = FIXTURES_DIR.parent.parent.parent
-PROVIDER_EVIDENCE_DIR = Path("docs/msc2/addons/provider-evidence")
-MODPACK_EVIDENCE_DIR = Path("docs/msc2/addons/modpack-evidence")
-SCOPE_PATH = Path("docs/msc2/addons/phase8-scope.md")
-DECISIONS_PATH = Path("docs/msc2/msc2-decisions.md")
-CAPABILITY_MATRIX_PATH = Path("docs/msc2/client-capability-matrix.csv")
+PROVIDER_EVIDENCE_DIR = Path("docs/msc/addons/provider-evidence")
+MODPACK_EVIDENCE_DIR = Path("docs/msc/addons/modpack-evidence")
+SCOPE_PATH = Path("docs/msc/addons/phase8-scope.md")
+DECISIONS_PATH = Path("docs/msc/msc-decisions.md")
+CAPABILITY_MATRIX_PATH = Path("docs/msc/client-capability-matrix.csv")
 
 # These are the public paths Phase 8 promises through every client that has
 # a corresponding copied workflow.  Modpack inspect/import/manual completion
@@ -166,13 +166,13 @@ MODPACK_CLIENT_ROWS = {
     ("POST", "/v1/modpacks/{operationId}/manual-file"),
 }
 
-# The five provider purposes `docs/msc2/addons/phase8-scope.md`'s "Provider
+# The five provider purposes `docs/msc/addons/phase8-scope.md`'s "Provider
 # purposes" table names -- Modrinth, Hangar, CurseForge, GitHub Releases,
 # and the direct-URL fallback (not a real provider, but its own dispatch
 # case in `fetchOnlineVersion`).
 PROVIDERS = ("modrinth", "hangar", "curseforge", "github", "direct")
 
-# The eight symbol-ledger `target_domain` values `docs/msc2/addons/
+# The eight symbol-ledger `target_domain` values `docs/msc/addons/
 # phase8-scope.md`'s "Symbol-ledger rows owned by this phase" table groups
 # Phase 8's 35 owned rows under.
 WORKFLOWS = (
@@ -668,7 +668,7 @@ def check_exit_gate() -> str:
         row = rows.get(key)
         if row is None:
             raise CheckError(f"{CAPABILITY_MATRIX_PATH}: missing {key[0]} {key[1]} row")
-        actual = (row["agent_status"], row["desktop_status"], row["cli_status"])
+        actual = (row["engine_status"], row["desktop_status"], row["cli_status"])
         if actual != expected:
             raise CheckError(
                 f"{CAPABILITY_MATRIX_PATH}: {key[0]} {key[1]} is {actual}, expected {expected}"
@@ -677,7 +677,7 @@ def check_exit_gate() -> str:
         row = rows.get(key)
         if row is None:
             raise CheckError(f"{CAPABILITY_MATRIX_PATH}: missing {key[0]} {key[1]} row")
-        actual = (row["agent_status"], row["desktop_status"], row["cli_status"])
+        actual = (row["engine_status"], row["desktop_status"], row["cli_status"])
         expected = ("Implemented", "Implemented", "Implemented")
         if actual != expected:
             raise CheckError(

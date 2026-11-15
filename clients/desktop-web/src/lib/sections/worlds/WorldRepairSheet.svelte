@@ -1,6 +1,6 @@
 <script lang="ts">
   // Ports WorldRepairView.swift's three phases (prompt -> repairing -> done).
-  // Bedrock-only, and only for the currently active slot (the agent's own
+  // Bedrock-only, and only for the currently active slot (the engine's own
   // /v1/worlds/repair guard). P12.4d/e ported and wired the real level.dat
   // regeneration workflow, so this sheet drives the real thing now: the
   // route starts a journaled operation (like activate/convert) and this
@@ -79,7 +79,7 @@
         with the new version, causing every connection to silently fail.
       </p>
       <div class="bullets">
-        <p class="msc2-type-overline">What repair does</p>
+        <p class="msc-type-overline">What repair does</p>
         <ul>
           <li>Creates a backup of the current world first</li>
           <li>Starts the server briefly to generate an updated format file</li>
@@ -130,30 +130,30 @@
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .error-text {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .error-sample {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
-    background: var(--msc2-tier-chrome);
+    color: var(--msc-text-tertiary);
+    background: var(--msc-tier-chrome);
     border-radius: 8px;
     padding: 8px 10px;
   }
   .explain {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     line-height: 1.5;
   }
   .bullets ul {
     margin: 6px 0 0;
     padding-left: 18px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     line-height: 1.7;
   }
   .footer {
@@ -163,6 +163,6 @@
   }
   .busy p:first-child {
     font-size: 13px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 </style>

@@ -1,0 +1,6458 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MSC 1 Remote API (compatibility baseline)",
+    "version": "baseline",
+    "description": "Captured from MSC 1's actual RemoteAPIServer*.swift source per msc-decisions.md #145: behavior as MSC 1 has it, not aspirational. Built incrementally, one route family per P0.23a-P0.23s step (docs/msc/rolling-plan.md)."
+  },
+  "paths": {
+    "/servers/create": {
+      "post": {
+        "summary": "Create a new server",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerCreateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCreateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / name_required / invalid_server_type / invalid_java_flavor / unsupported_server_type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "create_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCreateResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCreateResultDTO"
+                }
+              }
+            }
+          }
+        },
+        "x-notes": "Read from RemoteAPIServer+ComponentRoutes.swift handleCreateServer and RemoteAPIServer+HTTP.swift's serverMutationStatus. success/message/serverId/serverName/warnings come back on 200 even though the handler ultimately runs async via createServerProvider."
+      }
+    },
+    "/servers/import": {
+      "post": {
+        "summary": "Scan or import an existing server directory/zip/transfer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerImportRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "action=scan returns ServerImportScanResponseDTO; any other action (importExisting/importTransfer) returns ServerImportResultDTO \u2014 same status code, different body shape, dispatched on the request's own 'action' field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ServerImportScanResponseDTO"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ServerImportResultDTO"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / invalid_action / missing_source_path / invalid_path / display_name_required / backup_path_required (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ServerImportScanResponseDTO"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ServerImportResultDTO"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "source_not_found (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ServerImportScanResponseDTO"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ServerImportResultDTO"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "server_running (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ServerImportScanResponseDTO"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ServerImportResultDTO"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ServerImportScanResponseDTO"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ServerImportResultDTO"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-notes": "Read from RemoteAPIServer+ComponentRoutes.swift handleImportServer and importStatus. req.action == \"scan\" routes to serverImportScanProvider; anything else routes to serverImportProvider."
+      }
+    },
+    "/servers/delete": {
+      "post": {
+        "summary": "Delete a server",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerDeleteRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerDeleteResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_server_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "server_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerDeleteResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "server_running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerDeleteResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "delete_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerDeleteResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/servers/rename": {
+      "post": {
+        "summary": "Rename a server",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerRenameRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server renamed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerRenameResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_server_id / name_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "server_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerRenameResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "server_running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerRenameResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerRenameResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/servers/eula": {
+      "post": {
+        "summary": "Accept the Minecraft EULA for a server",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerEULARequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "EULA accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerEULAResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_server_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "server_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerEULAResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "eula_write_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerEULAResultDTO"
+                }
+              }
+            }
+          }
+        },
+        "x-notes": "ServerEULARequestDTO.serverId is itself Optional in the Swift DTO, but handleAcceptServerEULA treats an absent/empty serverId as missing_server_id (400) \u2014 so it's required in practice even though the type allows nil."
+      }
+    },
+    "/worlds/create": {
+      "post": {
+        "summary": "Create a new world slot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldCreateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mutation applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_slot_id / name_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "slot_not_found / source_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server / server_running / bedrock_only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worlds/rename": {
+      "post": {
+        "summary": "Rename a world slot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldRenameRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mutation applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_slot_id / name_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "slot_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server / server_running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worlds/replace": {
+      "post": {
+        "summary": "Replace the active world with another slot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldReplaceRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mutation applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_slot_id / name_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "slot_not_found / source_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server / server_running / same_slot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worlds/repair": {
+      "post": {
+        "summary": "Repair a Bedrock world's level.dat",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldRepairRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mutation applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_slot_id / name_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "slot_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server / server_running / bedrock_only / repair_in_progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worlds/activate": {
+      "post": {
+        "summary": "Activate a world slot (starts activation asynchronously)",
+        "x-notes": "Unlike the other four /worlds/* mutations, this returns a plain {result: activation_started} object on success, not WorldMutationResultDTO \u2014 read directly from RemoteAPIServer+HTTP.swift, not RemoteAPIServer+ComponentRoutes.swift's worldMutationStatus helper.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldActivateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Activation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldActivateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_slot_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "server_running_or_slot_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/components/update": {
+      "post": {
+        "summary": "Update a system component (paper/geyser/floodgate) or a Modrinth-tracked add-on",
+        "x-notes": "Three request shapes share one endpoint (RemoteAPIServer+ComponentRoutes.swift handleUpdateComponent): updateAll=true updates every add-on with an available update; jarStem updates one specific add-on; the legacy path (component=paper|geyser|floodgate) updates a system component. The two add-on paths return AddonUpdateResultDTO; the legacy path returns ComponentUpdateResultDTO.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComponentUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "updateAll/jarStem paths return AddonUpdateResultDTO; the legacy component path returns ComponentUpdateResultDTO",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/AddonUpdateResultDTO"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ComponentUpdateResultDTO"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_component_or_jar_stem / unknown_component",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found (jarStem path)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddonUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "not_supported (jarStem path)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddonUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/AddonUpdateResultDTO"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ComponentUpdateResultDTO"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/components/remove": {
+      "post": {
+        "summary": "Remove an installed Modrinth-tracked add-on",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddonRemoveRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Add-on removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddonRemoveResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_jar_stem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddonRemoveResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "not_supported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddonRemoveResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddonRemoveResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/components/install": {
+      "post": {
+        "summary": "Install an add-on from the Modrinth catalog into the active server",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogInstallRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Install attempted (including a 'no compatible version' outcome, which is 200 not an error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogInstallResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "not_supported / no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogInstallResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/components/version": {
+      "post": {
+        "summary": "Change the active server's JAR version/build",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionChangeRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Version change applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionChangeResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_version_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "server_running / no_active_server / not_supported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionChangeResultDTO"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "download_in_progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionChangeResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionChangeResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups/now": {
+      "post": {
+        "summary": "Start an immediate backup",
+        "responses": {
+          "200": {
+            "description": "Backup started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupNowResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups/restore": {
+      "post": {
+        "summary": "Restore a backup by id (filename)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupRestoreRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Restore started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupRestoreResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_backup_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "backup_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups/config": {
+      "get": {
+        "summary": "Get auto-backup configuration",
+        "responses": {
+          "200": {
+            "description": "Current config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupConfigResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Update auto-backup configuration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupConfigUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Config updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupConfigUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / no_changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "update rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-notes": "At least one of autoBackupEnabled/autoBackupIntervalMinutes/autoBackupMaxCount must be present, or the server rejects with no_changes (400)."
+      }
+    },
+    "/config/java-runtime": {
+      "get": {
+        "summary": "Get the global Java executable path override",
+        "responses": {
+          "200": {
+            "description": "Current path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JavaConfigResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Set the global Java executable path override",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JavaConfigSetRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Path updated, echoes fresh config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JavaConfigResponseDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "set_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config/ram": {
+      "get": {
+        "summary": "Get the active server's RAM allocation",
+        "responses": {
+          "200": {
+            "description": "Current allocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RAMConfigResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Update the active server's RAM allocation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RAMConfigUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allocation updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RAMConfigUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_json / no_changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RAMConfigUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RAMConfigUpdateResultDTO"
+                }
+              }
+            }
+          }
+        },
+        "x-notes": "At least one of minRamGB/maxRamGB must be present, or 400 no_changes."
+      }
+    },
+    "/config/geyser": {
+      "get": {
+        "summary": "Get the active server's Geyser config",
+        "responses": {
+          "200": {
+            "description": "Current config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeyserConfigResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Update the active server's Geyser config",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeyserConfigUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Config updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeyserConfigUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_server / not_installed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeyserConfigUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "write_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeyserConfigUpdateResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "List named-access users",
+        "x-notes": "Admin-only: guarded by `guard case .admin = requestRole` before the handler even runs, returning 403 for any non-admin token.",
+        "responses": {
+          "200": {
+            "description": "User list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponseDTO"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a named-access user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created (token returned once)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCreateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_json / label_empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "invalid_role / invalid_permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCreateResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/revoke": {
+      "post": {
+        "summary": "Revoke a named-access user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRevokeRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRevokeResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRevokeResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRevokeResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/update": {
+      "post": {
+        "summary": "Update a named-access user's label/role/permissions/expiry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_json / label_empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "invalid_role / invalid_permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUpdateResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/repair": {
+      "post": {
+        "summary": "Trigger a repair action for a diagnosed startup problem",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealthRepairRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Repair attempted, echoes fresh problem list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthRepairResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_problem_id / invalid_action / action_unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "problem_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthRepairResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "server_running / no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthRepairResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthRepairResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/playit": {
+      "get": {
+        "summary": "Get Playit tunnel status",
+        "responses": {
+          "200": {
+            "description": "Current status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayitStatusResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/playit/start": {
+      "post": {
+        "summary": "Start the Playit tunnel",
+        "responses": {
+          "200": {
+            "description": "started / already_running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayitActionResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "not_enabled / no_secret_key / no_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayitActionResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/playit/stop": {
+      "post": {
+        "summary": "Stop the Playit tunnel",
+        "responses": {
+          "200": {
+            "description": "stopped / not_running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayitActionResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/autostart": {
+      "get": {
+        "summary": "Get Xbox broadcast auto-start setting",
+        "responses": {
+          "200": {
+            "description": "Current setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastAutoStartDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Set Xbox broadcast auto-start",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastAutoStartSetRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Setting updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastAutoStartDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/auth-prompt": {
+      "get": {
+        "summary": "Get pending MCXboxBroadcast auth prompt",
+        "responses": {
+          "200": {
+            "description": "Current prompt state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastAuthPromptDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/auth-prompt/dismiss": {
+      "post": {
+        "summary": "Dismiss the pending auth prompt",
+        "responses": {
+          "200": {
+            "description": "result: dismissed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastSimpleResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/status": {
+      "get": {
+        "summary": "Get Xbox/Bedrock broadcast running status",
+        "responses": {
+          "200": {
+            "description": "Current status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastStatusDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/start": {
+      "post": {
+        "summary": "Start Xbox broadcast",
+        "responses": {
+          "200": {
+            "description": "result: broadcast_start_requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastSimpleResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/stop": {
+      "post": {
+        "summary": "Stop Xbox broadcast",
+        "responses": {
+          "200": {
+            "description": "result: broadcast_stop_requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastSimpleResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/restart": {
+      "post": {
+        "summary": "Restart Xbox broadcast",
+        "responses": {
+          "200": {
+            "description": "result: broadcast_restart_requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastSimpleResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/credentials": {
+      "post": {
+        "summary": "Update MCXboxBroadcast Microsoft account credentials",
+        "x-notes": "Travels as plaintext JSON over LAN HTTP by design \u2014 see the wire-format notes at the top of RemoteAPIServerDTOs.swift for the threat-model reasoning (S4).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastCredentialsDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "result: credentials_updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "update_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/jar-status": {
+      "get": {
+        "summary": "Get MCXboxBroadcast JAR install status",
+        "responses": {
+          "200": {
+            "description": "Current status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastJarStatusDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast/download-jar": {
+      "post": {
+        "summary": "Download the MCXboxBroadcast JAR",
+        "responses": {
+          "200": {
+            "description": "Download started/finished",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastJarDownloadResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastJarDownloadResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resourcepacks": {
+      "get": {
+        "summary": "List resource packs",
+        "responses": {
+          "200": {
+            "description": "Current packs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePacksResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resourcepacks/activate": {
+      "post": {
+        "summary": "Activate (or clear) the local Java resource pack",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourcePackActivateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pack activated/cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server / java_only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resourcepacks/seturl": {
+      "post": {
+        "summary": "Set a custom resource-pack URL directly in server.properties",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourcePackSetURLRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL set",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / url_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server / java_only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resourcepacks/toggle": {
+      "post": {
+        "summary": "Enable/disable a Geyser resource pack",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourcePackToggleRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pack toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pack_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resourcepacks/remove": {
+      "post": {
+        "summary": "Remove a resource pack from disk",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourcePackRemoveRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pack removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pack_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcePackMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/watchdog/status": {
+      "get": {
+        "summary": "Get watchdog enabled status",
+        "x-notes": "MSC 1 sends these as raw jsonObject: [String: String] \u2014 even the boolean 'enabled'/'success' fields are the literal strings \"true\"/\"false\", not JSON booleans, and there's no Codable DTO backing any of the three routes at all.",
+        "responses": {
+          "200": {
+            "description": "enabled: \"true\"|\"false\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchdogStatusResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/watchdog/enable": {
+      "post": {
+        "summary": "Enable the watchdog",
+        "x-notes": "MSC 1 sends these as raw jsonObject: [String: String] \u2014 even the boolean 'enabled'/'success' fields are the literal strings \"true\"/\"false\", not JSON booleans, and there's no Codable DTO backing any of the three routes at all.",
+        "responses": {
+          "200": {
+            "description": "success: \"true\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchdogActionResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "success: \"false\", error: <message>",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchdogActionErrorDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/watchdog/disable": {
+      "post": {
+        "summary": "Disable the watchdog",
+        "x-notes": "MSC 1 sends these as raw jsonObject: [String: String] \u2014 even the boolean 'enabled'/'success' fields are the literal strings \"true\"/\"false\", not JSON booleans, and there's no Codable DTO backing any of the three routes at all.",
+        "responses": {
+          "200": {
+            "description": "success: \"true\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchdogActionResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "success: \"false\", error: <message>",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchdogActionErrorDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/command": {
+      "post": {
+        "summary": "Send a console command to the active server",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Command sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / missing_command / invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/start": {
+      "post": {
+        "summary": "Start the active server",
+        "responses": {
+          "200": {
+            "description": "result: start_requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stop": {
+      "post": {
+        "summary": "Stop the active server",
+        "responses": {
+          "200": {
+            "description": "result: stop_requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/allowlist": {
+      "get": {
+        "summary": "Get the Bedrock allowlist",
+        "responses": {
+          "200": {
+            "description": "Current allowlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllowlistResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add or remove a Bedrock allowlist entry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllowlistMutationRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entry added/removed, echoes fresh list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllowlistMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / invalid_action / missing_name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "not_bedrock",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllowlistMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllowlistMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players": {
+      "get": {
+        "summary": "List currently-online players",
+        "responses": {
+          "200": {
+            "description": "Online players",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayersResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/skin-override": {
+      "post": {
+        "summary": "Set or clear a manual skin lookup override for a player",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerSkinOverrideRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Override set/cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSkinOverrideResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_profile_id / invalid_profile_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "profile_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSkinOverrideResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSkinOverrideResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSkinOverrideResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/hidden": {
+      "post": {
+        "summary": "Hide or unhide a player profile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HiddenProfileMutationRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visibility updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiddenProfileMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / missing_profile_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "profile_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiddenProfileMutationResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiddenProfileMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiddenProfileMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/profiles": {
+      "get": {
+        "summary": "List all-time player profiles with stats",
+        "responses": {
+          "200": {
+            "description": "Player profiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerProfilesResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/duckdns": {
+      "get": {
+        "summary": "Get the configured DuckDNS hostname",
+        "responses": {
+          "200": {
+            "description": "Current status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuckDNSStatusResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Update the DuckDNS hostname",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DuckDNSUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hostname updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuckDNSUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "success: false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuckDNSUpdateResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates": {
+      "get": {
+        "summary": "List available Paper/plugin templates",
+        "responses": {
+          "200": {
+            "description": "Current templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplatesResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Export the active server as a template, or create a server from one",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateMutationRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mutation applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_action / name_required / template_required / missing_server_id / missing_source_path / invalid_path (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateMutationResultDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "server_not_found / template_not_found (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateMutationResultDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "server_running / unsupported_template (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateMutationResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error (typed for every cause except missing_body/invalid_json (still Error))",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateMutationResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/servers": {
+      "get": {
+        "summary": "List all registered servers",
+        "responses": {
+          "200": {
+            "description": "List all registered servers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServerDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "Current run status (active server, pid, running state)",
+        "responses": {
+          "200": {
+            "description": "Current run status (active server, pid, running state)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteAPIStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/performance": {
+      "get": {
+        "summary": "Latest performance snapshot (TPS, players, CPU, RAM, world size)",
+        "responses": {
+          "200": {
+            "description": "Latest performance snapshot (TPS, players, CPU, RAM, world size)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceSnapshotDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/active-server": {
+      "post": {
+        "summary": "Select which registered server is active",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "serverId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "serverId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "activated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / missing_server_id / invalid_json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "unknown_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session-log": {
+      "get": {
+        "summary": "Join/leave event history for the active server",
+        "responses": {
+          "200": {
+            "description": "Join/leave event history for the active server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLogResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/console/tail": {
+      "get": {
+        "summary": "Last N console lines (query param n, default 200, clamped 1-2000)",
+        "responses": {
+          "200": {
+            "description": "console lines",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConsoleLineDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/components": {
+      "get": {
+        "summary": "Installed system components (Paper/Geyser/Floodgate/flavor jar) and update status",
+        "responses": {
+          "200": {
+            "description": "Installed system components (Paper/Geyser/Floodgate/flavor jar) and update status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComponentsStatusDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addons": {
+      "get": {
+        "summary": "Installed add-ons (mods/plugins) with update status",
+        "responses": {
+          "200": {
+            "description": "Installed add-ons (mods/plugins) with update status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddonsResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files": {
+      "get": {
+        "summary": "Browse the active server's directory (admin-only; query param path). 409 reuses the same shape with note=no_active_server.",
+        "responses": {
+          "200": {
+            "description": "directory listing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerFilesResponseDTO"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (non-admin token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerFilesResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/read": {
+      "get": {
+        "summary": "Read a previewable file's contents (admin-only; query param path, required)",
+        "responses": {
+          "200": {
+            "description": "file contents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerFileReadResponseDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (non-admin token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "file_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerFileReadResponseDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "directory_not_file / not_previewable / no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerFileReadResponseDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "read_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerFileReadResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/components/client-export": {
+      "get": {
+        "summary": "Package selected components/add-ons for client-side install (query param selected, comma-separated ids)",
+        "responses": {
+          "200": {
+            "description": "export payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientExportResponseDTO"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientExportResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalog/search": {
+      "get": {
+        "summary": "Search the Modrinth add-on catalog for the active server (query params q, offset)",
+        "responses": {
+          "200": {
+            "description": "search results (always 200; supportsAddons=false + note conveys unsupported states)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSearchResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/java-runtimes": {
+      "get": {
+        "summary": "Java runtimes detected on this host",
+        "responses": {
+          "200": {
+            "description": "Java runtimes detected on this host",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JavaRuntimesResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions": {
+      "get": {
+        "summary": "Available server JAR versions for the active server's flavor",
+        "responses": {
+          "200": {
+            "description": "Available server JAR versions for the active server's flavor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionsResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/create": {
+      "get": {
+        "summary": "Available versions for the create-server flow (query params serverType, javaFlavor)",
+        "responses": {
+          "200": {
+            "description": "versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionsResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings": {
+      "get": {
+        "summary": "Typed server.properties schema for the active server, as sections of fields",
+        "responses": {
+          "200": {
+            "description": "Typed server.properties schema for the active server, as sections of fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Apply a sparse set of settings changes (key -> string value), validated and clamped per field",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json (no_valid_changes uses SettingsUpdateResultDTO instead, see notes)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_active_server / not_supported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsUpdateResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsUpdateResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "The calling token's own role and permissions",
+        "responses": {
+          "200": {
+            "description": "The calling token's own role and permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worlds": {
+      "get": {
+        "summary": "World slots for the active server, plus which is active",
+        "responses": {
+          "200": {
+            "description": "World slots for the active server, plus which is active",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldSlotsResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connectivity": {
+      "get": {
+        "summary": "Reachability summary: join address, method, playit/broadcast status",
+        "responses": {
+          "200": {
+            "description": "Reachability summary: join address, method, playit/broadcast status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectivityResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Diagnostic health cards for the active server",
+        "responses": {
+          "200": {
+            "description": "Diagnostic health cards for the active server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/problems": {
+      "get": {
+        "summary": "Startup problems detected for the active server (missing deps, incompatible versions, ...)",
+        "responses": {
+          "200": {
+            "description": "Startup problems detected for the active server (missing deps, incompatible versions, ...)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthProblemsResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups": {
+      "get": {
+        "summary": "Backups available for the active server",
+        "responses": {
+          "200": {
+            "description": "Backups available for the active server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupsResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{profileId}/skin": {
+      "get": {
+        "summary": "A player's skin image (base64), by profile id. Handled outside the main route switch via a path.hasPrefix/hasSuffix match, not a `case` in it -- the one MSC 1 route with a path parameter.",
+        "responses": {
+          "200": {
+            "description": "skin image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSkinResponseDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_profile_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "profile_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSkinResponseDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "lookup failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSkinResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "ServerCreateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "javaFlavor": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "maxPlayers": {
+            "type": "integer"
+          },
+          "enableCrossPlay": {
+            "type": "boolean"
+          },
+          "crossPlayBedrockPort": {
+            "type": "integer"
+          },
+          "enablePlayit": {
+            "type": "boolean"
+          },
+          "enableXboxBroadcast": {
+            "type": "boolean"
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "gamemode": {
+            "type": "string"
+          },
+          "worldName": {
+            "type": "string"
+          },
+          "worldSeed": {
+            "type": "string"
+          },
+          "versionId": {
+            "type": "string"
+          },
+          "minecraftVersion": {
+            "type": "string"
+          },
+          "loaderVersion": {
+            "type": "string"
+          },
+          "acceptEula": {
+            "type": "boolean"
+          },
+          "bedrockVersion": {
+            "type": "string"
+          },
+          "dockerImage": {
+            "type": "string"
+          },
+          "javaPath": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ServerCreateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "serverId": {
+            "type": "string"
+          },
+          "serverName": {
+            "type": "string"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ServerImportRequestDTO": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          },
+          "importKind": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "activeWorldName": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "maxPlayers": {
+            "type": "integer"
+          },
+          "acceptEula": {
+            "type": "boolean"
+          },
+          "enablePlayit": {
+            "type": "boolean"
+          },
+          "transferMode": {
+            "type": "string"
+          },
+          "backupPath": {
+            "type": "string"
+          },
+          "javaPortOverrides": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "bedrockPortOverrides": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "action",
+          "sourcePath"
+        ]
+      },
+      "ServerImportWorldDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          },
+          "dimensionsLabel": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sizeBytes",
+          "dimensionsLabel"
+        ]
+      },
+      "ServerImportScanResponseDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          },
+          "isZip": {
+            "type": "boolean"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "maxPlayers": {
+            "type": "integer"
+          },
+          "eulaAccepted": {
+            "type": "boolean"
+          },
+          "worlds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServerImportWorldDTO"
+            }
+          },
+          "defaultWorldName": {
+            "type": "string"
+          },
+          "javaFlavor": {
+            "type": "string"
+          },
+          "detectedMCVersion": {
+            "type": "string"
+          },
+          "detectedLoaderVersion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ServerImportResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "serverId": {
+            "type": "string"
+          },
+          "serverName": {
+            "type": "string"
+          },
+          "imported": {
+            "type": "integer"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "replaced": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ServerDeleteRequestDTO": {
+        "type": "object",
+        "properties": {
+          "serverId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverId"
+        ]
+      },
+      "ServerDeleteResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "serverId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ServerRenameRequestDTO": {
+        "type": "object",
+        "properties": {
+          "serverId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverId",
+          "name"
+        ]
+      },
+      "ServerRenameResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "serverId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ServerEULARequestDTO": {
+        "type": "object",
+        "properties": {
+          "serverId": {
+            "type": "string"
+          }
+        }
+      },
+      "ServerEULAResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "serverId": {
+            "type": "string"
+          },
+          "accepted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "WorldSlotDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "zipSizeBytes": {
+            "type": "integer"
+          },
+          "worldSeed": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isActive",
+          "createdAt"
+        ]
+      },
+      "WorldSlotsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorldSlotDTO"
+            }
+          },
+          "activeSlotId": {
+            "type": "string"
+          },
+          "serverRunning": {
+            "type": "boolean"
+          },
+          "isRepairing": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "slots",
+          "serverRunning"
+        ]
+      },
+      "WorldMutationResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "updated": {
+            "$ref": "#/components/schemas/WorldSlotsResponseDTO"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "WorldCreateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "WorldRenameRequestDTO": {
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slotId",
+          "name"
+        ]
+      },
+      "WorldReplaceRequestDTO": {
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string"
+          },
+          "sourceSlotId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slotId",
+          "sourceSlotId"
+        ]
+      },
+      "WorldRepairRequestDTO": {
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slotId"
+        ]
+      },
+      "WorldActivateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slotId"
+        ]
+      },
+      "WorldActivateResultDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "ComponentUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string"
+          },
+          "jarStem": {
+            "type": "string"
+          },
+          "updateAll": {
+            "type": "boolean"
+          }
+        },
+        "required": []
+      },
+      "ComponentUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "newBuild": {
+            "type": "integer"
+          },
+          "newVersion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "AddonUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          },
+          "jarStem": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "result",
+          "count"
+        ]
+      },
+      "AddonRemoveRequestDTO": {
+        "type": "object",
+        "properties": {
+          "jarStem": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "jarStem"
+        ]
+      },
+      "AddonRemoveResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "jarStem": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "jarStem"
+        ]
+      },
+      "CatalogInstallRequestDTO": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "slug",
+          "title"
+        ]
+      },
+      "CatalogInstallResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "projectId"
+        ]
+      },
+      "VersionChangeRequestDTO": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "loaderVersion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "versionId"
+        ]
+      },
+      "VersionChangeResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requiresRestart": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "requiresRestart"
+        ]
+      },
+      "BackupConfigResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "autoBackupEnabled": {
+            "type": "boolean"
+          },
+          "autoBackupIntervalMinutes": {
+            "type": "integer"
+          },
+          "autoBackupMaxCount": {
+            "type": "integer"
+          },
+          "intervalOptions": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverName",
+          "autoBackupEnabled",
+          "autoBackupIntervalMinutes",
+          "autoBackupMaxCount",
+          "intervalOptions"
+        ]
+      },
+      "BackupConfigUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "autoBackupEnabled": {
+            "type": "boolean"
+          },
+          "autoBackupIntervalMinutes": {
+            "type": "integer"
+          },
+          "autoBackupMaxCount": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      },
+      "BackupConfigUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "config": {
+            "$ref": "#/components/schemas/BackupConfigResponseDTO"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "BackupNowResultDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "BackupRestoreRequestDTO": {
+        "type": "object",
+        "properties": {
+          "backupId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "backupId"
+        ]
+      },
+      "BackupRestoreResultDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "JavaConfigResponseDTO": {
+        "type": "object",
+        "properties": {
+          "executablePath": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "JavaConfigSetRequestDTO": {
+        "type": "object",
+        "properties": {
+          "executablePath": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "RAMConfigResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "minRamGB": {
+            "type": "number"
+          },
+          "maxRamGB": {
+            "type": "number"
+          },
+          "physicalRAMGB": {
+            "type": "integer"
+          },
+          "recommendedMaxGB": {
+            "type": "integer"
+          },
+          "serverRunning": {
+            "type": "boolean"
+          },
+          "hasActiveServer": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "serverName",
+          "serverType",
+          "minRamGB",
+          "maxRamGB",
+          "physicalRAMGB",
+          "recommendedMaxGB",
+          "serverRunning",
+          "hasActiveServer"
+        ]
+      },
+      "RAMConfigUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "minRamGB": {
+            "type": "number"
+          },
+          "maxRamGB": {
+            "type": "number"
+          }
+        },
+        "required": []
+      },
+      "RAMConfigUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "minRamGB": {
+            "type": "number"
+          },
+          "maxRamGB": {
+            "type": "number"
+          },
+          "restartRequired": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "restartRequired"
+        ]
+      },
+      "GeyserConfigResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "isGeyserInstalled": {
+            "type": "boolean"
+          },
+          "address": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "configFileExists": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverName",
+          "serverType",
+          "isGeyserInstalled",
+          "configFileExists"
+        ]
+      },
+      "GeyserConfigUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      },
+      "GeyserConfigUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "UserSummaryDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAtISO8601": {
+            "type": "string"
+          },
+          "expiresAtISO8601": {
+            "type": "string"
+          },
+          "isExpired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "role",
+          "isExpired"
+        ]
+      },
+      "UserListResponseDTO": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserSummaryDTO"
+            }
+          }
+        },
+        "required": [
+          "users"
+        ]
+      },
+      "UserCreateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expiresInDays": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "label",
+          "role"
+        ]
+      },
+      "UserCreateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSummaryDTO"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "UserRevokeRequestDTO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "UserRevokeResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "UserUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expiresInDays": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "UserUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSummaryDTO"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "StartupProblemDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "kindTitle": {
+            "type": "string"
+          },
+          "iconSystemName": {
+            "type": "string"
+          },
+          "offenderName": {
+            "type": "string"
+          },
+          "requirement": {
+            "type": "string"
+          },
+          "installedFile": {
+            "type": "string"
+          },
+          "installedJarStem": {
+            "type": "string"
+          },
+          "missingDependency": {
+            "type": "string"
+          },
+          "rawExcerpt": {
+            "type": "string"
+          },
+          "isRepairing": {
+            "type": "boolean"
+          },
+          "availableActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "modrinthURL": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "kindTitle",
+          "iconSystemName",
+          "offenderName",
+          "rawExcerpt",
+          "isRepairing",
+          "availableActions"
+        ]
+      },
+      "HealthProblemsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverType": {
+            "type": "string"
+          },
+          "serverRunning": {
+            "type": "boolean"
+          },
+          "isSoftFail": {
+            "type": "boolean"
+          },
+          "problems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StartupProblemDTO"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverType",
+          "serverRunning",
+          "isSoftFail",
+          "problems"
+        ]
+      },
+      "HealthRepairRequestDTO": {
+        "type": "object",
+        "properties": {
+          "problemId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "problemId",
+          "action"
+        ]
+      },
+      "HealthRepairResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "updated": {
+            "$ref": "#/components/schemas/HealthProblemsResponseDTO"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "PlayitStatusResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "playitEnabled": {
+            "type": "boolean"
+          },
+          "isRunning": {
+            "type": "boolean"
+          },
+          "hasSecretKey": {
+            "type": "boolean"
+          },
+          "javaAddress": {
+            "type": "string"
+          },
+          "bedrockAddress": {
+            "type": "string"
+          },
+          "voiceAddress": {
+            "type": "string"
+          },
+          "voiceChatEnabled": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverName",
+          "serverType",
+          "playitEnabled",
+          "isRunning",
+          "hasSecretKey",
+          "voiceChatEnabled"
+        ]
+      },
+      "PlayitActionResultDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "BroadcastStatusDTO": {
+        "type": "object",
+        "properties": {
+          "xboxBroadcastRunning": {
+            "type": "boolean"
+          },
+          "bedrockBroadcastRunning": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "xboxBroadcastRunning",
+          "bedrockBroadcastRunning"
+        ]
+      },
+      "BroadcastAutoStartDTO": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "BroadcastAutoStartSetRequestDTO": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "BroadcastAuthPromptDTO": {
+        "type": "object",
+        "properties": {
+          "isPresent": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "linkURL": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "isPresent"
+        ]
+      },
+      "BroadcastCredentialsDTO": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "gamertag": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "gamertag"
+        ]
+      },
+      "BroadcastJarStatusDTO": {
+        "type": "object",
+        "properties": {
+          "installed": {
+            "type": "boolean"
+          },
+          "downloading": {
+            "type": "boolean"
+          },
+          "filename": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "installed",
+          "downloading"
+        ]
+      },
+      "BroadcastJarDownloadResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "BroadcastSimpleResultDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "ResourcePackItemDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileSizeDisplay": {
+            "type": "string"
+          },
+          "packKind": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "typeLabel": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "fileName",
+          "fileSizeDisplay",
+          "packKind",
+          "isActive",
+          "typeLabel"
+        ]
+      },
+      "ResourcePacksResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverType": {
+            "type": "string"
+          },
+          "isJava": {
+            "type": "boolean"
+          },
+          "packs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResourcePackItemDTO"
+            }
+          },
+          "geyserPacks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResourcePackItemDTO"
+            }
+          },
+          "isGeyserAvailable": {
+            "type": "boolean"
+          },
+          "activePackUrl": {
+            "type": "string"
+          },
+          "requirePack": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverType",
+          "isJava",
+          "packs",
+          "geyserPacks",
+          "isGeyserAvailable",
+          "requirePack"
+        ]
+      },
+      "ResourcePackMutationResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "updated": {
+            "$ref": "#/components/schemas/ResourcePacksResponseDTO"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ResourcePackActivateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "packId": {
+            "type": "string"
+          },
+          "require": {
+            "type": "boolean"
+          }
+        },
+        "required": []
+      },
+      "ResourcePackSetURLRequestDTO": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "sha1": {
+            "type": "string"
+          },
+          "require": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "ResourcePackToggleRequestDTO": {
+        "type": "object",
+        "properties": {
+          "packId": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "packId",
+          "enabled"
+        ]
+      },
+      "ResourcePackRemoveRequestDTO": {
+        "type": "object",
+        "properties": {
+          "packId": {
+            "type": "string"
+          },
+          "packKind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "packId",
+          "packKind"
+        ]
+      },
+      "WatchdogStatusResponseDTO": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "WatchdogActionResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "WatchdogActionErrorDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "CommandRequest": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "CommandResult": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          },
+          "activeServerId": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result",
+          "command"
+        ]
+      },
+      "SimpleResult": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          },
+          "activeServerId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "AllowlistEntryDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "xuid": {
+            "type": "string"
+          },
+          "ignoresPlayerLimit": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "ignoresPlayerLimit"
+        ]
+      },
+      "AllowlistResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverType": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AllowlistEntryDTO"
+            }
+          }
+        },
+        "required": [
+          "serverType",
+          "entries"
+        ]
+      },
+      "AllowlistMutationRequestDTO": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "name"
+        ]
+      },
+      "AllowlistMutationResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AllowlistEntryDTO"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "serverType",
+          "entries"
+        ]
+      },
+      "PlayerDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "uuid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "PlayersResponseDTO": {
+        "type": "object",
+        "properties": {
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerDTO"
+            }
+          },
+          "count": {
+            "type": "integer"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "players",
+          "count"
+        ]
+      },
+      "PlayerSkinOverrideRequestDTO": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string"
+          },
+          "lookupIdentifier": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "profileId"
+        ]
+      },
+      "PlayerSkinOverrideResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "lookupIdentifier": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "HiddenProfileMutationRequestDTO": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string"
+          },
+          "hidden": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "profileId",
+          "hidden"
+        ]
+      },
+      "HiddenProfileMutationResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "isHidden": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ItemEnchantmentDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "level",
+          "displayName"
+        ]
+      },
+      "InventoryItemDTO": {
+        "type": "object",
+        "properties": {
+          "slot": {
+            "type": "integer"
+          },
+          "itemID": {
+            "type": "string"
+          },
+          "iconName": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "enchantments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemEnchantmentDTO"
+            }
+          },
+          "damage": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slot",
+          "itemID",
+          "iconName",
+          "count",
+          "displayName",
+          "enchantments",
+          "damage"
+        ]
+      },
+      "PlayerStatsDTO": {
+        "type": "object",
+        "properties": {
+          "health": {
+            "type": "number"
+          },
+          "maxHealth": {
+            "type": "number"
+          },
+          "foodLevel": {
+            "type": "integer"
+          },
+          "xpLevel": {
+            "type": "integer"
+          },
+          "xpTotal": {
+            "type": "integer"
+          },
+          "gameMode": {
+            "type": "integer"
+          },
+          "gameModeDisplay": {
+            "type": "string"
+          },
+          "posX": {
+            "type": "number"
+          },
+          "posY": {
+            "type": "number"
+          },
+          "posZ": {
+            "type": "number"
+          },
+          "dimensionDisplay": {
+            "type": "string"
+          },
+          "score": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "health",
+          "maxHealth",
+          "foodLevel",
+          "xpLevel",
+          "xpTotal",
+          "gameMode",
+          "gameModeDisplay",
+          "posX",
+          "posY",
+          "posZ",
+          "dimensionDisplay",
+          "score"
+        ]
+      },
+      "PlayerProfileDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "imageIdentifier": {
+            "type": "string"
+          },
+          "isOnline": {
+            "type": "boolean"
+          },
+          "isOp": {
+            "type": "boolean"
+          },
+          "lastSeen": {
+            "type": "string"
+          },
+          "isBedrockPlayer": {
+            "type": "boolean"
+          },
+          "isHidden": {
+            "type": "boolean"
+          },
+          "skinOverrideIdentifier": {
+            "type": "string"
+          },
+          "hasSkinFileOverride": {
+            "type": "boolean"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/PlayerStatsDTO"
+          },
+          "inventory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemDTO"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "imageIdentifier",
+          "isOnline",
+          "isOp",
+          "isBedrockPlayer",
+          "inventory"
+        ]
+      },
+      "PlayerProfilesResponseDTO": {
+        "type": "object",
+        "properties": {
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerProfileDTO"
+            }
+          },
+          "isLoadingStats": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "profiles",
+          "isLoadingStats"
+        ]
+      },
+      "DuckDNSStatusResponseDTO": {
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "isConfigured": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isConfigured"
+        ]
+      },
+      "DuckDNSUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "DuckDNSUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "TemplateItemDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          },
+          "modifiedAt": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "build": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "filename",
+          "displayName"
+        ]
+      },
+      "TemplatesResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "serverRunning": {
+            "type": "boolean"
+          },
+          "paperTemplates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TemplateItemDTO"
+            }
+          },
+          "pluginTemplates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TemplateItemDTO"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverRunning",
+          "paperTemplates",
+          "pluginTemplates"
+        ]
+      },
+      "TemplateMutationRequestDTO": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "serverId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "enableCrossPlay": {
+            "type": "boolean"
+          },
+          "crossPlayBedrockPort": {
+            "type": "integer"
+          },
+          "enablePlayit": {
+            "type": "boolean"
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "gamemode": {
+            "type": "string"
+          },
+          "worldName": {
+            "type": "string"
+          },
+          "worldSeed": {
+            "type": "string"
+          },
+          "acceptEula": {
+            "type": "boolean"
+          },
+          "includePlugins": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "TemplateMutationResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "createdServerId": {
+            "type": "string"
+          },
+          "createdServerName": {
+            "type": "string"
+          },
+          "exportedCount": {
+            "type": "integer"
+          },
+          "templates": {
+            "$ref": "#/components/schemas/TemplatesResponseDTO"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ServerDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "directory": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "javaFlavor": {
+            "type": "string"
+          },
+          "gamePort": {
+            "type": "integer"
+          },
+          "hostAddress": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "directory",
+          "serverType"
+        ]
+      },
+      "RemoteAPIStatus": {
+        "type": "object",
+        "properties": {
+          "running": {
+            "type": "boolean"
+          },
+          "activeServerId": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "dockerContainerRunning": {
+            "type": "boolean"
+          },
+          "dockerContainerStatus": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "running"
+        ]
+      },
+      "PerformanceSnapshotDTO": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "string"
+          },
+          "tps1m": {
+            "type": "number"
+          },
+          "playersOnline": {
+            "type": "integer"
+          },
+          "cpuPercent": {
+            "type": "number"
+          },
+          "ramUsedMB": {
+            "type": "number"
+          },
+          "ramMaxMB": {
+            "type": "number"
+          },
+          "worldSizeMB": {
+            "type": "number"
+          },
+          "serverType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ts"
+        ]
+      },
+      "SessionEventDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "playerName",
+          "eventType",
+          "timestamp"
+        ]
+      },
+      "SessionLogResponseDTO": {
+        "type": "object",
+        "properties": {
+          "activeServerId": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionEventDTO"
+            }
+          }
+        },
+        "required": [
+          "events"
+        ]
+      },
+      "ConsoleLineDTO": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ts",
+          "source",
+          "text"
+        ]
+      },
+      "ComponentStatusDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "installedBuild": {
+            "type": "integer"
+          },
+          "latestBuild": {
+            "type": "integer"
+          },
+          "installedVersion": {
+            "type": "string"
+          },
+          "latestVersion": {
+            "type": "string"
+          },
+          "isUpToDate": {
+            "type": "boolean"
+          },
+          "installedLabel": {
+            "type": "string"
+          },
+          "updatable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "isUpToDate",
+          "updatable"
+        ]
+      },
+      "ComponentsStatusDTO": {
+        "type": "object",
+        "properties": {
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentStatusDTO"
+            }
+          },
+          "restartRequiredToApply": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "components",
+          "restartRequiredToApply"
+        ]
+      },
+      "ServerFileItemDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "isDirectory": {
+            "type": "boolean"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          },
+          "modifiedAt": {
+            "type": "string"
+          },
+          "fileExtension": {
+            "type": "string"
+          },
+          "isPreviewable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "path",
+          "isDirectory"
+        ]
+      },
+      "ServerFilesResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "parentPath": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServerFileItemDTO"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "items"
+        ]
+      },
+      "ServerFileReadResponseDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ClientExportItemDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "iconURL": {
+            "type": "string"
+          },
+          "projectURL": {
+            "type": "string"
+          },
+          "clientStatus": {
+            "type": "string"
+          },
+          "statusSource": {
+            "type": "string"
+          },
+          "selectedByDefault": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "fileName",
+          "displayName",
+          "clientStatus",
+          "statusSource",
+          "selectedByDefault"
+        ]
+      },
+      "ClientExportResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "serverType": {
+            "type": "string"
+          },
+          "exportKind": {
+            "type": "string"
+          },
+          "isPaperLike": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientExportItemDTO"
+            }
+          },
+          "selectedCount": {
+            "type": "integer"
+          },
+          "shareText": {
+            "type": "string"
+          },
+          "zipFileName": {
+            "type": "string"
+          },
+          "zipBase64": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverType",
+          "exportKind",
+          "isPaperLike",
+          "items",
+          "selectedCount"
+        ]
+      },
+      "AddonItemDTO": {
+        "type": "object",
+        "properties": {
+          "jarStem": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "currentVersion": {
+            "type": "string"
+          },
+          "availableVersion": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "iconURL": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "jarStem",
+          "displayName",
+          "isEnabled",
+          "bucket"
+        ]
+      },
+      "AddonsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "addons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddonItemDTO"
+            }
+          },
+          "isResolving": {
+            "type": "boolean"
+          },
+          "serverSupportsAddons": {
+            "type": "boolean"
+          },
+          "packManaged": {
+            "type": "boolean"
+          },
+          "packName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "addons",
+          "isResolving",
+          "serverSupportsAddons",
+          "packManaged"
+        ]
+      },
+      "CatalogItemDTO": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "downloads": {
+            "type": "integer"
+          },
+          "iconURL": {
+            "type": "string"
+          },
+          "isClientOnly": {
+            "type": "boolean"
+          },
+          "projectType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "slug",
+          "title",
+          "description",
+          "author",
+          "downloads",
+          "isClientOnly",
+          "projectType"
+        ]
+      },
+      "CatalogSearchResponseDTO": {
+        "type": "object",
+        "properties": {
+          "supportsAddons": {
+            "type": "boolean"
+          },
+          "addonKind": {
+            "type": "string"
+          },
+          "loaderName": {
+            "type": "string"
+          },
+          "gameVersion": {
+            "type": "string"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogItemDTO"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "supportsAddons"
+        ]
+      },
+      "JavaRuntimeDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "executablePath": {
+            "type": "string"
+          },
+          "majorVersion": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "executablePath"
+        ]
+      },
+      "JavaRuntimesResponseDTO": {
+        "type": "object",
+        "properties": {
+          "runtimes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JavaRuntimeDTO"
+            }
+          }
+        },
+        "required": [
+          "runtimes"
+        ]
+      },
+      "VersionEntryDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "displayLabel": {
+            "type": "string"
+          },
+          "mcVersion": {
+            "type": "string"
+          },
+          "loaderVersion": {
+            "type": "string"
+          },
+          "buildLabel": {
+            "type": "string"
+          },
+          "isStable": {
+            "type": "boolean"
+          },
+          "isLatest": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "displayLabel",
+          "mcVersion",
+          "isStable",
+          "isLatest"
+        ]
+      },
+      "VersionsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "supportsVersions": {
+            "type": "boolean"
+          },
+          "flavorName": {
+            "type": "string"
+          },
+          "currentVersion": {
+            "type": "string"
+          },
+          "isBedrock": {
+            "type": "boolean"
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionEntryDTO"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "supportsVersions",
+          "flavorName",
+          "isBedrock",
+          "versions"
+        ]
+      },
+      "HealthCardDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "shortLabel": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "iconSystemName": {
+            "type": "string"
+          },
+          "actionLabel": {
+            "type": "string"
+          },
+          "actionCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "shortLabel",
+          "severity",
+          "iconSystemName"
+        ]
+      },
+      "HealthResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverType": {
+            "type": "string"
+          },
+          "serverName": {
+            "type": "string"
+          },
+          "serverRunning": {
+            "type": "boolean"
+          },
+          "overallSeverity": {
+            "type": "string"
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HealthCardDTO"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverType",
+          "serverName",
+          "serverRunning",
+          "overallSeverity",
+          "cards"
+        ]
+      },
+      "ConnectivityPlayitDTO": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "running"
+        ]
+      },
+      "ConnectivityBroadcastDTO": {
+        "type": "object",
+        "properties": {
+          "xboxRunning": {
+            "type": "boolean"
+          },
+          "bedrockRunning": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "xboxRunning",
+          "bedrockRunning"
+        ]
+      },
+      "ConnectivityResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverType": {
+            "type": "string"
+          },
+          "serverName": {
+            "type": "string"
+          },
+          "serverRunning": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "headline": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "joinAddress": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "localListening": {
+            "type": "boolean"
+          },
+          "externallyReachable": {
+            "type": "boolean"
+          },
+          "playersOnline": {
+            "type": "integer"
+          },
+          "playersMax": {
+            "type": "integer"
+          },
+          "motd": {
+            "type": "string"
+          },
+          "playit": {
+            "$ref": "#/components/schemas/ConnectivityPlayitDTO"
+          },
+          "broadcast": {
+            "$ref": "#/components/schemas/ConnectivityBroadcastDTO"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverType",
+          "serverName",
+          "serverRunning",
+          "status",
+          "severity",
+          "headline",
+          "method"
+        ]
+      },
+      "MeResponseDTO": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isNamedToken": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "role",
+          "isNamedToken"
+        ]
+      },
+      "BackupItemDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "integer"
+          },
+          "modificationDate": {
+            "type": "string"
+          },
+          "isAutomatic": {
+            "type": "boolean"
+          },
+          "slotId": {
+            "type": "string"
+          },
+          "slotName": {
+            "type": "string"
+          },
+          "triggerReason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "isAutomatic",
+          "triggerReason"
+        ]
+      },
+      "BackupsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "backups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BackupItemDTO"
+            }
+          }
+        },
+        "required": [
+          "backups"
+        ]
+      },
+      "SettingOptionDTO": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ]
+      },
+      "SettingFieldDTO": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "minInt": {
+            "type": "integer"
+          },
+          "maxInt": {
+            "type": "integer"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "maxLength": {
+            "type": "integer"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingOptionDTO"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "type",
+          "value"
+        ]
+      },
+      "SettingsSectionDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingFieldDTO"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "icon",
+          "fields"
+        ]
+      },
+      "SettingsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "serverType": {
+            "type": "string"
+          },
+          "serverName": {
+            "type": "string"
+          },
+          "serverRunning": {
+            "type": "boolean"
+          },
+          "editable": {
+            "type": "boolean"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingsSectionDTO"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "serverType",
+          "serverName",
+          "serverRunning",
+          "editable",
+          "sections"
+        ]
+      },
+      "SettingsUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "changes"
+        ]
+      },
+      "SettingRejectionDTO": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "reason"
+        ]
+      },
+      "SettingsUpdateResultDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "restartRequired": {
+            "type": "boolean"
+          },
+          "appliedKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rejected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingRejectionDTO"
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingsSectionDTO"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "restartRequired",
+          "appliedKeys"
+        ]
+      },
+      "PlayerSkinResponseDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "imageBase64": {
+            "type": "string"
+          },
+          "imageMimeType": {
+            "type": "string"
+          },
+          "lookupIdentifier": {
+            "type": "string"
+          },
+          "isOverride": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      }
+    }
+  }
+}

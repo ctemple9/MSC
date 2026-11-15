@@ -77,7 +77,7 @@
     try {
       const caps = await connection.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
       if (!caps.contentCatalog?.reviewedPackUpdates || !caps.contentCatalog?.playerContentRecovery)
-        throw new Error('Update this agent to review pack changes and recover player content.');
+        throw new Error('Update this engine to review pack changes and recover player content.');
       await loadRetained();
     } catch (cause) {
       if (current()) error = errorMessage(cause);
@@ -158,7 +158,7 @@
         throw new Error(result?.error?.message ?? 'Pack review did not complete.');
       const values = result.result as Record<string, unknown> | undefined;
       if (typeof values?.reviewId !== 'string')
-        throw new Error('The agent returned no review identity.');
+        throw new Error('The engine returned no review identity.');
       if (mode === 'recovery') {
         const response = await connection.get<ContentReview>(
           `${root}/reviews/${encodeURIComponent(values.reviewId)}`,
@@ -515,7 +515,7 @@
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   h3 {
     margin: 8px 0 0;
@@ -531,7 +531,7 @@
     display: grid;
     gap: 6px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   label {
     display: flex;
@@ -540,13 +540,13 @@
     font-size: 12px;
   }
   select {
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-content);
-    border: 1px solid var(--msc2-hairline-subtle);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-content);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 6px;
     padding: 6px 8px;
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
 </style>

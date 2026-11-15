@@ -8,7 +8,7 @@
 //!
 //! Bedrock lifecycle calls stay behind [`RepairServerControl`]. This keeps the
 //! application-layer orchestration testable and leaves the real start/stop
-//! adapter for the agent layer, just as `WorldConverter` does for Chunker.
+//! adapter for the engine layer, just as `WorldConverter` does for Chunker.
 
 use crate::worlds;
 use msc_infrastructure::fs::FileSystem;

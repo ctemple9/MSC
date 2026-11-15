@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "MSC 2 fixture",
-  "description": "Shape defined in docs/msc2/fixture-format.md. run.py reads this file to drive its own validation rather than duplicating the field list in Python.",
+  "title": "MSC fixture",
+  "description": "Shape defined in docs/msc/fixture-format.md. run.py reads this file to drive its own validation rather than duplicating the field list in Python.",
   "type": "object",
   "required": ["domain", "case", "source", "input", "expected"],
   "properties": {

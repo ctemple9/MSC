@@ -30,7 +30,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "msc2-provisioning-test-{label}-{}-{}",
+            "msc-provisioning-test-{label}-{}-{}",
             std::process::id(),
             uuid::Uuid::new_v4()
         ));
@@ -385,7 +385,7 @@ fn provisioning_pre_existing_folder_refused_with_message() {
 
 // ---------------------------------------------------------------------
 // P7.33: closing the check-then-create race
-// `docs/msc2/families/phase7-scope.md`'s P7.1 note flagged (and P7.30's
+// `docs/msc/families/phase7-scope.md`'s P7.1 note flagged (and P7.30's
 // gate audit confirmed was still open) -- two concurrent creates of the
 // same server name must never both "win" the old `fs.stat`-then-
 // `fs.create_dir_all` two-step.

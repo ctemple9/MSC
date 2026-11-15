@@ -23,11 +23,11 @@ use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-const OPERATIONS_DIR: &str = "/agent/operations";
+const OPERATIONS_DIR: &str = "/engine/operations";
 
 fn launch() -> PlayitLaunch {
     let working_directory =
-        std::env::temp_dir().join(format!("msc2-playit-test-{}", uuid::Uuid::new_v4()));
+        std::env::temp_dir().join(format!("msc-playit-test-{}", uuid::Uuid::new_v4()));
     PlayitLaunch::managed(working_directory)
 }
 
@@ -233,7 +233,7 @@ fn playit_start_removes_a_stale_server_scoped_socket() {
     // test temp directory can exceed it, so keep this real-socket fixture
     // directly below /tmp while preserving the production path shape.
     let launch = PlayitLaunch::managed(
-        PathBuf::from("/tmp").join(format!("msc2-playit-test-{}", uuid::Uuid::new_v4())),
+        PathBuf::from("/tmp").join(format!("msc-playit-test-{}", uuid::Uuid::new_v4())),
     );
     let socket_path = launch.socket_path.clone().expect("Unix socket path");
     std::fs::create_dir_all(&launch.working_directory).unwrap();
@@ -427,7 +427,7 @@ fn playit_transient_session_warnings_are_cleared_by_a_connection() {
     }
     service.poll_output().unwrap();
 
-    assert!(service.agent_connection_matches("6af10e70-44cc-4b60-b8f7-f6949ee4f999"));
+    assert!(service.engine_connection_matches("6af10e70-44cc-4b60-b8f7-f6949ee4f999"));
     assert_eq!(service.control_session_failures(), 0);
     assert!(supervisor.force_terminations().is_empty());
 }
@@ -462,7 +462,7 @@ fn playit_explicitly_invalid_secret_fails_without_reconnect_loop() {
 }
 
 #[test]
-fn playit_recognizes_its_connected_agent_before_any_tunnel_address_exists() {
+fn playit_recognizes_its_connected_engine_before_any_tunnel_address_exists() {
     let fs = FakeFileSystem::new()
         .with_file(format!("{OPERATIONS_DIR}/.keep"), [], false)
         .with_dir("/cache");
@@ -479,13 +479,13 @@ fn playit_recognizes_its_connected_agent_before_any_tunnel_address_exists() {
     supervisor
         .emit_stdout(
             pid,
-            b"\x1b[32m INFO\x1b[0m playitd::daemon: playit connected; tunnels loaded \x1b[3magent_id\x1b[0m\x1b[2m=\x1b[0m6af10e70-44cc-4b60-b8f7-f6949ee4f999 tunnel_count=0\n",
+            b"\x1b[32m INFO\x1b[0m playitd::daemon: playit connected; tunnels loaded \x1b[3mengine_id\x1b[0m\x1b[2m=\x1b[0m6af10e70-44cc-4b60-b8f7-f6949ee4f999 tunnel_count=0\n",
         )
         .unwrap();
     service.poll().unwrap();
 
-    assert!(service.agent_connection_matches("6af10e70-44cc-4b60-b8f7-f6949ee4f999"));
-    assert!(!service.agent_connection_matches("6af10e70-44cc-4b60-b8f7-f6949ee4f998"));
+    assert!(service.engine_connection_matches("6af10e70-44cc-4b60-b8f7-f6949ee4f999"));
+    assert!(!service.engine_connection_matches("6af10e70-44cc-4b60-b8f7-f6949ee4f998"));
     assert!(service.status().player_address.is_none());
 }
 
@@ -869,7 +869,7 @@ fn helper_start_failure_is_visible_and_removes_the_secret_bridge() {
 }
 
 #[test]
-fn native_setup_claims_a_new_agent_and_persists_only_the_permanent_key() {
+fn native_setup_claims_a_new_engine_and_persists_only_the_permanent_key() {
     let transport = FakeAccountTransport::new([
         (
             200,
@@ -877,16 +877,16 @@ fn native_setup_claims_a_new_agent_and_persists_only_the_permanent_key() {
         ),
         (
             200,
-            serde_json::json!({"status":"success","data":"WaitingForAgent"}),
+            serde_json::json!({"status":"success","data":"WaitingForEngine"}),
         ),
         (200, serde_json::json!({"status":"success","data":"ok"})),
         (
             200,
-            serde_json::json!({"status":"success","data":{"agent_id":"agent-123"}}),
+            serde_json::json!({"status":"success","data":{"agent_id":"engine-123"}}),
         ),
         (
             200,
-            serde_json::json!({"status":"success","data":{"secret_key":"agent-secret"}}),
+            serde_json::json!({"status":"success","data":{"secret_key":"engine-secret"}}),
         ),
     ]);
     let secrets = FakeSecretStore::new();
@@ -902,24 +902,24 @@ fn native_setup_claims_a_new_agent_and_persists_only_the_permanent_key() {
         )
         .unwrap();
 
-    assert_eq!(result.agent_id, "agent-123");
-    assert!(!result.reused_existing_agent);
+    assert_eq!(result.agent_id, "engine-123");
+    assert!(!result.reused_existing_engine);
     assert_eq!(
         secrets.get(PLAYIT_SECRET_KEY).unwrap().as_deref(),
-        Some("agent-secret")
+        Some("engine-secret")
     );
     assert_eq!(
         *stages.lock().unwrap(),
         [
             msc_application::playit::PlayitSetupStage::SigningIn,
-            msc_application::playit::PlayitSetupStage::ClaimingOrReusingAgent,
-            msc_application::playit::PlayitSetupStage::WaitingForAgent,
+            msc_application::playit::PlayitSetupStage::ClaimingOrReusingEngine,
+            msc_application::playit::PlayitSetupStage::WaitingForEngine,
         ]
     );
 }
 
 #[test]
-fn native_setup_keeps_a_newly_claimed_agent_when_first_tunnel_creation_fails() {
+fn native_setup_keeps_a_newly_claimed_engine_when_first_tunnel_creation_fails() {
     let transport = FakeAccountTransport::new([
         (
             200,
@@ -927,16 +927,16 @@ fn native_setup_keeps_a_newly_claimed_agent_when_first_tunnel_creation_fails() {
         ),
         (
             200,
-            serde_json::json!({"status":"success","data":"WaitingForAgent"}),
+            serde_json::json!({"status":"success","data":"WaitingForEngine"}),
         ),
         (200, serde_json::json!({"status":"success","data":"ok"})),
         (
             200,
-            serde_json::json!({"status":"success","data":{"agent_id":"agent-123"}}),
+            serde_json::json!({"status":"success","data":{"agent_id":"engine-123"}}),
         ),
         (
             200,
-            serde_json::json!({"status":"success","data":{"secret_key":"agent-secret"}}),
+            serde_json::json!({"status":"success","data":{"secret_key":"engine-secret"}}),
         ),
         tunnel_list_response(Vec::new()),
         (
@@ -945,20 +945,20 @@ fn native_setup_keeps_a_newly_claimed_agent_when_first_tunnel_creation_fails() {
         ),
     ]);
     let secrets = FakeSecretStore::new();
-    let saved_agent_id = Mutex::new(None);
-    let save_agent_configuration = |agent_id: &str| {
-        *saved_agent_id.lock().unwrap() = Some(agent_id.to_owned());
+    let saved_engine_id = Mutex::new(None);
+    let save_engine_configuration = |agent_id: &str| {
+        *saved_engine_id.lock().unwrap() = Some(agent_id.to_owned());
         Ok(())
     };
-    let start_agent = |agent_id: &str| {
-        assert_eq!(agent_id, "agent-123");
+    let start_engine = |agent_id: &str| {
+        assert_eq!(agent_id, "engine-123");
         Ok(())
     };
-    let setup = msc_application::playit::PlayitAccountSetup::with_agent_lifecycle(
+    let setup = msc_application::playit::PlayitAccountSetup::with_engine_lifecycle(
         &transport,
         &secrets,
-        &save_agent_configuration,
-        &start_agent,
+        &save_engine_configuration,
+        &start_engine,
     );
     let specs = [PlayitTunnelSpec {
         kind: PlayitTunnelKind::Java,
@@ -982,20 +982,23 @@ fn native_setup_keeps_a_newly_claimed_agent_when_first_tunnel_creation_fails() {
     );
     assert_eq!(
         secrets.get(PLAYIT_SECRET_KEY).unwrap().as_deref(),
-        Some("agent-secret")
+        Some("engine-secret")
     );
-    assert_eq!(saved_agent_id.lock().unwrap().as_deref(), Some("agent-123"));
+    assert_eq!(
+        saved_engine_id.lock().unwrap().as_deref(),
+        Some("engine-123")
+    );
 }
 
 #[test]
-fn native_setup_reuses_a_configured_host_agent_without_claiming_another() {
+fn native_setup_reuses_a_configured_host_engine_without_claiming_another() {
     let transport = FakeAccountTransport::new([(
         200,
         serde_json::json!({"status":"success","data":{"session_key":"session-secret"}}),
     )]);
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
     let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
 
@@ -1003,23 +1006,23 @@ fn native_setup_reuses_a_configured_host_agent_without_claiming_another() {
         .run(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             || false,
             |_| {},
         )
         .unwrap();
 
-    assert_eq!(result.agent_id, "agent-existing");
-    assert!(result.reused_existing_agent);
+    assert_eq!(result.agent_id, "engine-existing");
+    assert!(result.reused_existing_engine);
     assert_eq!(
         secrets.get(PLAYIT_SECRET_KEY).unwrap().as_deref(),
-        Some("existing-agent-secret")
+        Some("existing-engine-secret")
     );
     assert!(transport.responses.lock().unwrap().is_empty());
 }
 
 #[test]
-fn native_setup_never_replaces_a_saved_agent_with_a_missing_credential() {
+fn native_setup_never_replaces_a_saved_engine_with_a_missing_credential() {
     let transport = FakeAccountTransport::new([(
         200,
         serde_json::json!({"status":"success","data":{"session_key":"session-secret"}}),
@@ -1031,7 +1034,7 @@ fn native_setup_never_replaces_a_saved_agent_with_a_missing_credential() {
         .run(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             || false,
             |_| {},
         )
@@ -1039,14 +1042,14 @@ fn native_setup_never_replaces_a_saved_agent_with_a_missing_credential() {
 
     assert_eq!(
         error,
-        msc_application::playit::PlayitSetupError::ExistingAgentCredentialRequired
+        msc_application::playit::PlayitSetupError::ExistingEngineCredentialRequired
     );
     assert_eq!(secrets.get(PLAYIT_SECRET_KEY).unwrap(), None);
     assert!(transport.responses.lock().unwrap().is_empty());
 }
 
 #[test]
-fn native_setup_never_creates_a_missing_tunnel_for_a_saved_agent() {
+fn native_setup_never_creates_a_missing_tunnel_for_a_saved_engine() {
     let transport = FakeAccountTransport::new([
         (
             200,
@@ -1056,7 +1059,7 @@ fn native_setup_never_creates_a_missing_tunnel_for_a_saved_agent() {
     ]);
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
     let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
     let specs = [PlayitTunnelSpec {
@@ -1068,7 +1071,7 @@ fn native_setup_never_creates_a_missing_tunnel_for_a_saved_agent() {
         .run_with_tunnels(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             &specs,
             || false,
             |_| {},
@@ -1111,7 +1114,7 @@ fn tunnel_fixture(kind: PlayitTunnelKind, local_port: u16) -> Value {
         PlayitTunnelKind::Voice => serde_json::json!({
             "type": "agent",
             "data": {
-                "agent_id": "agent-existing",
+                "agent_id": "engine-existing",
                 "config": {
                     "fields": [
                         {"name": "local_ip", "value": "127.0.0.1"},
@@ -1123,7 +1126,7 @@ fn tunnel_fixture(kind: PlayitTunnelKind, local_port: u16) -> Value {
         PlayitTunnelKind::Java | PlayitTunnelKind::Bedrock => serde_json::json!({
             "type": "agent",
             "data": {
-                "agent_id": "agent-existing",
+                "agent_id": "engine-existing",
                 "local_ip": "127.0.0.1",
                 "local_port": local_port
             }
@@ -1168,7 +1171,7 @@ fn legacy_voice_tunnel_fixture(local_port: u16) -> Value {
     tunnel["origin"] = serde_json::json!({
         "type": "agent",
         "data": {
-            "agent_id": "agent-existing",
+            "agent_id": "engine-existing",
             "local_ip": "127.0.0.1",
             "local_port": local_port
         }
@@ -1235,14 +1238,14 @@ fn native_setup_reuses_one_two_and_three_shared_tunnel_sets() {
         let transport = FakeAccountTransport::new(reuse_responses(inventory));
         let secrets = FakeSecretStore::new();
         secrets
-            .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+            .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
             .unwrap();
         let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
         let result = setup
             .run_with_tunnels(
                 "owner@example.test",
                 "password",
-                Some("agent-existing"),
+                Some("engine-existing"),
                 &specs,
                 || false,
                 |_| {},
@@ -1269,7 +1272,7 @@ fn native_setup_reuses_one_two_and_three_shared_tunnel_sets() {
         assert_eq!(requests[1].1["agent_id"], Value::Null);
         assert_eq!(
             requests[1].2.as_deref(),
-            Some("Agent-Key existing-agent-secret")
+            Some("Engine-Key existing-engine-secret")
         );
         assert_eq!(
             requests
@@ -1300,7 +1303,7 @@ fn native_setup_waits_for_public_addresses_before_succeeding() {
     let transport = FakeAccountTransport::new(responses);
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
     let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
 
@@ -1308,7 +1311,7 @@ fn native_setup_waits_for_public_addresses_before_succeeding() {
         .run_with_tunnels(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             &specs,
             || false,
             |_| {},
@@ -1332,7 +1335,7 @@ fn native_setup_waits_for_public_addresses_before_succeeding() {
 }
 
 #[test]
-fn saved_agent_address_refresh_reuses_the_key_without_signing_in_or_mutating_tunnels() {
+fn saved_engine_address_refresh_reuses_the_key_without_signing_in_or_mutating_tunnels() {
     let specs = [
         PlayitTunnelSpec {
             kind: PlayitTunnelKind::Java,
@@ -1355,12 +1358,12 @@ fn saved_agent_address_refresh_reuses_the_key_without_signing_in_or_mutating_tun
     )]);
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
     let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
 
     let addresses = setup
-        .refresh_tunnel_addresses("agent-existing", &specs)
+        .refresh_tunnel_addresses("engine-existing", &specs)
         .unwrap();
 
     assert_eq!(
@@ -1374,12 +1377,12 @@ fn saved_agent_address_refresh_reuses_the_key_without_signing_in_or_mutating_tun
     assert_eq!(requests[0].0, "/tunnels/list");
     assert_eq!(
         requests[0].2.as_deref(),
-        Some("Agent-Key existing-agent-secret")
+        Some("Engine-Key existing-engine-secret")
     );
 }
 
 #[test]
-fn native_setup_validates_the_saved_key_before_starting_the_agent() {
+fn native_setup_validates_the_saved_key_before_starting_the_engine() {
     let specs = [PlayitTunnelSpec {
         kind: PlayitTunnelKind::Java,
         local_port: 25565,
@@ -1390,39 +1393,39 @@ fn native_setup_validates_the_saved_key_before_starting_the_agent() {
     )]));
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
-    let agent_starts = Mutex::new(0);
-    let ensure_agent = |agent_id: &str| {
-        *agent_starts.lock().unwrap() += 1;
+    let engine_starts = Mutex::new(0);
+    let ensure_engine = |agent_id: &str| {
+        *engine_starts.lock().unwrap() += 1;
         let requests = transport.requests.lock().unwrap();
         assert_eq!(
             requests.len(),
             2,
-            "saved key validation precedes agent start"
+            "saved key validation precedes engine start"
         );
         assert_eq!(requests[1].0, "/tunnels/list");
-        assert_eq!(agent_id, "agent-existing");
+        assert_eq!(agent_id, "engine-existing");
         Ok(())
     };
-    let setup = msc_application::playit::PlayitAccountSetup::with_agent_starter(
+    let setup = msc_application::playit::PlayitAccountSetup::with_engine_starter(
         &transport,
         &secrets,
-        &ensure_agent,
+        &ensure_engine,
     );
 
     setup
         .run_with_tunnels(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             &specs,
             || false,
             |_| {},
         )
         .unwrap();
 
-    assert_eq!(*agent_starts.lock().unwrap(), 1);
+    assert_eq!(*engine_starts.lock().unwrap(), 1);
     assert_eq!(transport.requests.lock().unwrap()[2].0, "/tunnels/list");
 }
 
@@ -1445,7 +1448,7 @@ fn native_setup_reuses_existing_tunnels_without_duplicates_on_repeat() {
     let transport = FakeAccountTransport::new(responses);
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
     let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
 
@@ -1453,7 +1456,7 @@ fn native_setup_reuses_existing_tunnels_without_duplicates_on_repeat() {
         .run_with_tunnels(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             &specs,
             || false,
             |_| {},
@@ -1463,7 +1466,7 @@ fn native_setup_reuses_existing_tunnels_without_duplicates_on_repeat() {
         .run_with_tunnels(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             &specs,
             || false,
             |_| {},
@@ -1497,7 +1500,7 @@ fn native_setup_reuses_legacy_voice_inventory_without_protocol_marker() {
     ]);
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
     let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
 
@@ -1505,7 +1508,7 @@ fn native_setup_reuses_legacy_voice_inventory_without_protocol_marker() {
         .run_with_tunnels(
             "owner@example.test",
             "password",
-            Some("agent-existing"),
+            Some("engine-existing"),
             &specs,
             || false,
             |_| {},
@@ -1540,13 +1543,13 @@ fn native_setup_reuses_a_named_tunnel_that_targets_another_local_port_in_shared_
     ]);
     let secrets = FakeSecretStore::new();
     secrets
-        .set(PLAYIT_SECRET_KEY, "existing-agent-secret")
+        .set(PLAYIT_SECRET_KEY, "existing-engine-secret")
         .unwrap();
     let setup = msc_application::playit::PlayitAccountSetup::new(&transport, &secrets);
     let result = setup.run_with_tunnels(
         "owner@example.test",
         "password",
-        Some("agent-existing"),
+        Some("engine-existing"),
         &[PlayitTunnelSpec {
             kind: PlayitTunnelKind::Java,
             local_port: 25565,
@@ -1558,7 +1561,7 @@ fn native_setup_reuses_a_named_tunnel_that_targets_another_local_port_in_shared_
     assert!(result.is_ok());
     assert_eq!(
         secrets.get(PLAYIT_SECRET_KEY).unwrap().as_deref(),
-        Some("existing-agent-secret")
+        Some("existing-engine-secret")
     );
     assert_eq!(
         transport

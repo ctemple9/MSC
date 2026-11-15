@@ -66,7 +66,7 @@ instead of inventing controls or silently dropping them.
 MSC asks for an explicit acknowledgement before a Creative or cheat change
 that carries a safety consequence. On Bedrock, Creative, cheats, and some
 experiments may permanently disable Xbox achievements for that world, even if
-you later turn the setting off. The same warning is enforced by the agent for
+you later turn the setting off. The same warning is enforced by the engine for
 the Worlds form, Quick Commands, the in-app console, the CLI, and the API, so a
 different control surface cannot bypass it.
 

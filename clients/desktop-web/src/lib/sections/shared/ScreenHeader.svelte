@@ -5,7 +5,7 @@
   export let eyebrow = 'Selected server';
   export let title = '';
   export let description = '';
-  export let status = 'Agent disconnected';
+  export let status = 'Background Service disconnected';
   export let statusTone: 'positive' | 'neutral' | 'warning' | 'danger' = 'warning';
   export let actionLabel = '';
   export let onAction: (() => void) | undefined = undefined;

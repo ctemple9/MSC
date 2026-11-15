@@ -370,7 +370,7 @@ fn addon_provider_http_transport_enforces_size_cap_and_status_passthrough() {
 fn addon_provider_http_transport_timeout_is_bounded() {
     // A listener that accepts but never writes a response -- proves
     // REQUEST_TIMEOUT actually bounds the call rather than hanging
-    // forever. Uses a short-timeout agent built the same way
+    // forever. Uses a short-timeout engine built the same way
     // `HttpTransport::new` does, just with a smaller duration so this
     // test doesn't take 20 real seconds.
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -386,9 +386,9 @@ fn addon_provider_http_transport_timeout_is_bounded() {
         .timeout_global(Some(Duration::from_millis(200)))
         .http_status_as_error(false)
         .build();
-    let agent = ureq::Agent::new_with_config(config);
+    let engine = ureq::Agent::new_with_config(config);
     let start = std::time::Instant::now();
-    let result = agent.get(format!("http://{addr}/")).call();
+    let result = engine.get(format!("http://{addr}/")).call();
     assert!(result.is_err());
     assert!(start.elapsed() < Duration::from_secs(2));
 

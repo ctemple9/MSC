@@ -7,7 +7,7 @@
     "line": 744
   },
   "input": {
-    "portPlanDimension": "duplicate or conflicting server IDs and paths (msc2-port-plan.md line 187, second sub-item)",
+    "portPlanDimension": "duplicate or conflicting server IDs and paths (msc-port-plan.md line 187, second sub-item)",
     "subCases": [
       {
         "name": "duplicate server ids",

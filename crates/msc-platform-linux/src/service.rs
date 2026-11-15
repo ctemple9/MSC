@@ -1,4 +1,4 @@
-//! `systemd` service management for the Linux headless agent.
+//! `systemd` service management for the Linux headless engine.
 //!
 //! Phase 4's Linux proof uses a root-owned system unit under
 //! `/etc/systemd/system`, but the service itself runs as the installing
@@ -26,33 +26,39 @@ use std::process::{Command, Output};
 
 const EXPECTED_PORT_ENV: &str = "MSC2_EXPECTED_PORT";
 const META_PREFIX: &str = "# MSC2-";
-const SYSTEM_AGENT_PATHS: [&str; 2] = [
+const SYSTEM_ENGINE_PATHS: [&str; 4] = [
+    "/usr/lib/Minecraft Server Controller/agent/msc",
+    "/usr/lib/msc-desktop-web/agent/msc",
     "/usr/lib/MSC 2/agent/msc",
     "/usr/lib/msc2-desktop-web/agent/msc",
 ];
-const SYSTEM_AGENT_DEV_BUILDS_PATHS: [&str; 2] = [
+const SYSTEM_ENGINE_DEV_BUILDS_PATHS: [&str; 4] = [
+    "/usr/lib/Minecraft Server Controller/agent/dev-builds",
+    "/usr/lib/msc-desktop-web/agent/dev-builds",
     "/usr/lib/MSC 2/agent/dev-builds",
     "/usr/lib/msc2-desktop-web/agent/dev-builds",
 ];
-pub const DESKTOP_AGENT_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
+pub const DESKTOP_ENGINE_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
 
-pub fn local_agent_boot_enabled() -> Result<bool, ServiceError> {
+pub fn local_engine_boot_enabled() -> Result<bool, ServiceError> {
     let output = Command::new("systemctl")
         .args(["is-enabled", "com.ctemple.msc2.agent.service"])
         .output()
-        .map_err(|error| ServiceError::Platform(format!("checking agent boot startup: {error}")))?;
+        .map_err(|error| {
+            ServiceError::Platform(format!("checking engine boot startup: {error}"))
+        })?;
     let state = String::from_utf8_lossy(&output.stdout);
     match state.trim() {
         "enabled" | "enabled-runtime" | "linked" | "linked-runtime" | "alias" => Ok(true),
         "disabled" | "masked" | "masked-runtime" | "static" | "indirect" => Ok(false),
         other => Err(ServiceError::Platform(format!(
-            "could not determine agent boot startup ({other}): {}",
+            "could not determine engine boot startup ({other}): {}",
             String::from_utf8_lossy(&output.stderr).trim()
         ))),
     }
 }
 
-pub fn set_local_agent_boot_enabled(enabled: bool) -> Result<(), ServiceError> {
+pub fn set_local_engine_boot_enabled(enabled: bool) -> Result<(), ServiceError> {
     run_systemctl(&[
         if enabled { "enable" } else { "disable" },
         "com.ctemple.msc2.agent.service",
@@ -142,7 +148,7 @@ pub fn install_desktop_service_with_runner_for_identity<R: AuthorizationRunner>(
     let output = runner.authorize(&helper, &helper_install_args(&request))?;
     ensure_authorized_command_succeeded(output)?;
     status_manager.execute(ServiceManagerCommand::Status {
-        service_name: ServiceName::new(DESKTOP_AGENT_SERVICE_NAME),
+        service_name: ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME),
     })
 }
 
@@ -164,7 +170,7 @@ pub fn uninstall_desktop_service_with_runner<R: AuthorizationRunner>(
     let output = runner.authorize(&helper, &args)?;
     ensure_authorized_command_succeeded(output)?;
     Ok(ServiceStatusReport::not_installed(
-        DESKTOP_AGENT_SERVICE_NAME.to_string(),
+        DESKTOP_ENGINE_SERVICE_NAME.to_string(),
     ))
 }
 
@@ -219,16 +225,16 @@ pub fn run_desktop_service_helper_install(
         ))
     })?;
     let helper_path = validate_helper_executable(&helper_path, true)?;
-    if !is_system_agent_path(&helper_path) {
+    if !is_system_engine_path(&helper_path) {
         return invalid_desktop_request("MSC helper is not running from an installed package path");
     }
     let helper_directory = helper_path.parent().ok_or_else(|| {
         ServiceError::InvalidDefinition("MSC helper has no parent directory".to_string())
     })?;
-    let request = prepare_service_agent_binary(&request, uid, &user, &home, helper_directory)?;
+    let request = prepare_service_engine_binary(&request, uid, &user, &home, helper_directory)?;
     if let Some(definition) = manager
         .execute(ServiceManagerCommand::Status {
-            service_name: ServiceName::new(DESKTOP_AGENT_SERVICE_NAME),
+            service_name: ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME),
         })?
         .definition
         && definition.run_user.as_deref() != Some(&user)
@@ -237,10 +243,10 @@ pub fn run_desktop_service_helper_install(
             "the installed MSC service belongs to a different user account",
         );
     }
-    label_system_agent_executables(&helper_path, &request.binary_path)?;
+    label_system_engine_executables(&helper_path, &request.binary_path)?;
     install_desktop_credential_helper(&helper_path, uid, &user)?;
     apply_desktop_service_helper_install(&request, uid, &user, &home, &manager)?;
-    wait_for_desktop_agent(&request, &manager)
+    wait_for_desktop_engine(&request, &manager)
 }
 
 fn install_desktop_credential_helper(
@@ -262,13 +268,13 @@ fn install_desktop_credential_helper(
         ))
     })?;
 
-    // Repair replaces both sides of the socket before starting the agent;
+    // Repair replaces both sides of the socket before starting the engine;
     // otherwise a running helper can retain the old package executable.
     if units
-        .join(format!("{DESKTOP_AGENT_SERVICE_NAME}.service"))
+        .join(format!("{DESKTOP_ENGINE_SERVICE_NAME}.service"))
         .exists()
     {
-        run_systemctl(&["stop", &format!("{DESKTOP_AGENT_SERVICE_NAME}.service")])?;
+        run_systemctl(&["stop", &format!("{DESKTOP_ENGINE_SERVICE_NAME}.service")])?;
     }
     for unit in [SERVICE_UNIT_NAME, SOCKET_UNIT_NAME] {
         if units.join(unit).exists() {
@@ -328,7 +334,7 @@ fn install_desktop_credential_helper(
     Ok(())
 }
 
-fn wait_for_desktop_agent(
+fn wait_for_desktop_engine(
     request: &ServiceInstallRequest,
     manager: &dyn ServiceManager,
 ) -> Result<(), ServiceError> {
@@ -339,11 +345,11 @@ fn wait_for_desktop_agent(
     let address = SocketAddr::from(([127, 0, 0, 1], request.expected_port));
     while Instant::now() < deadline {
         let report = manager.execute(ServiceManagerCommand::Status {
-            service_name: ServiceName::new(DESKTOP_AGENT_SERVICE_NAME),
+            service_name: ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME),
         })?;
         if report.state != ServiceState::Running {
             return Err(ServiceError::Platform(format!(
-                "MSC agent exited during startup. See {} for the startup error.",
+                "MSC engine exited during startup. See {} for the startup error.",
                 request.log_path.display()
             )));
         }
@@ -375,7 +381,7 @@ fn wait_for_desktop_agent(
         std::thread::sleep(Duration::from_millis(100));
     }
     Err(ServiceError::Platform(
-        "MSC agent did not become ready within 10 seconds after repair".into(),
+        "MSC engine did not become ready within 10 seconds after repair".into(),
     ))
 }
 
@@ -415,12 +421,12 @@ pub fn apply_desktop_service_helper_install(
     validate_desktop_request(request, uid, user, home)?;
     manager.execute(ServiceManagerCommand::Install(request.clone()))?;
     manager.execute(ServiceManagerCommand::Start {
-        service_name: ServiceName::new(DESKTOP_AGENT_SERVICE_NAME),
+        service_name: ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME),
     })?;
     Ok(())
 }
 
-fn prepare_service_agent_binary(
+fn prepare_service_engine_binary(
     request: &ServiceInstallRequest,
     uid: u32,
     user: &str,
@@ -434,7 +440,7 @@ fn prepare_service_agent_binary(
             request.binary_path.display()
         ))
     })?;
-    if is_system_agent_path(&source) {
+    if is_system_engine_path(&source) {
         return Ok(request.clone());
     }
 
@@ -525,11 +531,11 @@ fn install_system_build_executable(destination: &Path, bytes: &[u8]) -> Result<(
     Ok(())
 }
 
-// lib_t permits execution without a daemon transition: the agent remains in
+// lib_t permits execution without a daemon transition: the engine remains in
 // init_t, where Fedora denies HTTPS and child process groups. bin_t selects
 // Fedora's normal unconfined_service_t transition for an ordinary daemon.
 // Persist the narrow executable rule so restorecon and future repairs agree.
-fn label_system_agent_executables(helper: &Path, agent: &Path) -> Result<(), ServiceError> {
+fn label_system_engine_executables(helper: &Path, engine: &Path) -> Result<(), ServiceError> {
     if !Path::new("/sys/fs/selinux/enforce").exists() {
         return Ok(());
     }
@@ -538,7 +544,7 @@ fn label_system_agent_executables(helper: &Path, agent: &Path) -> Result<(), Ser
         .ok_or_else(|| ServiceError::Platform(
             "SELinux is active but semanage is unavailable; install policycoreutils-python-utils before repairing the MSC service".into()
         ))?;
-    let rule = r"/usr/lib/(MSC\x202|msc2-desktop-web)/agent(/dev-builds/[0-9a-fA-F]{64})?/msc";
+    let rule = r"/usr/lib/(MSC\x202|msc-desktop-web)/engine(/dev-builds/[0-9a-fA-F]{64})?/msc";
     let mut output = Command::new(semanage)
         .args(["fcontext", "-a", "-t", "bin_t", rule])
         .output()
@@ -576,7 +582,7 @@ fn label_system_agent_executables(helper: &Path, agent: &Path) -> Result<(), Ser
     let output = Command::new(restorecon)
         .arg("-F")
         .arg(helper)
-        .arg(agent)
+        .arg(engine)
         .output()
         .map_err(|error| {
             ServiceError::Platform(format!("could not label the MSC executables: {error}"))
@@ -630,7 +636,7 @@ pub fn apply_desktop_service_helper_uninstall(
     manager: &dyn ServiceManager,
 ) -> Result<(), ServiceError> {
     if let Ok(report) = manager.execute(ServiceManagerCommand::Status {
-        service_name: ServiceName::new(DESKTOP_AGENT_SERVICE_NAME),
+        service_name: ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME),
     }) && let Some(definition) = report.definition
         && definition.run_user.as_deref() != Some(user)
     {
@@ -639,7 +645,7 @@ pub fn apply_desktop_service_helper_uninstall(
         );
     }
     manager.execute(ServiceManagerCommand::Uninstall {
-        service_name: ServiceName::new(DESKTOP_AGENT_SERVICE_NAME),
+        service_name: ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME),
     })?;
     Ok(())
 }
@@ -709,12 +715,12 @@ fn validate_desktop_request(
     user: &str,
     home: &Path,
 ) -> Result<(), ServiceError> {
-    if request.service_name.as_str() != DESKTOP_AGENT_SERVICE_NAME {
+    if request.service_name.as_str() != DESKTOP_ENGINE_SERVICE_NAME {
         return invalid_desktop_request("service name is not the fixed MSC desktop service name");
     }
     if request.expected_port != 48001 || request.arguments != ["serve", "--bind", "127.0.0.1:48001"]
     {
-        return invalid_desktop_request("agent command does not match the local MSC service");
+        return invalid_desktop_request("engine command does not match the local MSC service");
     }
     if request.run_user.as_deref() != Some(user) {
         return invalid_desktop_request("service account does not match the authorizing user");
@@ -758,10 +764,10 @@ fn validate_desktop_request(
             request.binary_path.display()
         ))
     })?;
-    if is_system_agent_path(&binary) {
+    if is_system_engine_path(&binary) {
         if request.binary_path != binary {
             return invalid_desktop_request(
-                "system-installed MSC agent path must not resolve through a symbolic link",
+                "system-installed MSC engine path must not resolve through a symbolic link",
             );
         }
         validate_helper_executable(&binary, true)?;
@@ -769,16 +775,16 @@ fn validate_desktop_request(
         let builds_dir = canonical_data.join("agent/builds");
         if !binary.starts_with(&builds_dir) {
             return invalid_desktop_request(
-                "agent executable must be inside the installing user's staged MSC builds",
+                "engine executable must be inside the installing user's staged MSC builds",
             );
         }
         canonical_owned_directory(
             &canonical_data.join("agent"),
             uid,
-            "MSC agent directory",
+            "MSC engine directory",
             home,
         )?;
-        canonical_owned_directory(&builds_dir, uid, "MSC agent builds directory", home)?;
+        canonical_owned_directory(&builds_dir, uid, "MSC engine builds directory", home)?;
         let Some(build_directory) = binary.parent() else {
             return invalid_desktop_request("staged MSC executable has no build directory");
         };
@@ -799,11 +805,11 @@ fn validate_desktop_request(
     Ok(())
 }
 
-fn is_system_agent_path(path: &Path) -> bool {
-    SYSTEM_AGENT_PATHS
+fn is_system_engine_path(path: &Path) -> bool {
+    SYSTEM_ENGINE_PATHS
         .iter()
         .any(|candidate| path == Path::new(candidate))
-        || SYSTEM_AGENT_DEV_BUILDS_PATHS.iter().any(|directory| {
+        || SYSTEM_ENGINE_DEV_BUILDS_PATHS.iter().any(|directory| {
             let Some(relative) = path.strip_prefix(directory).ok() else {
                 return false;
             };
@@ -1299,7 +1305,7 @@ impl SystemdUnit {
             ))
         })?;
         if metadata_map(&text)?.is_empty()
-            && path.file_stem().and_then(|name| name.to_str()) == Some(DESKTOP_AGENT_SERVICE_NAME)
+            && path.file_stem().and_then(|name| name.to_str()) == Some(DESKTOP_ENGINE_SERVICE_NAME)
         {
             return Self::from_archive_unit(&text);
         }
@@ -1326,7 +1332,7 @@ impl SystemdUnit {
         // Recognize only our shipped format, rather than guess how arbitrary
         // systemd quoting, overrides or command lines should be interpreted.
         let expected =
-            include_str!("../../../packaging/linux/systemd/com.ctemple.msc2.agent.service.in")
+            include_str!("../../../packaging/linux/systemd/com.ctemple.msc.engine.service.in")
                 .replace("@MSC2_USER@", user)
                 .replace("@MSC2_GROUP@", group)
                 .replace("@MSC2_DATA_DIR@", data_dir);
@@ -1334,7 +1340,7 @@ impl SystemdUnit {
             return Err(invalid());
         }
         Ok(Self {
-            service_name: DESKTOP_AGENT_SERVICE_NAME.to_string(),
+            service_name: DESKTOP_ENGINE_SERVICE_NAME.to_string(),
             binary_path: "/usr/lib/msc2/msc".to_string(),
             working_directory: data_dir.to_string(),
             // The shared definition requires a path; archive output actually
@@ -1435,8 +1441,8 @@ impl SystemdUnit {
                 encode_metadata_value(&format_environment_metadata(&self.environment))
             ),
             "[Unit]".to_string(),
-            format!("Description=MSC 2 agent ({})", self.service_name),
-            if self.service_name == DESKTOP_AGENT_SERVICE_NAME {
+            "Description=MSC Background Service".to_string(),
+            if self.service_name == DESKTOP_ENGINE_SERVICE_NAME {
                 format!("Requires={SOCKET_UNIT_NAME}\nAfter=network.target {SOCKET_UNIT_NAME}")
             } else {
                 "After=network.target".to_string()

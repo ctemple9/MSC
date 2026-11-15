@@ -27,7 +27,7 @@ struct TempRoot {
 impl TempRoot {
     fn new(label: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "msc2-real-transfer-corpus-{label}-{}-{}",
+            "msc-real-transfer-corpus-{label}-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)

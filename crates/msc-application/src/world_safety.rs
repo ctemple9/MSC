@@ -1,6 +1,6 @@
 //! Shared safety rules for changes that can alter Minecraft world safety.
 //!
-//! The agent owns the confirmation boundary, so every client gets the same
+//! The engine owns the confirmation boundary, so every client gets the same
 //! explanation and the same acknowledgement token. A token is deliberately
 //! returned by the API instead of making clients guess a phrase: the user
 //! still has to take a second, explicit action, while scripts can handle the

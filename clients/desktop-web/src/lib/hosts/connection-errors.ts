@@ -1,10 +1,10 @@
 export type ConnectionErrorCategory =
-  'network' | 'ssh' | 'msc-agent' | 'authentication' | 'minecraft';
+  'network' | 'ssh' | 'msc-engine' | 'authentication' | 'minecraft';
 
 const labels: Record<ConnectionErrorCategory, string> = {
   network: 'Network',
   ssh: 'SSH',
-  'msc-agent': 'MSC agent',
+  'msc-engine': 'MSC engine',
   authentication: 'Authentication',
   minecraft: 'Minecraft',
 };
@@ -23,18 +23,18 @@ export function formatConnectionFailure(
   const apiCode = typeof candidate.error?.code === 'string' ? candidate.error.code : '';
   const apiMessage = typeof candidate.error?.message === 'string' ? candidate.error.message : raw;
   const message = apiStatus
-    ? `${labels[categoryForAgentResponse(apiStatus, apiCode)]}: ${apiMessage}`
+    ? `${labels[categoryForEngineResponse(apiStatus, apiCode)]}: ${apiMessage}`
     : raw.replace(/^Error:\s*/, '').trim();
   if (hasKnownCategory(message)) return message;
   return `${labels[fallback]}: ${message || 'The connection failed.'}`;
 }
 
-/** Maps an agent refusal into the same vocabulary as native connection errors. */
-export function categoryForAgentResponse(status: number, code = ''): ConnectionErrorCategory {
+/** Maps an engine refusal into the same vocabulary as native connection errors. */
+export function categoryForEngineResponse(status: number, code = ''): ConnectionErrorCategory {
   if (status === 401 || status === 403 || code.includes('auth')) return 'authentication';
-  if (status === 426 || code.includes('version')) return 'msc-agent';
+  if (status === 426 || code.includes('version')) return 'msc-engine';
   if (code.startsWith('server_') || code === 'capability_unavailable') return 'minecraft';
-  if (status >= 500) return 'msc-agent';
+  if (status >= 500) return 'msc-engine';
   return 'network';
 }
 

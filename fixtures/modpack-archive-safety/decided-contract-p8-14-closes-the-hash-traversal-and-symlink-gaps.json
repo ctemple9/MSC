@@ -2,7 +2,7 @@
   "domain": "modpack-archive-safety",
   "case": "decided-contract-p8-14-closes-the-hash-traversal-and-symlink-gaps",
   "source": {
-    "file": "docs/msc2/rolling-plan.md",
+    "file": "docs/msc/rolling-plan.md",
     "test": "P8.14 working text -- decided fix for the gaps this fixture set documents",
     "line": 271
   },
@@ -19,5 +19,5 @@
     "reason": "This fixture exists to explicitly link the archive-safety gaps this directory documents (all genuine, all confirmed absent from the oracle by direct source read) to the specific later step that is committed to closing them, so a reader of this directory alone understands these are being fixed, not silently ignored."
   },
   "workflow": "modpack-import",
-  "notes": "Mirrors the docs-file-as-source citation convention fixtures/pack-managed-guard/ already established in P8.6 for agent-decided (not oracle-observed) contract text."
+  "notes": "Mirrors the docs-file-as-source citation convention fixtures/pack-managed-guard/ already established in P8.6 for engine-decided (not oracle-observed) contract text."
 }

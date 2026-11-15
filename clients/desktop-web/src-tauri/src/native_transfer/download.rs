@@ -220,7 +220,7 @@ async fn run(app: tauri::AppHandle, request: Request, operation: Arc<Operation>)
             error.operation_id = Some(operation.id.clone().into_boxed_str());
             if !removed {
                 error.message.push_str(
-                    " Download cleanup could not be confirmed on the desktop or original agent.",
+                    " Download cleanup could not be confirmed on the desktop or original engine.",
                 );
             }
             let transferred = operation.progress.lock().unwrap().bytes_transferred;
@@ -309,8 +309,8 @@ async fn drive(
             .map(str::to_ascii_lowercase)
             .ok_or_else(|| {
                 UploadError::new(
-                    "incompatible_agent",
-                    "This host cannot provide a verified native download. Update the agent.",
+                    "incompatible_engine",
+                    "This host cannot provide a verified native download. Update the engine.",
                 )
             })?;
         let mut stream = response.bytes_stream();
@@ -352,7 +352,7 @@ async fn drive(
     drop(file);
     attempt.cleanup = Some(remove_export(context, &request.staged_download_id).await);
     if attempt.cleanup != Some(true) {
-        return Err(UploadError::new("download_cleanup","The original agent could not confirm export cleanup. The destination was not replaced."));
+        return Err(UploadError::new("download_cleanup","The original engine could not confirm export cleanup. The destination was not replaced."));
     }
     let _finish = operation.finish.lock().unwrap();
     if *operation.cancel.borrow() {

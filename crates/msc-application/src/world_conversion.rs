@@ -12,7 +12,7 @@
 //! clean up the temp working directory.
 //!
 //! **The Chunker process boundary is a fakeable port**
-//! ([`WorldConverter`]), while the agent's live implementation invokes the
+//! ([`WorldConverter`]), while the engine's live implementation invokes the
 //! acquired CLI through `java -jar chunker-cli.jar -i … -f … -o …`.
 //! Acquisition, official-release provenance, and the platform cache path
 //! live in `msc_infrastructure::chunker`; this module owns the transactional
@@ -200,9 +200,9 @@ impl From<AtomicWriteError> for ConversionError {
 /// `tempRoot` (line 102-103), namespaced under this project's own prefix
 /// rather than MSC 1's `msc_conversion_`, matching every other scratch
 /// directory this phase already creates
-/// (`msc2-world-reconcile-*`, `msc2-world-activation-test-*`).
+/// (`msc-world-reconcile-*`, `msc-world-activation-test-*`).
 fn temp_conversion_root() -> PathBuf {
-    std::env::temp_dir().join(format!("msc2-world-conversion-{}", Uuid::new_v4()))
+    std::env::temp_dir().join(format!("msc-world-conversion-{}", Uuid::new_v4()))
 }
 
 /// Removes [`Self::0`] on drop, regardless of which return path got
@@ -894,7 +894,7 @@ mod resource_regressions {
         let destination = world_store::zip_path(target, &slot.id);
         let filesystem = FakeFileSystem::new().with_failing_rename(&destination);
         filesystem.write(&destination, b"original archive").unwrap();
-        let scratch = std::env::temp_dir().join(format!("msc2-promotion-test-{}", Uuid::new_v4()));
+        let scratch = std::env::temp_dir().join(format!("msc-promotion-test-{}", Uuid::new_v4()));
         fs::write(&scratch, b"converted archive").unwrap();
         let result = replace_slot_with_converted_zip(&filesystem, target, &slot, &scratch, "world");
         let _ = fs::remove_file(scratch);

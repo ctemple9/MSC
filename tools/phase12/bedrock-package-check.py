@@ -46,7 +46,7 @@ def missing_fragments(text: str | None, fragments: list[str]) -> list[str]:
 
 
 def check_layout() -> list[str]:
-    relative = "packaging/agent-service-layout.json"
+    relative = "packaging/engine-service-layout.json"
     path = ROOT / relative
     if not path.is_file():
         return [f"missing layout: {relative}"]
@@ -58,8 +58,8 @@ def check_layout() -> list[str]:
     problems: list[str] = []
     package = document.get("package", {})
     expected_package = {
-        "agentResourceSource": "clients/desktop-web/src-tauri/target/package/agent",
-        "agentResourceTarget": "agent",
+        "engineResourceSource": "clients/desktop-web/src-tauri/target/package/agent",
+        "engineResourceTarget": "agent",
         "bedrockRuntimeArchive": "verified-first-run-download",
         "bedrockRuntimeBundled": False,
     }
@@ -70,21 +70,21 @@ def check_layout() -> list[str]:
     expected_common = {
         "macos": {
             "manager": "launchd LaunchDaemon",
-            "agentPath": "MSC 2.app/Contents/Resources/agent/msc",
-            "sidecarPath": "MSC 2.app/Contents/Resources/agent/sidecar",
-            "headlessAgentPath": "agent/msc",
+            "enginePath": "Minecraft Server Controller.app/Contents/Resources/agent/msc",
+            "sidecarPath": "Minecraft Server Controller.app/Contents/Resources/agent/sidecar",
+            "headlessEnginePath": "agent/msc",
             "headlessSidecarPath": "agent/sidecar",
             "dataPath": "~/Library/Application Support/MSC 2",
         },
         "windows": {
             "manager": "Windows Service",
-            "agentPath": "agent/msc.exe",
+            "enginePath": "agent/msc.exe",
             "sidecarPath": None,
             "dataPath": "%USERPROFILE%\\AppData\\Roaming\\MSC2",
         },
         "linux": {
             "manager": "systemd",
-            "agentPath": "../lib/MSC 2/agent/msc",
+            "enginePath": "../lib/Minecraft Server Controller/agent/msc",
             "sidecarPath": None,
             "dataPath": "~/.local/share/msc2",
         },
@@ -101,11 +101,11 @@ def check_layout() -> list[str]:
     mac_bedrock = platforms.get("macos", {}).get("bedrock", {})
     expected_mac_bedrock = {
         "backend": "intel-vm-sidecar",
-        "sidecarExecutable": "MSC 2.app/Contents/Resources/agent/sidecar/BedrockSidecar",
+        "sidecarExecutable": "Minecraft Server Controller.app/Contents/Resources/agent/sidecar/BedrockSidecar",
         "applianceArchitecture": "x86_64",
         "applianceResources": [
-            "MSC 2.app/Contents/Resources/agent/sidecar/vmlinuz-kata",
-            "MSC 2.app/Contents/Resources/agent/sidecar/appliance-initramfs.gz",
+            "Minecraft Server Controller.app/Contents/Resources/agent/sidecar/vmlinuz-kata",
+            "Minecraft Server Controller.app/Contents/Resources/agent/sidecar/appliance-initramfs.gz",
         ],
         "applianceBuildInput": "MSC2_BEDROCK_APPLIANCE_DIR",
         "runtimeArchive": "verified-first-run-download",
@@ -144,24 +144,24 @@ def check_tauri_config() -> list[str]:
 
     problems: list[str] = []
     build = config.get("build", {})
-    if "prepare:agent" not in build.get("beforeDevCommand", ""):
-        problems.append(f"{relative}: development builds do not stage the agent")
-    if "prepare:agent" not in build.get("beforeBuildCommand", ""):
-        problems.append(f"{relative}: release builds do not stage the agent")
+    if "prepare:engine" not in build.get("beforeDevCommand", ""):
+        problems.append(f"{relative}: development builds do not stage the engine")
+    if "prepare:engine" not in build.get("beforeBuildCommand", ""):
+        problems.append(f"{relative}: release builds do not stage the engine")
     resources = config.get("bundle", {}).get("resources")
     if resources != {"target/package/agent": "agent"}:
-        problems.append(f"{relative}: bundle must map target/package/agent to agent")
+        problems.append(f"{relative}: bundle must map the stable background-service resource directory")
     return problems
 
 
 def check_prepare_script() -> list[str]:
-    relative = "clients/desktop-web/tools/prepare-agent-dev.mjs"
+    relative = "clients/desktop-web/tools/prepare-engine-dev.mjs"
     text = read_text(relative)
     required = [
         "cargo",
-        "msc-agent",
-        "packageAgentDirectory",
-        "stageFile(source, join(packageAgentDirectory, agentName))",
+        "msc-engine",
+        "packageEngineDirectory",
+        "stageFile(source, join(packageEngineDirectory, engineName))",
         "process.platform === 'darwin'",
         "MSC2_BEDROCK_APPLIANCE_DIR",
         "stageMacosSidecar",
@@ -173,8 +173,8 @@ def check_prepare_script() -> list[str]:
         "appliance-initramfs.gz",
         KERNEL_SHA256,
         INITRAMFS_SHA256,
-        "const devSidecarDirectory = join(destinationRoot, 'Resources', 'agent', 'sidecar')",
-        "const packageSidecarDirectory = join(packageAgentDirectory, 'sidecar')",
+        "const devSidecarDirectory = join(destinationRoot, 'Resources', 'engine', 'sidecar')",
+        "const packageSidecarDirectory = join(packageEngineDirectory, 'sidecar')",
         "stageFile(builtSidecar, join(devSidecarDirectory, 'BedrockSidecar'))",
         "stageFile(join(applianceDirectory, name), join(packageSidecarDirectory, name))",
     ]
@@ -190,8 +190,8 @@ def check_rust_lookup() -> list[str]:
         "directory.join(\"../Resources/agent/sidecar\")",
         '"BedrockSidecar", "vmlinuz-kata", "appliance-initramfs.gz"',
         'let development_path = directory.join("agent/msc")',
-        "../lib/MSC 2/agent/msc",
-        "../lib/msc2-desktop-web/agent/msc",
+        "../lib/Minecraft Server Controller/agent/msc",
+        "../lib/msc-desktop-web/agent/msc",
     ]
     text = read_text(relative)
     return [f"{relative}: missing {fragment!r}" for fragment in missing_fragments(text, required)]
@@ -304,8 +304,8 @@ def check_runtime_selection() -> list[str]:
                 "fn command(&mut self, command: &str)",
                 "fn poll_event(&mut self)",
             ],
-            "crates/msc-agent/src/routes/bedrock_runtime.rs": [
-                "pub fn production(app_config: &AgentAppConfigStore)",
+            "crates/msc-engine/src/routes/bedrock_runtime.rs": [
+                "pub fn production(app_config: &EngineAppConfigStore)",
                 "BedrockHost::Linux => {",
                 "BedrockRuntimeHandle::Linux(Box::new(runtime))",
                 "BedrockHost::Windows => {",
@@ -392,7 +392,7 @@ def check_verified_provisioning() -> list[str]:
                 "atomic_write(",
                 "fs.rename(&candidate, server_dir)",
             ],
-            "crates/msc-agent/src/routes/bedrock_runtime.rs": [
+            "crates/msc-engine/src/routes/bedrock_runtime.rs": [
                 "self.refresh_for_server(&server_dir);",
                 "msc_application::bedrock_provisioning::ensure_installed(",
                 "let refreshed = BedrockRuntimeEligibility::for_host(",
@@ -406,7 +406,7 @@ def check_verified_provisioning() -> list[str]:
 def check_shared_lifecycle() -> list[str]:
     problems = check_source_fragments(
         {
-            "crates/msc-agent/src/main.rs": [
+            "crates/msc-engine/src/main.rs": [
                 '.route("/servers/create", post(routes::servers::create))',
                 '.route("/active-server", post(routes::lifecycle::active_server))',
                 '.route("/start", post(routes::lifecycle::start))',
@@ -415,7 +415,7 @@ def check_shared_lifecycle() -> list[str]:
                 '.route("/status", get(routes::status::status))',
                 '.route("/capabilities", get(routes::capabilities::capabilities))',
             ],
-            "crates/msc-agent/src/routes/lifecycle.rs": [
+            "crates/msc-engine/src/routes/lifecycle.rs": [
                 "if self.active_bedrock_server().is_some()",
                 "self.provision_bedrock_server(&active).and_then(|()|",
                 "self.inner.bedrock_runtime.start(BedrockStartRequest {",
@@ -425,22 +425,22 @@ def check_shared_lifecycle() -> list[str]:
                 "self.inner.bedrock_runtime.poll_event()",
                 '"capability_unavailable"',
             ],
-            "crates/msc-agent/src/routes/commands.rs": [
+            "crates/msc-engine/src/routes/commands.rs": [
                 "if state.active_bedrock_server().is_some()",
                 "state.send_bedrock_command(&command)",
                 "runtime: Some(state.bedrock_runtime_state())",
             ],
-            "crates/msc-agent/src/routes/status.rs": [
+            "crates/msc-engine/src/routes/status.rs": [
                 "pub async fn status(State(state): State<LifecycleRoutesState>)",
                 "runtime: state",
                 "state.bedrock_runtime_state()",
             ],
-            "crates/msc-agent/src/routes/capabilities.rs": [
+            "crates/msc-engine/src/routes/capabilities.rs": [
                 "let bedrock_runtime = networking.lifecycle.bedrock_runtime_state();",
                 'let bedrock_supported = bedrock_runtime.state == "available";',
                 "runtime: Some(bedrock_runtime),",
             ],
-            "crates/msc-agent/tests/bedrock_production_lifecycle.rs": [
+            "crates/msc-engine/tests/bedrock_production_lifecycle.rs": [
                 "fn production_router_runs_fixture_backed_bedrock_lifecycle()",
                 '"/v1/start"',
                 '"/v1/command"',
@@ -450,7 +450,7 @@ def check_shared_lifecycle() -> list[str]:
                 '".msc_bds_provenance.json"',
                 "fn production_router_reports_unavailable_bedrock_lifecycle()",
             ],
-            "crates/msc-agent/tests/bedrock_production_surfaces.rs": [
+            "crates/msc-engine/tests/bedrock_production_surfaces.rs": [
                 "fn production_router_exposes_shared_bedrock_surfaces_and_runtime_errors()",
                 '"/v1/settings"',
                 '"/v1/versions"',
@@ -464,7 +464,7 @@ def check_shared_lifecycle() -> list[str]:
         }
     )
 
-    relative = "docs/msc2/api-contract/openapi.json"
+    relative = "docs/msc/api-contract/openapi.json"
     path = ROOT / relative
     if not path.is_file():
         problems.append(f"missing API contract: {relative}")
@@ -549,10 +549,10 @@ def check_service_and_headless_layout() -> list[str]:
 
     problems: list[str] = []
     expected = {
-        "releaseSet": "desktop-agent-sidecar",
-        "macos": {"requiredArtifacts": ["desktop", "agent", "sidecar"]},
+        "releaseSet": "desktop-engine-sidecar",
+        "macos": {"requiredArtifacts": ["desktop", "engine", "sidecar"]},
         "windows": {
-            "requiredArtifacts": ["desktop", "agent"],
+            "requiredArtifacts": ["desktop", "engine"],
             "forbiddenArtifacts": ["sidecar"],
         },
         "linux": {"installation": "package-manager-only"},
@@ -576,7 +576,7 @@ def check_service_and_headless_layout() -> list[str]:
 
 
 def check_matrix_boundary() -> list[str]:
-    relative = "docs/msc2/bedrock/compatibility-matrix.csv"
+    relative = "docs/msc/bedrock/compatibility-matrix.csv"
     path = ROOT / relative
     if not path.is_file():
         return [f"missing compatibility matrix: {relative}"]
@@ -612,7 +612,7 @@ def check_matrix_boundary() -> list[str]:
             problems.append(
                 f"{relative}: {host} must remain unavailable until live evidence exists"
             )
-        for field in ("agent_host_evidence", "bedrock_runtime_evidence"):
+        for field in ("engine_host_evidence", "bedrock_runtime_evidence"):
             evidence = row.get(field, "")
             if not evidence or not (ROOT / evidence).is_file():
                 problems.append(f"{relative}: {host} evidence path is missing: {evidence!r}")
@@ -620,7 +620,7 @@ def check_matrix_boundary() -> list[str]:
 
 
 def check_readiness_doc() -> list[str]:
-    relative = "docs/msc2/bedrock/phase12-readiness.md"
+    relative = "docs/msc/bedrock/phase12-readiness.md"
     required = [
         "# Bedrock implementation readiness",
         "implementation-ready",

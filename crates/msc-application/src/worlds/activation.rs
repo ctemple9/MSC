@@ -295,12 +295,12 @@ pub(super) fn move_approved_world_roots(
 /// Freezes the calling thread indefinitely once the current live world
 /// has been moved aside but before its replacement is installed --
 /// giving `phase6-gate-smoke.sh`'s restart-race checks a stable,
-/// arbitrarily-wide window to catch and kill a real agent process,
+/// arbitrarily-wide window to catch and kill a real engine process,
 /// rather than racing a poll against a real handful-of-`rename()`-
 /// syscalls window (which turned out to be too narrow to reliably
 /// observe on Windows CI runners regardless of kill speed). A no-op
 /// unless `MSC2_TEST_PAUSE_AFTER_WORLD_MOVE` is set; the smoke script
-/// only ever sets it for an agent process it starts specifically to
+/// only ever sets it for an engine process it starts specifically to
 /// serve one racy call before killing it, never for a process handling
 /// any other operation.
 pub(crate) fn test_pause_after_world_move() {
@@ -787,7 +787,7 @@ pub enum ActivationRecovery {
     RecoveredToNewWorld { slot_id: String },
 }
 
-/// Call once per server on agent startup, before any world-mutation
+/// Call once per server on engine startup, before any world-mutation
 /// route is reachable for it (the same "before routes are reachable"
 /// timing [`reconcile_imported_worlds`] already established) — reconciles
 /// an [`activate_slot`] call interrupted by a crash/restart to either
@@ -859,7 +859,7 @@ pub fn reconcile_interrupted_activation(
 // newLevelName:backupFirst:)` (source line 178-247) and `replaceWorld(
 // for:newLevelName:worldSource:backupFirst:)` (source line 45-152) —
 // the *direct* live-folder operations the public compatibility routes
-// use (`docs/msc2/worlds/phase6-api.md`'s naming-trap note: these are
+// use (`docs/msc/worlds/phase6-api.md`'s naming-trap note: these are
 // distinct from `rename_slot`'s slot-metadata-only rename above). Both
 // share the identically-shaped running-server guard three call sites in
 // source re-derive independently (`fixtures/world-mutations/

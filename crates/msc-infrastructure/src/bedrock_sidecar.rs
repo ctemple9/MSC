@@ -242,7 +242,7 @@ impl BedrockSidecarSocket {
             Ok(0) => {
                 self.eof = true;
                 if self.read_buffer.is_empty() && !self.saw_frame {
-                    return Err("helper rejected the agent peer".to_owned());
+                    return Err("helper rejected the engine peer".to_owned());
                 }
                 if !self.read_buffer.is_empty() {
                     return Err("helper disconnected with a truncated protocol frame".to_owned());

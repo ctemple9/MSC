@@ -1,0 +1,83 @@
+{
+  "serviceName": "com.ctemple.msc2.agent",
+  "managementBind": "127.0.0.1:48001",
+  "identity": "installing-user",
+  "package": {
+    "engineResourceSource": "clients/desktop-web/src-tauri/target/package/agent",
+    "engineResourceTarget": "agent",
+    "bedrockRuntimeArchive": "verified-first-run-download",
+    "bedrockRuntimeBundled": false
+  },
+  "platforms": {
+    "macos": {
+      "manager": "launchd LaunchDaemon",
+      "enginePath": "Minecraft Server Controller.app/Contents/Resources/agent/msc",
+      "worldMapRendererPath": "Minecraft Server Controller.app/Contents/Resources/agent/vantage",
+      "bedrockMapRendererPath": "Minecraft Server Controller.app/Contents/Resources/agent/bedrock-map",
+      "sidecarPath": "Minecraft Server Controller.app/Contents/Resources/agent/sidecar",
+      "headlessEnginePath": "agent/msc",
+      "headlessWorldMapRendererPath": "agent/vantage",
+      "headlessBedrockMapRendererPath": "agent/bedrock-map",
+      "headlessSidecarPath": "agent/sidecar",
+      "bedrock": {
+        "backend": "intel-vm-sidecar",
+        "sidecarExecutable": "Minecraft Server Controller.app/Contents/Resources/agent/sidecar/BedrockSidecar",
+        "applianceArchitecture": "x86_64",
+        "applianceResources": [
+          "Minecraft Server Controller.app/Contents/Resources/agent/sidecar/vmlinuz-kata",
+          "Minecraft Server Controller.app/Contents/Resources/agent/sidecar/appliance-initramfs.gz"
+        ],
+        "applianceBuildInput": "MSC2_BEDROCK_APPLIANCE_DIR",
+        "runtimeArchive": "verified-first-run-download",
+        "runtimeBundled": false
+      },
+      "appleSilicon": {
+        "enginePath": "Minecraft Server Controller.app/Contents/Resources/agent/msc",
+        "sidecarPath": null,
+        "bedrock": {
+          "backend": "unavailable",
+          "reason": "The Bedrock VM requires an Intel Mac",
+          "runtimeArchive": "not-applicable",
+          "runtimeBundled": false
+        }
+      },
+      "dataPath": "~/Library/Application Support/MSC 2"
+    },
+    "windows": {
+      "manager": "Windows Service",
+      "enginePath": "agent/msc.exe",
+      "worldMapRendererPath": "agent/vantage.exe",
+      "bedrockMapRendererPath": "agent/bedrock-map.exe",
+      "sidecarPath": null,
+      "bedrock": {
+        "backend": "native",
+        "executable": "server-directory/bedrock_server.exe",
+        "runtimeArchive": "verified-first-run-download",
+        "runtimeBundled": false
+      },
+      "dataPath": "%USERPROFILE%\\AppData\\Roaming\\MSC2"
+    },
+    "linux": {
+      "manager": "systemd",
+      "desktopServiceHelper": "desktop-service-helper",
+      "serviceElevation": "pkexec (polkit)",
+      "serviceOwnership": "root-owned unit; installing-user process and data",
+      "credentialHelperService": "msc2-credential-helper.service",
+      "credentialHelperSocket": "/run/msc2/credential-helper.sock",
+      "credentialStorePath": "/var/lib/msc2/credentials",
+      "enginePath": "../lib/Minecraft Server Controller/agent/msc",
+      "worldMapRendererPath": "../lib/Minecraft Server Controller/agent/vantage",
+      "bedrockMapRendererPath": "../lib/Minecraft Server Controller/agent/bedrock-map",
+      "developmentEnginePath": "../lib/Minecraft Server Controller/agent/dev-builds/<sha256>/msc",
+      "developmentEngineSource": "~/.local/share/msc2/agent/builds/<sha256>/msc",
+      "sidecarPath": null,
+      "bedrock": {
+        "backend": "native",
+        "executable": "server-directory/bedrock_server",
+        "runtimeArchive": "verified-first-run-download",
+        "runtimeBundled": false
+      },
+      "dataPath": "~/.local/share/msc2"
+    }
+  }
+}

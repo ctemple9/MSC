@@ -52,7 +52,7 @@
 >
   <div class="stack">
     <div>
-      <p class="msc2-type-overline">Microsoft sign-in</p>
+      <p class="msc-type-overline">Microsoft sign-in</p>
       <h2>Finish Xbox Broadcast setup</h2>
       <p class="copy">
         Open Microsoft's device sign-in page and use the code below with the dedicated Xbox
@@ -87,14 +87,14 @@
   }
   h2 {
     margin: 0;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 15px;
     font-weight: 600;
   }
   .copy,
   .error {
     margin: 6px 0 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.55;
   }
@@ -104,22 +104,22 @@
     justify-content: space-between;
     gap: 12px;
     padding: 12px;
-    background: var(--msc2-tier-terminal);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-terminal);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 8px;
   }
   .code-block span {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   code {
-    color: var(--msc2-text-primary);
-    font-family: var(--msc2-font-mono);
+    color: var(--msc-text-primary);
+    font-family: var(--msc-font-mono);
     font-size: 16px;
     letter-spacing: 0.08em;
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .actions {
     display: flex;

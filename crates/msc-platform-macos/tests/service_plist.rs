@@ -100,7 +100,7 @@ struct TempDir {
 impl TempDir {
     fn new(name: &str) -> Self {
         let path =
-            std::env::temp_dir().join(format!("msc2-service-plist-{name}-{}", std::process::id()));
+            std::env::temp_dir().join(format!("msc-service-plist-{name}-{}", std::process::id()));
         std::fs::create_dir_all(&path).unwrap();
         Self { path }
     }
@@ -116,8 +116,8 @@ fn request() -> ServiceInstallRequest {
     ServiceInstallRequest::new(
         "com.msc2.agent",
         "/usr/local/bin/msc",
-        "/private/tmp/msc2-service-tests/agent",
-        "/private/tmp/msc2-service-tests/agent.log",
+        "/private/tmp/msc-service-tests/agent",
+        "/private/tmp/msc-service-tests/agent.log",
         48001,
     )
     .args(["serve", "--bind", "127.0.0.1:48001"])

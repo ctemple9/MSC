@@ -31,7 +31,7 @@ describe('server editor memory settings', () => {
   });
 
   it('exposes local Java or Bedrock ports without claiming to edit external mappings', () => {
-    expect(generalSource).toContain('msc2-type-overline">Ports');
+    expect(generalSource).toContain('msc-type-overline">Ports');
     expect(generalSource).toContain("isJava ? 'Java Port' : 'Bedrock Port'");
     expect(generalSource).toContain('Bedrock / Geyser Port');
     expect(generalSource).toContain("'server-port': String(gamePort)");

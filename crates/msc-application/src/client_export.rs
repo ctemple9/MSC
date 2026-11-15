@@ -11,7 +11,7 @@
 //! is available.
 //!
 //! **Rust ZIP, never `/usr/bin/zip -j`**
-//! (`docs/msc2/msc2-decisions.md`'s D-006/D-011 headless-tri-platform
+//! (`docs/msc/msc-decisions.md`'s D-006/D-011 headless-tri-platform
 //! requirement, already the norm every Phase 6-8 archive site follows —
 //! `phase8-scope.md`'s own "zip extraction is macOS-only in the oracle"
 //! finding names this exact call site as one of the five that don't
@@ -26,7 +26,7 @@
 //! a typed result — never an in-memory blob a route would have to encode.
 //! The size ceiling and JSON-response-shape question this step's own
 //! `What:` line also raises are the *route* layer's job once one exists
-//! (P8.24) — `docs/msc2/addons/phase8-api.md` §5 already settles it
+//! (P8.24) — `docs/msc/addons/phase8-api.md` §5 already settles it
 //! (`stagedDownloadId`, `zipBase64` dropped since it was never shipped).
 //!
 //! **No temp-staging copy, and no subprocess exit status to log.** Source's
@@ -374,7 +374,7 @@ impl std::error::Error for ClientExportZipError {}
 /// (`fixtures/client-addon-export/disabled-jar-included-in-export-list-
 /// identically-to-active-jar.json`). On any failure, the partially-written
 /// destination file is removed rather than left as a corrupt archive —
-/// new agent-owned safety source doesn't have (its own `Process`-based
+/// new engine-owned safety source doesn't have (its own `Process`-based
 /// `zip` either succeeds or leaves nothing, since it writes to `dest`
 /// directly with no intermediate temp file either).
 pub fn write_client_export_zip(

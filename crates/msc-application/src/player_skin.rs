@@ -1,6 +1,6 @@
 //! Durable player-skin lookup overrides.
 //!
-//! The agent owns the HTTP route, while this module owns the small JSON
+//! The engine owns the HTTP route, while this module owns the small JSON
 //! sidecar that persists the operator's chosen lookup identifier. Keeping the
 //! file operation here makes the route easy to test without a running server
 //! or a real filesystem.

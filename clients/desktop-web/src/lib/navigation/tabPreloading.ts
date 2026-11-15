@@ -1,6 +1,6 @@
 import type { SectionDescriptor } from './types';
 
-const PRELOAD_TABS_KEY = 'msc2.preload-tabs';
+const PRELOAD_TABS_KEY = 'msc.preload-tabs';
 const PRELOAD_DELAY_MS = 750;
 
 /** Preloading is a client preference; an unset preference keeps the fast path on. */

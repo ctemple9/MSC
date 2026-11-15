@@ -8,7 +8,7 @@ use std::path::Path;
 
 fn openapi() -> Value {
     let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc2/api-contract/openapi.json");
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc/api-contract/openapi.json");
     serde_json::from_str(&std::fs::read_to_string(path).expect("read openapi.json"))
         .expect("openapi.json is valid JSON")
 }
@@ -243,8 +243,8 @@ fn phase10_conformance_routes_stay_shared_and_websocket_contract_is_unchanged_in
             "parallel Bedrock route added: {path}"
         );
     }
-    let websocket_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../docs/msc2/api-contract/websocket-v1.json");
+    let websocket_path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc/api-contract/websocket-v1.json");
     let websocket: Value = serde_json::from_str(
         &std::fs::read_to_string(websocket_path).expect("read websocket-v1.json"),
     )

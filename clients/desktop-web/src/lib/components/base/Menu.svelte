@@ -1,7 +1,7 @@
 <script lang="ts">
   // A small action menu anchored at a click point -- e.g. clicking a plugin
   // row instead of exposing an always-visible Remove button. Flat opaque
-  // surface, no blur (docs/msc2/antiAIslop.md #4 reserves blur for a true
+  // surface, no blur (docs/msc/antiAIslop.md #4 reserves blur for a true
   // modal scrim; this is a lightweight popover, not one). Clamped to stay
   // inside the viewport since the anchor point can be anywhere on screen.
   import { onboardingAnchor } from '../../help/tourAnchors';
@@ -76,10 +76,10 @@
     z-index: 101;
     min-width: 150px;
     padding: 4px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline);
     border-radius: 10px;
-    box-shadow: var(--msc2-shadow-float);
+    box-shadow: var(--msc-shadow-float);
     display: flex;
     flex-direction: column;
   }
@@ -93,17 +93,17 @@
     padding: 7px 10px;
     font: inherit;
     font-size: 13px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     cursor: pointer;
   }
   .item:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.08);
   }
   .item:disabled {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     cursor: not-allowed;
   }
   .item.destructive {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
 </style>

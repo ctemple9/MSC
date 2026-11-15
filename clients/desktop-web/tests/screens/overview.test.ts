@@ -19,7 +19,7 @@ describe('overview connection information', () => {
     );
   });
 
-  it('threads the agent-reported host address into Overview and the sidebar', () => {
+  it('threads the engine-reported host address into Overview and the sidebar', () => {
     expect(connectionSource).toContain('export let hostAddress: string | undefined = undefined;');
     expect(connectionSource).toContain('export let bedrockPort: number | undefined = undefined;');
     expect(connectionSource).toContain(

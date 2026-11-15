@@ -1,6 +1,6 @@
 <script lang="ts">
   // The 8-tab strip. Selected pill = bannerColor — one of the four sanctioned
-  // spots for the accent (docs/msc2/renderings/shell.html). Text-only labels:
+  // spots for the accent (docs/msc/renderings/shell.html). Text-only labels:
   // the locked specimen carries icons on none but one tab, so a uniform
   // text-only strip is the faithful reading rather than an invented icon set.
   import type { PrimaryTab } from '../../navigation/primaryTabs';
@@ -49,8 +49,8 @@
     display: flex;
     gap: 1px;
     padding: 3px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 9px;
     overflow-x: auto;
   }
@@ -59,7 +59,7 @@
     white-space: nowrap;
     font-size: 12.5px;
     font-weight: 500;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: transparent;
     border: none;
     border-radius: 6px;
@@ -67,10 +67,10 @@
     cursor: pointer;
   }
   .tab.selected {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .tab:not(:disabled):not(.selected):hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .tab:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.4);

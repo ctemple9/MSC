@@ -2,7 +2,7 @@
 //!
 //! This deliberately starts only `playitd`; it neither accepts nor forwards
 //! MSC HTTP traffic.  The management listener remains independently bound and
-//! bearer-authenticated by `msc-agent`.
+//! bearer-authenticated by `msc-engine`.
 
 use crate::operations::{LifecycleOperations, lifecycle_error};
 use msc_domain::helper::{
@@ -18,7 +18,7 @@ use msc_infrastructure::playit::{
     PLAYIT_SECRET_KEY, PlayitBinaryAcquisition, PlayitLaunch, PlayitSecretBridge,
 };
 use msc_infrastructure::playit_api::{
-    PLAYIT_AGENT_NAME, PlayitApi, PlayitApiError, PlayitHttpTransport, PlayitSession, PlayitTunnel,
+    PLAYIT_ENGINE_NAME, PlayitApi, PlayitApiError, PlayitHttpTransport, PlayitSession, PlayitTunnel,
 };
 use msc_infrastructure::process::ProcessSupervisor;
 use msc_infrastructure::secret_store::SecretStore;
@@ -31,13 +31,13 @@ use uuid::Uuid;
 pub const PLAYIT_OPERATION_TYPE: &str = "playit-tunnel";
 pub const PLAYIT_SETUP_OPERATION_TYPE: &str = "playit-setup";
 pub const PLAYIT_SETUP_OPERATION_TARGET: &str = "playit-account";
-pub const PLAYIT_INVALID_SECRET_MESSAGE: &str = "The saved Playit credential was rejected. Relink the existing agent before trying again; MSC did not replace it.";
-pub const PLAYIT_CONTROL_SESSION_FAILURE_MESSAGE: &str = "Playit repeatedly rejected its control session. MSC will retry the saved agent without creating a replacement.";
+pub const PLAYIT_INVALID_SECRET_MESSAGE: &str = "The saved Playit credential was rejected. Relink the existing engine before trying again; MSC did not replace it.";
+pub const PLAYIT_CONTROL_SESSION_FAILURE_MESSAGE: &str = "Playit repeatedly rejected its control session. MSC will retry the saved engine without creating a replacement.";
 
 const PLAYIT_RESET_STOP_TIMEOUT: Duration = Duration::from_secs(5);
 const PLAYIT_RESET_POLL_INTERVAL: Duration = Duration::from_millis(25);
-const PLAYIT_AGENT_CONNECTION_TIMEOUT: Duration = Duration::from_secs(75);
-const PLAYIT_AGENT_CONNECTION_POLL_INTERVAL: Duration = Duration::from_millis(100);
+const PLAYIT_ENGINE_CONNECTION_TIMEOUT: Duration = Duration::from_secs(75);
+const PLAYIT_ENGINE_CONNECTION_POLL_INTERVAL: Duration = Duration::from_millis(100);
 const PLAYIT_PUBLIC_ADDRESS_ATTEMPTS: usize = 16;
 const PLAYIT_REGISTER_UNAUTHORIZED_LIMIT: u8 = 3;
 
@@ -121,8 +121,8 @@ impl std::error::Error for PlayitError {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlayitSetupStage {
     SigningIn,
-    ClaimingOrReusingAgent,
-    WaitingForAgent,
+    ClaimingOrReusingEngine,
+    WaitingForEngine,
     CreatingOrReusingJavaTunnel,
     CreatingOrReusingBedrockTunnel,
     CreatingOrReusingVoiceTunnel,
@@ -133,8 +133,8 @@ impl PlayitSetupStage {
     pub fn status_line(self) -> &'static str {
         match self {
             Self::SigningIn => "Signing in to Playit.",
-            Self::ClaimingOrReusingAgent => "Claiming or reusing the Playit agent.",
-            Self::WaitingForAgent => "Waiting for Playit to finish setting up the agent.",
+            Self::ClaimingOrReusingEngine => "Claiming or reusing the Playit engine.",
+            Self::WaitingForEngine => "Waiting for Playit to finish setting up the engine.",
             Self::CreatingOrReusingJavaTunnel => "Creating or reusing the MSC Java tunnel.",
             Self::CreatingOrReusingBedrockTunnel => "Creating or reusing the MSC Bedrock tunnel.",
             Self::CreatingOrReusingVoiceTunnel => "Creating or reusing the MSC Voice tunnel.",
@@ -145,8 +145,8 @@ impl PlayitSetupStage {
     pub fn progress(self) -> (u64, u64) {
         match self {
             Self::SigningIn => (1, 3),
-            Self::ClaimingOrReusingAgent => (2, 3),
-            Self::WaitingForAgent => (3, 3),
+            Self::ClaimingOrReusingEngine => (2, 3),
+            Self::WaitingForEngine => (3, 3),
             Self::CreatingOrReusingJavaTunnel => (4, 7),
             Self::CreatingOrReusingBedrockTunnel => (5, 7),
             Self::CreatingOrReusingVoiceTunnel => (6, 7),
@@ -158,7 +158,7 @@ impl PlayitSetupStage {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlayitSetupResult {
     pub agent_id: String,
-    pub reused_existing_agent: bool,
+    pub reused_existing_engine: bool,
     pub tunnel_addresses: PlayitTunnelAddresses,
 }
 
@@ -166,7 +166,7 @@ struct PlayitProvisionContext<'a> {
     agent_id: &'a str,
     secret_key: &'a str,
     session: &'a PlayitSession,
-    reused_existing_agent: bool,
+    reused_existing_engine: bool,
     existing_inventory: Option<Vec<PlayitTunnel>>,
     tunnel_specs: &'a [PlayitTunnelSpec],
 }
@@ -176,10 +176,10 @@ pub enum PlayitSetupError {
     Cancelled,
     Api(PlayitApiError),
     CredentialStore,
-    AgentStart(String),
+    EngineStart(String),
     TunnelMismatch(PlayitTunnelKind),
     TunnelMissing(PlayitTunnelKind),
-    ExistingAgentCredentialRequired,
+    ExistingEngineCredentialRequired,
     PublicAddressesUnavailable,
 }
 
@@ -189,10 +189,10 @@ impl PlayitSetupError {
             Self::Cancelled => "cancelled",
             Self::Api(error) => error.stable_code(),
             Self::CredentialStore => "credential_store_failed",
-            Self::AgentStart(_) => "playit_helper_start_failed",
+            Self::EngineStart(_) => "playit_helper_start_failed",
             Self::TunnelMismatch(_) => "tunnel_mismatch",
             Self::TunnelMissing(_) => "tunnel_missing",
-            Self::ExistingAgentCredentialRequired => "existing_agent_credential_required",
+            Self::ExistingEngineCredentialRequired => "existing_agent_credential_required",
             Self::PublicAddressesUnavailable => "public_addresses_unavailable",
         }
     }
@@ -206,26 +206,26 @@ impl fmt::Display for PlayitSetupError {
             Self::CredentialStore => {
                 write!(f, "MSC could not save the Playit credentials on this host.")
             }
-            Self::AgentStart(message) => {
-                write!(f, "MSC could not start the Playit agent: {message}")
+            Self::EngineStart(message) => {
+                write!(f, "MSC could not start the Playit engine: {message}")
             }
             Self::TunnelMismatch(kind) => write!(
                 f,
-                "The existing {} Playit tunnel does not match this server's saved agent or local port; repair it on playit.gg before trying again.",
+                "The existing {} Playit tunnel does not match this server's saved engine or local port; repair it on playit.gg before trying again.",
                 kind.name()
             ),
             Self::TunnelMissing(kind) => write!(
                 f,
-                "The saved Playit agent has no {} tunnel. MSC kept the existing agent and did not create a replacement tunnel.",
+                "The saved Playit engine has no {} tunnel. MSC kept the existing engine and did not create a replacement tunnel.",
                 kind.name()
             ),
-            Self::ExistingAgentCredentialRequired => write!(
+            Self::ExistingEngineCredentialRequired => write!(
                 f,
-                "MSC has a saved Playit agent but no usable credential for it. Relink that existing agent before setup can continue; MSC did not create a replacement agent."
+                "MSC has a saved Playit engine but no usable credential for it. Relink that existing engine before setup can continue; MSC did not create a replacement engine."
             ),
             Self::PublicAddressesUnavailable => write!(
                 f,
-                "Playit created the tunnels, but their public addresses did not become ready within 75 seconds. Your agent and tunnels were kept; try again shortly."
+                "Playit created the tunnels, but their public addresses did not become ready within 75 seconds. Your engine and tunnels were kept; try again shortly."
             ),
         }
     }
@@ -236,13 +236,13 @@ impl std::error::Error for PlayitSetupError {}
 /// Owns the native account workflow.  It receives an injected provider
 /// transport and writes only the permanent key to `SecretStore`; the session
 /// and password never leave this call as a return value.
-type AgentLifecycleCallback<'a> = &'a dyn Fn(&str) -> Result<(), String>;
+type EngineLifecycleCallback<'a> = &'a dyn Fn(&str) -> Result<(), String>;
 
 pub struct PlayitAccountSetup<'a> {
     api: PlayitApi<'a>,
     secrets: &'a dyn SecretStore,
-    agent_starter: Option<AgentLifecycleCallback<'a>>,
-    agent_configuration_saver: Option<AgentLifecycleCallback<'a>>,
+    engine_starter: Option<EngineLifecycleCallback<'a>>,
+    engine_configuration_saver: Option<EngineLifecycleCallback<'a>>,
 }
 
 impl<'a> PlayitAccountSetup<'a> {
@@ -250,59 +250,59 @@ impl<'a> PlayitAccountSetup<'a> {
         Self {
             api: PlayitApi::new(transport),
             secrets,
-            agent_starter: None,
-            agent_configuration_saver: None,
+            engine_starter: None,
+            engine_configuration_saver: None,
         }
     }
 
     /// Builds account setup with a temporary hook for launching the local
-    /// agent before tunnel provisioning. The hook is borrowed only for the
+    /// engine before tunnel provisioning. The hook is borrowed only for the
     /// synchronous setup call and is never persisted with account state.
-    pub fn with_agent_starter(
+    pub fn with_engine_starter(
         transport: &'a dyn PlayitHttpTransport,
         secrets: &'a dyn SecretStore,
-        agent_starter: &'a dyn Fn(&str) -> Result<(), String>,
+        engine_starter: &'a dyn Fn(&str) -> Result<(), String>,
     ) -> Self {
         Self {
             api: PlayitApi::new(transport),
             secrets,
-            agent_starter: Some(agent_starter),
-            agent_configuration_saver: None,
+            engine_starter: Some(engine_starter),
+            engine_configuration_saver: None,
         }
     }
 
-    /// Adds the host-config write that makes a just-claimed agent recoverable
+    /// Adds the host-config write that makes a just-claimed engine recoverable
     /// before its first tunnel exists. A failed tunnel request must not make
-    /// MSC forget a real cloud agent and create another one on retry.
-    pub fn with_agent_lifecycle(
+    /// MSC forget a real cloud engine and create another one on retry.
+    pub fn with_engine_lifecycle(
         transport: &'a dyn PlayitHttpTransport,
         secrets: &'a dyn SecretStore,
-        agent_configuration_saver: &'a dyn Fn(&str) -> Result<(), String>,
-        agent_starter: &'a dyn Fn(&str) -> Result<(), String>,
+        engine_configuration_saver: &'a dyn Fn(&str) -> Result<(), String>,
+        engine_starter: &'a dyn Fn(&str) -> Result<(), String>,
     ) -> Self {
         Self {
             api: PlayitApi::new(transport),
             secrets,
-            agent_starter: Some(agent_starter),
-            agent_configuration_saver: Some(agent_configuration_saver),
+            engine_starter: Some(engine_starter),
+            engine_configuration_saver: Some(engine_configuration_saver),
         }
     }
 
-    /// Signs in and either reuses the host's existing agent or performs the
-    /// claim/setup/exchange handshake for a new agent.  `should_cancel` is
+    /// Signs in and either reuses the host's existing engine or performs the
+    /// claim/setup/exchange handshake for a new engine.  `should_cancel` is
     /// checked between provider calls and while waiting for claim propagation.
     pub fn run(
         &self,
         email: &str,
         password: &str,
-        existing_agent_id: Option<&str>,
+        existing_engine_id: Option<&str>,
         should_cancel: impl Fn() -> bool,
         report: impl Fn(PlayitSetupStage),
     ) -> Result<PlayitSetupResult, PlayitSetupError> {
         self.run_with_tunnels(
             email,
             password,
-            existing_agent_id,
+            existing_engine_id,
             &[],
             should_cancel,
             report,
@@ -316,7 +316,7 @@ impl<'a> PlayitAccountSetup<'a> {
         &self,
         email: &str,
         password: &str,
-        existing_agent_id: Option<&str>,
+        existing_engine_id: Option<&str>,
         tunnel_specs: &[PlayitTunnelSpec],
         should_cancel: impl Fn() -> bool,
         report: impl Fn(PlayitSetupStage),
@@ -334,44 +334,44 @@ impl<'a> PlayitAccountSetup<'a> {
             .secrets
             .get(PLAYIT_SECRET_KEY)
             .map_err(|_| PlayitSetupError::CredentialStore)?;
-        report(PlayitSetupStage::ClaimingOrReusingAgent);
-        let saved_agent_id = existing_agent_id.filter(|agent_id| !agent_id.trim().is_empty());
+        report(PlayitSetupStage::ClaimingOrReusingEngine);
+        let saved_engine_id = existing_engine_id.filter(|agent_id| !agent_id.trim().is_empty());
         let saved_secret = existing_secret.filter(|secret| !secret.trim().is_empty());
-        let (agent_id, reused_existing_agent, secret_key) =
-            if let (Some(agent_id), Some(secret)) = (saved_agent_id, saved_secret.as_deref()) {
+        let (agent_id, reused_existing_engine, secret_key) =
+            if let (Some(agent_id), Some(secret)) = (saved_engine_id, saved_secret.as_deref()) {
                 (agent_id.to_owned(), true, secret.to_owned())
-            } else if saved_agent_id.is_some() || saved_secret.is_some() {
-                return Err(PlayitSetupError::ExistingAgentCredentialRequired);
+            } else if saved_engine_id.is_some() || saved_secret.is_some() {
+                return Err(PlayitSetupError::ExistingEngineCredentialRequired);
             } else {
                 let claim_code = generate_claim_code();
                 self.api
                     .claim_setup(&claim_code)
                     .map_err(PlayitSetupError::Api)?;
 
-                let claimed_agent_id = self.accept_claim(&claim_code, &session, &should_cancel)?;
-                report(PlayitSetupStage::WaitingForAgent);
+                let claimed_engine_id = self.accept_claim(&claim_code, &session, &should_cancel)?;
+                report(PlayitSetupStage::WaitingForEngine);
                 let secret = self.exchange_claim(&claim_code, &should_cancel)?;
                 self.secrets
                     .set(PLAYIT_SECRET_KEY, secret.as_str())
                     .map_err(|_| PlayitSetupError::CredentialStore)?;
-                (claimed_agent_id, false, secret.as_str().to_owned())
+                (claimed_engine_id, false, secret.as_str().to_owned())
             };
 
-        if let Some(agent_configuration_saver) = self.agent_configuration_saver
-            && agent_configuration_saver(&agent_id).is_err()
+        if let Some(engine_configuration_saver) = self.engine_configuration_saver
+            && engine_configuration_saver(&agent_id).is_err()
         {
-            if !reused_existing_agent {
+            if !reused_existing_engine {
                 let _ = self.secrets.delete(PLAYIT_SECRET_KEY);
             }
             return Err(PlayitSetupError::CredentialStore);
         }
 
-        // A saved agent must prove its key against the provider before MSC
+        // A saved engine must prove its key against the provider before MSC
         // starts playitd. This turns a revoked key into one bounded setup
         // failure instead of a daemon authentication loop. The inventory is
-        // read-only and is reused below; no replacement agent or tunnel is
+        // read-only and is reused below; no replacement engine or tunnel is
         // created from this branch.
-        let existing_inventory = if reused_existing_agent && !tunnel_specs.is_empty() {
+        let existing_inventory = if reused_existing_engine && !tunnel_specs.is_empty() {
             Some(
                 self.api
                     .list_tunnels(&secret_key)
@@ -383,18 +383,18 @@ impl<'a> PlayitAccountSetup<'a> {
 
         if !tunnel_specs.is_empty() {
             // MSC1 starts playitd before asking the provider to list or create
-            // tunnels. The API reports AgentNotFound until that local agent
+            // tunnels. The API reports EngineNotFound until that local engine
             // has connected, so provisioning must not run ahead of it.
             if should_cancel() {
                 return Err(PlayitSetupError::Cancelled);
             }
-            if reused_existing_agent {
-                report(PlayitSetupStage::WaitingForAgent);
+            if reused_existing_engine {
+                report(PlayitSetupStage::WaitingForEngine);
             }
-            if let Some(agent_starter) = self.agent_starter
-                && let Err(error) = agent_starter(&agent_id)
+            if let Some(engine_starter) = self.engine_starter
+                && let Err(error) = engine_starter(&agent_id)
             {
-                return Err(PlayitSetupError::AgentStart(error));
+                return Err(PlayitSetupError::EngineStart(error));
             }
         }
 
@@ -406,7 +406,7 @@ impl<'a> PlayitAccountSetup<'a> {
                     agent_id: &agent_id,
                     secret_key: &secret_key,
                     session: &session,
-                    reused_existing_agent,
+                    reused_existing_engine,
                     existing_inventory,
                     tunnel_specs,
                 },
@@ -417,12 +417,12 @@ impl<'a> PlayitAccountSetup<'a> {
 
         Ok(PlayitSetupResult {
             agent_id,
-            reused_existing_agent,
+            reused_existing_engine,
             tunnel_addresses,
         })
     }
 
-    /// Reconciles the public addresses for the already-saved agent without
+    /// Reconciles the public addresses for the already-saved engine without
     /// signing in, creating a tunnel, or changing anything in Playit. This
     /// lets a later status read recover if Playit accepted a new allocation
     /// just before it assigned the public address.
@@ -436,7 +436,7 @@ impl<'a> PlayitAccountSetup<'a> {
             .get(PLAYIT_SECRET_KEY)
             .map_err(|_| PlayitSetupError::CredentialStore)?
             .filter(|secret| !secret.trim().is_empty())
-            .ok_or(PlayitSetupError::Api(PlayitApiError::AgentNotFound))?;
+            .ok_or(PlayitSetupError::Api(PlayitApiError::EngineNotFound))?;
         let inventory = self
             .api
             .list_tunnels(&secret_key)
@@ -468,7 +468,7 @@ impl<'a> PlayitAccountSetup<'a> {
                 [tunnel]
                     if tunnel_matches(tunnel, *spec, context.agent_id)
                         || tunnel.name == spec.kind.name() => {}
-                [] if context.reused_existing_agent => {
+                [] if context.reused_existing_engine => {
                     return Err(PlayitSetupError::TunnelMissing(spec.kind));
                 }
                 [] => {
@@ -513,7 +513,7 @@ impl<'a> PlayitAccountSetup<'a> {
                 .filter(|tunnel| tunnel.name == spec.kind.name())
                 .collect();
             let tunnel = match matching.as_slice() {
-                [] => return Err(PlayitSetupError::Api(PlayitApiError::AgentNotFound)),
+                [] => return Err(PlayitSetupError::Api(PlayitApiError::EngineNotFound)),
                 [tunnel]
                     if tunnel_matches(tunnel, *spec, agent_id)
                         || tunnel.name == spec.kind.name() =>
@@ -560,7 +560,7 @@ impl<'a> PlayitAccountSetup<'a> {
                 Err(error) => return Err(PlayitSetupError::Api(error)),
             }
         }
-        Err(PlayitSetupError::Api(PlayitApiError::AgentNotFound))
+        Err(PlayitSetupError::Api(PlayitApiError::EngineNotFound))
     }
 
     fn create_tunnel(
@@ -588,7 +588,7 @@ impl<'a> PlayitAccountSetup<'a> {
                 Err(error) => return Err(PlayitSetupError::Api(error)),
             }
         }
-        Err(PlayitSetupError::Api(PlayitApiError::AgentNotFound))
+        Err(PlayitSetupError::Api(PlayitApiError::EngineNotFound))
     }
 
     fn accept_claim(
@@ -613,7 +613,7 @@ impl<'a> PlayitAccountSetup<'a> {
             match self.api.claim_details(claim_code, session) {
                 Ok(()) => match self
                     .api
-                    .claim_accept(claim_code, PLAYIT_AGENT_NAME, session)
+                    .claim_accept(claim_code, PLAYIT_ENGINE_NAME, session)
                 {
                     Ok(agent_id) => return Ok(agent_id),
                     Err(error) if retryable_claim_error(error) => continue,
@@ -623,7 +623,7 @@ impl<'a> PlayitAccountSetup<'a> {
                 Err(error) => return Err(PlayitSetupError::Api(error)),
             }
         }
-        Err(PlayitSetupError::Api(PlayitApiError::AgentNotFound))
+        Err(PlayitSetupError::Api(PlayitApiError::EngineNotFound))
     }
 
     fn exchange_claim(
@@ -650,7 +650,7 @@ impl<'a> PlayitAccountSetup<'a> {
                 return Err(PlayitSetupError::Cancelled);
             }
         }
-        Err(PlayitSetupError::Api(PlayitApiError::AgentNotFound))
+        Err(PlayitSetupError::Api(PlayitApiError::EngineNotFound))
     }
 }
 
@@ -679,7 +679,7 @@ fn tunnel_matches(tunnel: &PlayitTunnel, spec: PlayitTunnelSpec, agent_id: &str)
             // The legacy `/tunnels/list` account model identifies custom UDP
             // tunnels with no tunnel type and does not include the
             // raw-ports protocol marker. The common checks above still bind
-            // this named tunnel to this agent, loopback, UDP, and port.
+            // this named tunnel to this engine, loopback, UDP, and port.
             tunnel.tunnel_type.is_none()
         }
     }
@@ -689,10 +689,10 @@ fn generate_claim_code() -> String {
     Uuid::new_v4().simple().to_string()[..10].to_owned()
 }
 
-/// `playitd` reports the cloud-side agent only after it has connected, for
+/// `playitd` reports the cloud-side engine only after it has connected, for
 /// example: `playit connected; tunnels loaded agent_id=<uuid>`. This is the
 /// one readiness signal that exists before a first tunnel has an address.
-fn parse_connected_agent_id(line: &str) -> Option<String> {
+fn parse_connected_engine_id(line: &str) -> Option<String> {
     // Playit v1.0.10 enables ANSI formatting on Linux, including between
     // `agent_id` and `=`. Windows and macOS emit the same field without it.
     let line = strip_ansi_control_sequences(line);
@@ -728,13 +728,13 @@ fn strip_ansi_control_sequences(line: &str) -> String {
 }
 
 fn retryable_tunnel_error(error: PlayitApiError) -> bool {
-    matches!(error, PlayitApiError::AgentNotFound)
+    matches!(error, PlayitApiError::EngineNotFound)
 }
 
 fn retryable_claim_error(error: PlayitApiError) -> bool {
     matches!(
         error,
-        PlayitApiError::AgentNotFound | PlayitApiError::ApiFailure
+        PlayitApiError::EngineNotFound | PlayitApiError::ApiFailure
     )
 }
 
@@ -749,7 +749,7 @@ fn wait_for_claim_retry(should_cancel: &impl Fn() -> bool) -> bool {
 }
 
 fn wait_for_tunnel_retry(should_cancel: &impl Fn() -> bool) -> bool {
-    // MSC1 allowed roughly 24 seconds for a newly started agent to register
+    // MSC1 allowed roughly 24 seconds for a newly started engine to register
     // before giving up. Keep cancellation responsive while preserving that
     // provider propagation window between the sixteen API attempts.
     for _ in 0..15 {
@@ -801,7 +801,7 @@ pub struct PlayitService<'a> {
     lifecycle_status: PlayitLifecycleStatus,
     secret_bridge: Option<PlayitSecretBridge>,
     secret_bridge_path: Option<PathBuf>,
-    connected_agent_id: Option<String>,
+    connected_engine_id: Option<String>,
     register_unauthorized_streak: u8,
     control_session_failures: u8,
 }
@@ -829,7 +829,7 @@ impl<'a> PlayitService<'a> {
             lifecycle_status: PlayitLifecycleStatus::Stopped,
             secret_bridge: None,
             secret_bridge_path: None,
-            connected_agent_id: None,
+            connected_engine_id: None,
             register_unauthorized_streak: 0,
             control_session_failures: 0,
         }
@@ -867,10 +867,10 @@ impl<'a> PlayitService<'a> {
     }
 
     /// Playit emits this only after the local daemon has authenticated with
-    /// its claimed cloud agent. Unlike the player-address signal, this can be
+    /// its claimed cloud engine. Unlike the player-address signal, this can be
     /// observed before the first tunnel is created.
-    pub fn agent_connection_matches(&self, expected_agent_id: &str) -> bool {
-        self.connected_agent_id.as_deref() == Some(expected_agent_id)
+    pub fn engine_connection_matches(&self, expected_engine_id: &str) -> bool {
+        self.connected_engine_id.as_deref() == Some(expected_engine_id)
     }
 
     pub fn control_session_failures(&self) -> u8 {
@@ -880,38 +880,38 @@ impl<'a> PlayitService<'a> {
     /// Wait for the daemon's own connection line before provisioning the
     /// first tunnel. The old address-based readiness signal cannot help here:
     /// there is no address until the provider has accepted a tunnel.
-    pub fn wait_for_agent_connection(
+    pub fn wait_for_engine_connection(
         &mut self,
-        expected_agent_id: &str,
+        expected_engine_id: &str,
         should_cancel: &impl Fn() -> bool,
     ) -> Result<(), PlayitError> {
-        let deadline = Instant::now() + PLAYIT_AGENT_CONNECTION_TIMEOUT;
+        let deadline = Instant::now() + PLAYIT_ENGINE_CONNECTION_TIMEOUT;
         loop {
             if should_cancel() {
                 return Err(PlayitError::Process(
-                    "Playit setup was cancelled before the tunnel agent connected.".into(),
+                    "Playit setup was cancelled before the tunnel engine connected.".into(),
                 ));
             }
             self.poll()?;
-            if self.agent_connection_matches(expected_agent_id) {
+            if self.engine_connection_matches(expected_engine_id) {
                 return Ok(());
             }
-            if let Some(connected_agent_id) = self.connected_agent_id.as_deref() {
+            if let Some(connected_engine_id) = self.connected_engine_id.as_deref() {
                 return Err(PlayitError::Process(format!(
-                    "Playit connected a different tunnel agent ({connected_agent_id}) than the one MSC just claimed."
+                    "Playit connected a different tunnel engine ({connected_engine_id}) than the one MSC just claimed."
                 )));
             }
             if let PlayitLifecycleStatus::Failed { message } = self.lifecycle_status() {
                 return Err(PlayitError::Process(format!(
-                    "Playit stopped before the tunnel agent connected: {message}"
+                    "Playit stopped before the tunnel engine connected: {message}"
                 )));
             }
             if Instant::now() >= deadline {
                 return Err(PlayitError::Process(
-                    "Playit did not confirm the tunnel agent connection within 75 seconds.".into(),
+                    "Playit did not confirm the tunnel engine connection within 75 seconds.".into(),
                 ));
             }
-            std::thread::sleep(PLAYIT_AGENT_CONNECTION_POLL_INTERVAL);
+            std::thread::sleep(PLAYIT_ENGINE_CONNECTION_POLL_INTERVAL);
         }
     }
 
@@ -935,7 +935,7 @@ impl<'a> PlayitService<'a> {
     /// helper platform.
     pub fn record_start_failure(&mut self, message: impl Into<String>) {
         self.expecting_address = false;
-        self.connected_agent_id = None;
+        self.connected_engine_id = None;
         self.register_unauthorized_streak = 0;
         self.snapshot.status = HelperStatus::Stopped;
         self.lifecycle_status = PlayitLifecycleStatus::Failed {
@@ -1025,7 +1025,7 @@ impl<'a> PlayitService<'a> {
                 }
             };
         self.reset_stopped_helper_manager();
-        self.connected_agent_id = None;
+        self.connected_engine_id = None;
         match self
             .helpers
             .start(key, launch.process_request(&acquired.artifact.path))
@@ -1067,8 +1067,8 @@ impl<'a> PlayitService<'a> {
         line: &str,
         record_helper_ready: bool,
     ) -> Result<(), PlayitError> {
-        if let Some(agent_id) = parse_connected_agent_id(line) {
-            self.connected_agent_id = Some(agent_id);
+        if let Some(agent_id) = parse_connected_engine_id(line) {
+            self.connected_engine_id = Some(agent_id);
             self.register_unauthorized_streak = 0;
             self.control_session_failures = 0;
         }
@@ -1214,7 +1214,7 @@ impl<'a> PlayitService<'a> {
         exit: msc_infrastructure::process::ProcessExitStatus,
     ) -> Result<(), PlayitError> {
         self.cleanup_secret_bridge()?;
-        self.connected_agent_id = None;
+        self.connected_engine_id = None;
         self.register_unauthorized_streak = 0;
         let stop_operation = self.active_stop_operation.take();
         if let Some(operation_id) = stop_operation {
@@ -1347,7 +1347,7 @@ impl<'a> PlayitService<'a> {
 
         self.cleanup_secret_bridge()?;
         self.expecting_address = false;
-        self.connected_agent_id = None;
+        self.connected_engine_id = None;
         self.stop_requested_forcefully = false;
         self.snapshot = HelperSnapshot::stopped();
         self.lifecycle_status = if self.enabled {
@@ -1370,13 +1370,13 @@ impl<'a> PlayitService<'a> {
     }
 
     /// Recovery never trusts a former PID.  The caller must reconcile with
-    /// Playit before starting a fresh tunnel after an agent restart.
+    /// Playit before starting a fresh tunnel after an engine restart.
     pub fn recover_after_restart(&mut self) {
         let _ = self.cleanup_secret_bridge();
         self.helpers.discard_live_processes_after_restart();
-        self.snapshot = HelperSnapshot::after_agent_restart();
+        self.snapshot = HelperSnapshot::after_engine_restart();
         self.lifecycle_status = PlayitLifecycleStatus::Stopped;
-        self.connected_agent_id = None;
+        self.connected_engine_id = None;
         self.active_operation = None;
         self.active_stop_operation = None;
         self.stop_requested_forcefully = false;
@@ -1497,8 +1497,8 @@ enum PlayitAuthOutput {
 fn classify_playit_auth_output(line: &str) -> PlayitAuthOutput {
     let line = line.to_ascii_lowercase();
     if line.contains("configured playit secret is no longer valid")
-        || line.contains("configured agent secret is no longer valid")
-        || line.contains("invalid agent secret")
+        || line.contains("configured engine secret is no longer valid")
+        || line.contains("invalid engine secret")
     {
         PlayitAuthOutput::InvalidSecret
     } else if line.contains("registerunauthorized") {

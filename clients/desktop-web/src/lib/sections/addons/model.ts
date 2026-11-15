@@ -1,7 +1,7 @@
 import type { Schema } from '../shared/types';
 
 // AddonItemDTO.bucket is the resolver's own update-resolution bucket
-// (crates/msc-agent/src/routes/components.rs's addon_bucket_name), not a
+// (crates/msc-engine/src/routes/components.rs's addon_bucket_name), not a
 // mod/plugin/component category -- a single /v1/addons response is always
 // all-mods or all-plugins for the active server, never mixed. Kept the demo
 // fixtures aligned with the real enum (updateAvailable/noCompatibleVersion/

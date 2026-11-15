@@ -2,7 +2,7 @@
   "domain": "pack-managed-guard",
   "case": "health-repair-update-install-actions-also-subject-to-guard",
   "source": {
-    "file": "docs/msc2/addons/phase8-scope.md",
+    "file": "docs/msc/addons/phase8-scope.md",
     "test": "Pack-managed guard section -- P8.23 health-repair implication",
     "line": 89
   },

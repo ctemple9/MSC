@@ -1,5 +1,5 @@
-//! Validates a representative instance of every schema `docs/msc2/addons/
-//! phase8-api.md` (P8.9) adds or changes in `docs/msc2/api-contract/
+//! Validates a representative instance of every schema `docs/msc/addons/
+//! phase8-api.md` (P8.9) adds or changes in `docs/msc/api-contract/
 //! openapi.json` -- the same `assert_conforms` depth-check `dto_conformance.rs`/
 //! `world_backup_conformance.rs`/`provisioning_conformance.rs` already
 //! established, duplicated here per those three files' own precedent rather
@@ -25,7 +25,7 @@ use std::path::Path;
 
 fn load_contract() -> Value {
     let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc2/api-contract/openapi.json");
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc/api-contract/openapi.json");
     let text = std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("reading {}: {e}", path.display()));
     serde_json::from_str(&text).expect("openapi.json is valid JSON")

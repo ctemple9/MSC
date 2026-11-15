@@ -10,7 +10,7 @@ import argparse
 import json
 import sys
 
-CONTRACT_PATH = "docs/msc2/api-contract/openapi.json"
+CONTRACT_PATH = "docs/msc/api-contract/openapi.json"
 ROUTE = "/v1/host/reset"
 REQUEST_SCHEMA = "HostResetRequestDTO"
 RESPONSE_SCHEMA = "HostResetAcceptedDTO"
@@ -22,7 +22,7 @@ REQUIRED_ERROR_CODES = {
 }
 EXPECTED_MODES = ["configuration", "everything"]
 EXPECTED_POST_RESET_STATES = ["restarting", "needs_pairing", "unavailable"]
-EXPECTED_CONFIRMATION = "RESET AGENT"
+EXPECTED_CONFIRMATION = "RESET ENGINE"
 EXPECTED_CONFIGURATION_REMOVED = [
     "config/host.json",
     "config/servers.json",
@@ -86,8 +86,8 @@ def check_contract(doc):
         failures.append("request required fields must be mode, confirmation")
     if request_props.get("mode", {}).get("enum") != EXPECTED_MODES:
         failures.append("request mode enum must be configuration, everything")
-    if request_props.get("confirmation", {}).get("description") != "Must exactly equal RESET AGENT.":
-        failures.append("request confirmation must require the RESET AGENT literal")
+    if request_props.get("confirmation", {}).get("description") != "Must exactly equal RESET ENGINE.":
+        failures.append("request confirmation must require the RESET ENGINE literal")
 
     response = schemas.get(RESPONSE_SCHEMA, {})
     response_props = response.get("properties", {})
@@ -121,8 +121,8 @@ def check_contract(doc):
         failures.append("configuration mode must preserve servers-root/**")
     if configuration.get("removes") != EXPECTED_CONFIGURATION_REMOVED:
         failures.append("configuration mode deletion allowlist drifted")
-    if everything.get("preserves") != ["agent service"]:
-        failures.append("everything mode must preserve the installed agent service")
+    if everything.get("preserves") != ["engine service"]:
+        failures.append("everything mode must preserve the installed engine service")
     if everything.get("removes") != EXPECTED_CONFIGURATION_REMOVED + ["servers-root/**"]:
         failures.append("everything mode deletion allowlist drifted")
 

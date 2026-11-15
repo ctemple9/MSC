@@ -5,7 +5,7 @@ use msc_infrastructure::service::{
 
 fn request() -> ServiceInstallRequest {
     ServiceInstallRequest::new(
-        "msc-agent",
+        "msc-engine",
         "/usr/local/bin/msc",
         "/Users/example/Library/Application Support/MSC2/agent",
         "/Users/example/Library/Logs/MSC2/agent.log",
@@ -21,7 +21,7 @@ fn request() -> ServiceInstallRequest {
 fn service_model_install_request_carries_platform_definition_fields() {
     let request = request();
 
-    assert_eq!(request.service_name.as_str(), "msc-agent");
+    assert_eq!(request.service_name.as_str(), "msc-engine");
     assert_eq!(request.binary_path.to_string_lossy(), "/usr/local/bin/msc");
     assert_eq!(
         request.working_directory.to_string_lossy(),

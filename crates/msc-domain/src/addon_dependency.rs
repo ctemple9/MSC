@@ -2,7 +2,7 @@
 //!
 //! Ported from `installRequiredDependencies(of:into:depth:)`
 //! (`AppViewModel+ModManagement.swift:271-328`), per
-//! `docs/msc2/addons/phase8-scope.md` and `fixtures/modrinth-dependencies/`
+//! `docs/msc/addons/phase8-scope.md` and `fixtures/modrinth-dependencies/`
 //! (P8.6). Every function here is a pure decision over already-known
 //! inputs (a parsed dependency list, an already-installed-mod-id snapshot,
 //! a folder listing) -- the real network fetch, download, and recursive

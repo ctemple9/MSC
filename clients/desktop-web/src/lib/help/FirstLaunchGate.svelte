@@ -13,7 +13,7 @@
   import type { OnboardingGuide } from './types';
 
   export let api: ScreenApi;
-  export let agentReady = false;
+  export let engineReady = false;
   export let onResetRecovery: () => void = () => {};
   let resetRecovery = false;
 
@@ -27,7 +27,7 @@
 
   $: stage = firstLaunchStage(state);
   $: onboardingOpen =
-    agentReady && ready && !resetRecovery && onboarding !== null && stage !== 'complete';
+    engineReady && ready && !resetRecovery && onboarding !== null && stage !== 'complete';
   $: tourSteps = onboarding ? applicableTourSteps(onboarding.steps, $tourServerContext) : [];
 
   function setPageScrollLocked(locked: boolean): void {
@@ -78,7 +78,7 @@
   }
 
   onMount(() => {
-    if (!agentReady) return;
+    if (!engineReady) return;
     const load = async () => {
       try {
         const [loadedOnboarding, hostSetup, reset] = await Promise.all([
@@ -91,7 +91,7 @@
         resetRecovery = reset?.state === 'blocked' || reset?.state === 'pending';
         if (resetRecovery) onResetRecovery();
       } catch {
-        // A pre-P11.24 agent does not serve guide data yet. The regular client
+        // A pre-P11.24 engine does not serve guide data yet. The regular client
         // remains usable rather than inventing local onboarding prose.
       } finally {
         ready = true;
@@ -118,7 +118,7 @@
   onDestroy(() => setPageScrollLocked(false));
 </script>
 
-{#if agentReady && ready && onboarding && !resetRecovery}
+{#if engineReady && ready && onboarding && !resetRecovery}
   {#if stage === 'setup'}
     <div class="gate-backdrop" role="presentation">
       <section

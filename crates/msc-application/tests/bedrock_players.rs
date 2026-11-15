@@ -12,7 +12,7 @@ use std::fs;
 
 fn server_dir(tag: &str) -> std::path::PathBuf {
     let dir =
-        std::env::temp_dir().join(format!("msc2-bedrock-players-{tag}-{}", std::process::id()));
+        std::env::temp_dir().join(format!("msc-bedrock-players-{tag}-{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir

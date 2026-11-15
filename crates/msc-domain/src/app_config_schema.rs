@@ -26,7 +26,7 @@
 //! `PluginSourceConfig` and `AddonLink` (P8.11) are typed below, each with
 //! an `extra` field that preserves any JSON key this decode doesn't
 //! recognize, so a forward-compat field written by a newer client
-//! round-trips through MSC 2 untouched rather than being silently dropped.
+//! round-trips through MSC untouched rather than being silently dropped.
 
 use crate::identity::{JavaServerFlavor, ServerType};
 use crate::modpack::ModpackIdentity;
@@ -1095,7 +1095,7 @@ impl AppConfig {
             Some(_) => return Err(err("field \"servers\" is not an array")),
         };
         let active_server_id = opt_str(v, "active_server_id")?;
-        // Early MSC 2 clients kept setup completion in browser-local storage,
+        // Early MSC clients kept setup completion in browser-local storage,
         // so they could register servers while this durable flag stayed false.
         // A host with a registered server is already configured and must not
         // replay host setup for every new client.

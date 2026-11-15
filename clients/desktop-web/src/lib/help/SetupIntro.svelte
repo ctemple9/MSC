@@ -95,7 +95,7 @@
   $: bedrockReason =
     bedrockAdvertisement?.runtime?.message ??
     (capabilities === null
-      ? 'The selected agent has not reported Bedrock readiness yet.'
+      ? 'The selected engine has not reported Bedrock readiness yet.'
       : 'Bedrock is not available on this host.');
   $: optionalPage = setupPage === 3 || setupPage === 4;
   $: rootTone = rootStatus === 'ready' ? 'ok' : rootStatus === 'unavailable' ? 'error' : 'warn';
@@ -169,10 +169,10 @@
       const result = await api!.get<{ path: string }>('/v1/config/servers-root');
       serversRoot = result.path;
       rootStatus = result.path.trim() ? 'ready' : 'unavailable';
-      rootMessage = result.path.trim() ? '' : 'The agent did not provide a servers folder.';
+      rootMessage = result.path.trim() ? '' : 'The engine did not provide a servers folder.';
     } catch {
       rootStatus = 'unavailable';
-      rootMessage = 'This agent cannot report its servers folder yet.';
+      rootMessage = 'This engine cannot report its servers folder yet.';
     }
   }
 
@@ -200,9 +200,7 @@
             (runtime.majorVersion ?? 0) >= minimumSupportedJavaMajor &&
             (!configured || runtime.executablePath === configured),
         ) ??
-        javaRuntimes.find(
-          (runtime) => (runtime.majorVersion ?? 0) >= minimumSupportedJavaMajor,
-        );
+        javaRuntimes.find((runtime) => (runtime.majorVersion ?? 0) >= minimumSupportedJavaMajor);
       if (usable) {
         if (configured || pathToSave !== undefined) {
           javaStatus = 'found';
@@ -218,7 +216,7 @@
       }
     } catch {
       javaStatus = 'unavailable';
-      javaMessage = 'The selected agent could not verify Java.';
+      javaMessage = 'The selected engine could not verify Java.';
     }
   }
 
@@ -267,7 +265,7 @@
       if (chosen) {
         serversRoot = chosen;
         rootStatus = 'unknown';
-        rootMessage = 'Click Next to ask the agent to validate this folder.';
+        rootMessage = 'Click Next to ask the engine to validate this folder.';
       }
     } catch {
       rootStatus = 'unavailable';
@@ -325,7 +323,7 @@
       if (!wantsJava || (javaStatus === 'found' && javaExplicitlySelected)) setupPage = 3;
     } catch {
       rootStatus = 'unavailable';
-      rootMessage = 'The agent could not save this folder. Use an absolute path it can access.';
+      rootMessage = 'The engine could not save this folder. Use an absolute path it can access.';
     }
   }
 
@@ -341,11 +339,11 @@
       xboxMessage = installed
         ? xboxFilename
           ? `Verified downloaded: ${xboxFilename}`
-          : 'Verified downloaded and present in the agent helper cache.'
-        : 'The download completed, but the agent could not verify the helper file.';
+          : 'Verified downloaded and present in the engine helper cache.'
+        : 'The download completed, but the engine could not verify the helper file.';
     } catch {
       xboxStatus = 'unavailable';
-      xboxMessage = 'The helper can be downloaded after the agent is ready for broadcast access.';
+      xboxMessage = 'The helper can be downloaded after the engine is ready for broadcast access.';
     }
   }
 
@@ -363,7 +361,7 @@
       }
       onComplete();
     } catch {
-      completionMessage = 'The agent could not finish host setup. Try again.';
+      completionMessage = 'The engine could not finish host setup. Try again.';
     } finally {
       completionBusy = false;
     }
@@ -408,7 +406,7 @@
           >
         {/each}
       </div>
-      <p class="msc2-type-overline">
+      <p class="msc-type-overline">
         {setupPage === 5 ? 'Setup complete' : `Step ${setupPage + 1} of 6`}
       </p>
       <h2 id={headingId} class="setup-title">{pageMeta[setupPage].title}</h2>
@@ -439,7 +437,7 @@
           </ul>
         </Card>
         <div class="setup-preview">
-          <p class="msc2-type-overline">What you’ll do</p>
+          <p class="msc-type-overline">What you’ll do</p>
           <ol class="preview-steps">
             <li>
               <strong>Choose what to host</strong>
@@ -504,7 +502,7 @@
             Select at least one type to continue. You can change this later.
           </p>{/if}
         {#if wantsJava}
-          <p class="msc2-type-overline">{wantsBedrock ? 'Java' : 'Java flavors'}</p>
+          <p class="msc-type-overline">{wantsBedrock ? 'Java' : 'Java flavors'}</p>
           <Card padding="0">
             {#each javaFamilies as family, index}
               <div class="family-row" class:last={index === javaFamilies.length - 1}>
@@ -519,7 +517,7 @@
           </p>
         {/if}
         {#if wantsBedrock}
-          <p class="msc2-type-overline">{wantsJava ? 'Bedrock' : 'Bedrock flavors'}</p>
+          <p class="msc-type-overline">{wantsJava ? 'Bedrock' : 'Bedrock flavors'}</p>
           <Card padding="0">
             <div class="family-row last">
               <span class="family-name">BDS</span>
@@ -534,12 +532,12 @@
           </p>
         {/if}
       {:else if setupPage === 2}
-        <p class="msc2-type-overline">Servers Root Folder</p>
+        <p class="msc-type-overline">Servers Root Folder</p>
         <Card>
           <p class="card-desc">
             {platformKind === 'tauri'
               ? 'All your servers will live inside this folder.'
-              : 'This path is on the computer running the selected agent.'}
+              : 'This path is on the computer running the selected engine.'}
           </p>
           <div class="field-row">
             <input
@@ -562,11 +560,11 @@
           </div>
           <StatusDot tone={rootTone} label={rootLabel} />
           {#if rootStatus === 'unavailable' || rootStatus === 'unknown'}<p class="hint">
-              {rootMessage || 'Enter an absolute folder path and let the agent validate it.'}
+              {rootMessage || 'Enter an absolute folder path and let the engine validate it.'}
             </p>{/if}
         </Card>
         {#if wantsJava}
-          <p class="msc2-type-overline">Java Executable</p>
+          <p class="msc-type-overline">Java Executable</p>
           <Card>
             <p class="card-desc">
               Select an installed Java runtime. MSC checks whether it matches each Minecraft version
@@ -652,7 +650,7 @@
           </Card>
         {/if}
         {#if wantsBedrock}
-          <p class="msc2-type-overline">Bedrock — Built In</p>
+          <p class="msc-type-overline">Bedrock — Built In</p>
           <Card>
             <p class="card-desc">
               No extra software needed. MSC runs Bedrock Dedicated Server in a built-in virtual
@@ -691,8 +689,8 @@
             >Sign up at playit.gg →</a
           >
           <p class="hint warn">
-            I ran into this while testing MSC: adding another MSC agent to a Playit account that
-            already had one failed. If your free account is already at its agent or tunnel limit,
+            I ran into this while testing MSC: adding another MSC engine to a Playit account that
+            already had one failed. If your free account is already at its engine or tunnel limit,
             review it before continuing; you may need to remove unused resources to make room for
             MSC.
           </p>
@@ -826,14 +824,14 @@
     overflow: hidden;
     margin: -1.5rem;
     border-radius: 20px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
   }
   .setup-header {
     display: flex;
     flex-direction: column;
     gap: 6px;
     padding: 20px 24px;
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    border-bottom: 1px solid var(--msc-hairline-faint);
   }
   .step-track {
     display: flex;
@@ -846,11 +844,11 @@
     text-align: center;
     flex: 0 0 auto;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .track-step.done,
   .track-step.current {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .track-step.current {
     font-weight: 500;
@@ -859,7 +857,7 @@
     flex: 1;
     min-width: 10px;
     height: 1px;
-    background: var(--msc2-hairline);
+    background: var(--msc-hairline);
   }
   .track-line.done {
     background: rgba(255, 255, 255, 0.4);
@@ -873,17 +871,17 @@
   .setup-title {
     font-size: 18px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .compact-title {
     font-size: 15px;
   }
   .setup-subtitle {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 13px;
   }
   .optional-label {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
     font-weight: 500;
   }
   .setup-page {
@@ -922,11 +920,11 @@
   .card-title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .card-desc {
     margin-top: 3px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -936,12 +934,12 @@
     gap: 6px;
     margin: 10px 0 0;
     padding: 0 0 0 16px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 13px;
     line-height: 1.4;
   }
   .feature-list li::marker {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .setup-preview {
     display: flex;
@@ -955,7 +953,7 @@
   .preview-steps {
     margin: 0;
     padding: 0 0 0 23px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 13px;
     line-height: 1.5;
   }
@@ -966,19 +964,19 @@
     margin-top: 22px;
   }
   .preview-steps li::marker {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .preview-steps strong,
   .preview-steps span {
     display: block;
   }
   .preview-steps strong {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .preview-steps span {
     margin-top: 4px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .type-grid {
     display: grid;
@@ -990,10 +988,10 @@
     align-items: center;
     gap: 10px;
     padding: 12px;
-    border: 1px solid var(--msc2-hairline);
+    border: 1px solid var(--msc-hairline);
     border-radius: 10px;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-content);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-content);
     text-align: left;
     cursor: pointer;
     transition:
@@ -1002,7 +1000,7 @@
   }
   .type-card.on {
     border-color: rgba(255, 255, 255, 0.4);
-    background: var(--msc2-neutral-elevated);
+    background: var(--msc-neutral-elevated);
   }
   .type-card.disabled {
     cursor: not-allowed;
@@ -1019,23 +1017,23 @@
     font-weight: 500;
   }
   .type-text small {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .type-check {
     margin-left: auto;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 14px;
   }
   .type-card.on .type-check {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .family-row {
     display: flex;
     align-items: baseline;
     gap: 8px;
     padding: 10px 14px;
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    border-bottom: 1px solid var(--msc-hairline-faint);
     font-size: 12px;
   }
   .family-row.last {
@@ -1043,11 +1041,11 @@
   }
   .family-name {
     flex: 0 0 auto;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .family-desc {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .field-row {
     display: flex;
@@ -1063,26 +1061,26 @@
     font-family: inherit;
     font-size: 13px;
     color: #fff;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-field);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
     padding: 7px 10px;
     outline: none;
   }
   .field-input:focus-visible {
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
   :global(.setup-page .status-dot) {
     margin-top: 10px;
   }
   .hint {
     margin: 8px 0 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.5;
   }
   .hint.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .runtime-list {
     display: flex;
@@ -1101,14 +1099,14 @@
     padding: 10px 12px;
     border: 1px solid transparent;
     border-radius: 8px;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-chrome);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-chrome);
     font: inherit;
     text-align: left;
     cursor: pointer;
   }
   .runtime-option.selected {
-    border-color: var(--msc2-hairline);
+    border-color: var(--msc-hairline);
   }
   .runtime-option:disabled {
     opacity: 0.45;
@@ -1116,7 +1114,7 @@
   }
   .runtime-name,
   .runtime-action {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 10.5px;
   }
   .runtime-name {
@@ -1139,7 +1137,7 @@
     gap: 8px;
   }
   .runtime-version {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
     font-weight: 500;
   }
@@ -1148,7 +1146,7 @@
     align-items: center;
     margin-top: 10px;
     padding: 5px 12px;
-    border: 1px solid var(--msc2-hairline);
+    border: 1px solid var(--msc-hairline);
     border-radius: 7px;
     color: rgba(255, 255, 255, 0.9);
     font-size: 12px;
@@ -1159,13 +1157,13 @@
     background: rgba(255, 255, 255, 0.06);
   }
   .link-inline {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .setup-note,
   .setup-time {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     text-align: center;
   }
@@ -1182,8 +1180,8 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-status-ok);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-status-ok);
     font-size: 20px;
   }
   .summary-card {
@@ -1197,19 +1195,19 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    border-bottom: 1px solid var(--msc-hairline-faint);
   }
   .summary-row.last {
     border-bottom: none;
   }
   .summary-label {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
   }
   .summary-value {
     overflow: hidden;
-    color: var(--msc2-text-secondary);
-    font-family: var(--msc2-font-mono);
+    color: var(--msc-text-secondary);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1219,7 +1217,7 @@
     align-items: center;
     gap: 8px;
     padding: 16px 24px;
-    border-top: 1px solid var(--msc2-hairline-faint);
+    border-top: 1px solid var(--msc-hairline-faint);
   }
   .action-spacer {
     flex: 1;

@@ -85,7 +85,7 @@
   }
 
   const isAdmin = permissions.includes('admin');
-  const expectedConfirmation = 'RESET AGENT';
+  const expectedConfirmation = 'RESET ENGINE';
   $: hostConfirmationReady =
     isAdmin &&
     !!api &&
@@ -143,7 +143,7 @@
       });
       operationId = accepted.operationId;
       resultMessage = accepted.message;
-      statusLine = 'Reset accepted. Waiting for the agent to finish…';
+      statusLine = 'Reset accepted. Waiting for the engine to finish…';
       canCancel = true;
       await followOperation(accepted.operationId, accepted.completionToken);
       if (disposed) return;
@@ -157,7 +157,7 @@
   }
 
   async function followOperation(id: string, completionToken?: string): Promise<void> {
-    if (!api) throw new Error('The agent connection is unavailable.');
+    if (!api) throw new Error('The engine connection is unavailable.');
     while (!disposed) {
       // The narrow receipt remains readable after reset revokes this client's
       // credential. An accepted request or a lost connection is not completion.
@@ -183,15 +183,15 @@
 
   function hostStateLabel(result: HostResetAccepted): string {
     if (result.agentState === 'needs_pairing') return 'Fresh pairing required';
-    if (result.agentState === 'restarting') return 'Agent restarting';
-    return 'Agent unavailable';
+    if (result.agentState === 'restarting') return 'Background Service restarting';
+    return 'Background Service unavailable';
   }
 </script>
 
 <Sheet title="Reset" size="md" {onClose}>
   {#if phase === 'finished'}
     <div class="stack">
-      <p class="msc2-type-overline">Reset accepted</p>
+      <p class="msc-type-overline">Reset accepted</p>
       <h2>{hostLabel} has been reset</h2>
       <p class="copy">{resultMessage}</p>
       <p class="copy">Operation: <span class="mono">{operationId}</span></p>
@@ -200,7 +200,7 @@
   {:else}
     <div class="stack">
       <section>
-        <p class="msc2-type-overline">This device</p>
+        <p class="msc-type-overline">This device</p>
         <h2>Reset this client</h2>
         <p class="copy">
           Forget remembered hosts, credentials, preferences, and first-launch progress on this
@@ -214,14 +214,14 @@
       </section>
 
       <section>
-        <p class="msc2-type-overline">Selected host</p>
+        <p class="msc-type-overline">Selected host</p>
         <h2>Reset {hostLabel}</h2>
         <p class="copy">
           This action clears MSC state on the host.
           {#if isLocalHost && isDesktopShell}
-            After a full reset, this desktop can also remove its own agent service.
+            After a full reset, this desktop can also remove its own engine service.
           {:else}
-            It does not uninstall the agent service on another computer.
+            It does not uninstall the engine service on another computer.
           {/if}
         </p>
         <Card padding="0">
@@ -238,7 +238,7 @@
       {/if}
       {#if isAdmin}
         <section class="host-reset">
-          <p class="msc2-type-overline">Host reset mode</p>
+          <p class="msc-type-overline">Host reset mode</p>
           <div class="mode-list" role="radiogroup" aria-label="Host reset mode">
             <button
               type="button"
@@ -264,8 +264,8 @@
             >
               <strong>Everything</strong>
               <span
-                >Also remove the complete managed server folder. The agent service remains installed
-                unless this is the local desktop.</span
+                >Also remove the complete managed server folder. The engine service remains
+                installed unless this is the local desktop.</span
               >
             </button>
           </div>
@@ -293,10 +293,10 @@
           </div>
           {#if isDesktopShell && isLocalHost && mode === 'everything'}
             <div class="fresh-install-reset">
-              <p class="msc2-type-overline">Fresh install</p>
+              <p class="msc-type-overline">Fresh install</p>
               <p class="copy">
                 Reset this host and this client together. This removes the managed server data,
-                uninstalls the local agent service, and clears this device's credentials and
+                uninstalls the local engine service, and clears this device's credentials and
                 onboarding state before returning to Install and Continue.
               </p>
               <Button
@@ -324,7 +324,7 @@
 <ConfirmDialog
   open={showClientConfirmation}
   title="Reset this client?"
-  message="This removes this device's remembered hosts, credentials, preferences, and onboarding state. Host files and the agent service stay unchanged."
+  message="This removes this device's remembered hosts, credentials, preferences, and onboarding state. Host files and the engine service stay unchanged."
   context="This device only"
   confirmLabel="Reset this client"
   onConfirm={() => void resetClient()}
@@ -377,7 +377,7 @@
   .copy,
   .mode span,
   .progress p {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.55;
   }
@@ -386,18 +386,18 @@
     grid-template-columns: 110px minmax(0, 1fr);
     gap: 12px;
     padding: 11px 14px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   .detail-row + .detail-row {
-    border-top: 1px solid var(--msc2-hairline-faint);
+    border-top: 1px solid var(--msc-hairline-faint);
   }
   .detail-row strong {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .mono {
-    font-family: var(--msc2-font-mono, monospace);
+    font-family: var(--msc-font-mono, monospace);
   }
   .path {
     overflow: hidden;
@@ -409,17 +409,17 @@
     display: grid;
     gap: 4px;
     padding: 12px 14px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     text-align: left;
-    background: var(--msc2-tier-content);
-    border: 1px solid var(--msc2-hairline-faint);
+    background: var(--msc-tier-content);
+    border: 1px solid var(--msc-hairline-faint);
     border-radius: 9px;
     font: inherit;
     cursor: pointer;
   }
   .mode:hover,
   .mode.chosen {
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
   .mode strong {
     font-size: 13px;
@@ -431,23 +431,23 @@
     margin-top: 4px;
   }
   .confirmation label {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   .confirm-field {
     box-sizing: border-box;
     width: 100%;
     padding: 7px 10px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     font-size: 13px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-field);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
     outline: none;
   }
   .confirm-field:focus-visible {
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
   .actions {
     display: flex;
@@ -457,7 +457,7 @@
     display: grid;
     gap: 10px;
     padding-top: 12px;
-    border-top: 1px solid var(--msc2-hairline-faint);
+    border-top: 1px solid var(--msc-hairline-faint);
   }
   .progress {
     display: grid;
@@ -465,7 +465,7 @@
     padding-top: 4px;
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     font-size: 12px;
     line-height: 1.5;
   }

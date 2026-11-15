@@ -20,13 +20,13 @@
   import ServerEditorSheet from './lib/sections/server-editor/ServerEditorSheet.svelte';
   import { buildSectionPath } from './lib/navigation/route';
   import {
-    AgentHealthTimeoutError,
-    createAgentTransport,
+    EngineHealthTimeoutError,
+    createEngineTransport,
     getPlatform,
-    LOCAL_AGENT_ORIGIN,
-    prepareLocalAgent,
-    type AgentReadiness,
-    type AgentServiceStatus,
+    LOCAL_ENGINE_ORIGIN,
+    prepareLocalEngine,
+    type EngineReadiness,
+    type EngineServiceStatus,
   } from './lib/platform';
   import {
     DesktopSessionAuth,
@@ -76,11 +76,11 @@
       load: () => import('./lib/sections/home/HomeSection.svelte'),
     },
     {
-      id: 'agent-setup',
-      label: 'Agent home',
+      id: 'engine-setup',
+      label: 'Background Service',
       segment: 'local-agent',
       scope: 'host',
-      load: () => import('./lib/sections/setup/AgentSetupSection.svelte'),
+      load: () => import('./lib/sections/setup/EngineSetupSection.svelte'),
     },
     {
       id: 'handbook',
@@ -182,7 +182,7 @@
     },
   ];
   const router = createClientRouter(sections);
-  const localAgentHostId = LOCAL_HOST_ID;
+  const localEngineHostId = LOCAL_HOST_ID;
 
   // Keeps every host's connection/credential/cache state (D-013). Tauri
   // rehydrates remote host metadata from localStorage on startup; credentials
@@ -190,7 +190,7 @@
   const hostStore = new HostStore();
   const hostConnectionManager = new HostConnectionManager();
   let hosts: readonly HostRecord[] = [];
-  let hostId = localAgentHostId;
+  let hostId = localEngineHostId;
   let isDesktopShell = false;
   let manageOpen = false;
   let settingsOpen = false;
@@ -208,7 +208,7 @@
     sshPasswordInput = '';
     sshPasswordPromptError = error;
     shellMessage = `Enter the SSH password to reconnect to ${hosts.find((host) => host.id === id)?.displayName ?? 'this computer'}.`;
-    void selectSection('agent-setup');
+    void selectSection('engine-setup');
   }
 
   function closeSshPasswordPrompt(): void {
@@ -216,7 +216,7 @@
     sshPasswordPromptHostId = null;
     sshPasswordInput = '';
     sshPasswordPromptError = '';
-    if (pendingHostId && pendingHostId === hostId) void switchHost(localAgentHostId);
+    if (pendingHostId && pendingHostId === hostId) void switchHost(localEngineHostId);
   }
 
   async function submitSshPassword(event: SubmitEvent): Promise<void> {
@@ -253,17 +253,17 @@
   const hostOrchestrator: HostConnectionOrchestrator = new HostConnectionOrchestrator({
     store: hostStore,
     connectionManager: hostConnectionManager,
-    localHostId: localAgentHostId,
+    localHostId: localEngineHostId,
     hosts: () => hosts,
     selectedHostId: () => hostId,
     selectHostId: (id) => (hostId = id),
     desktopShell: () => isDesktopShell,
-    agentReadiness: () => agentReadiness,
+    engineReadiness: () => engineReadiness,
     setShellMessage: (message) => (shellMessage = message),
     clearLoadedSections: () => (loadedSections = []),
     refreshHosts,
     initializeClient: (generation) => initializeClient(generation),
-    selectSetupSection: (generation) => selectSection('agent-setup', true, generation),
+    selectSetupSection: (generation) => selectSection('engine-setup', true, generation),
   });
 
   async function switchHost(id: HostId): Promise<void> {
@@ -298,7 +298,7 @@
   }
 
   async function createClient(id: string): Promise<ApiClient> {
-    const transport = await createAgentTransport(id);
+    const transport = await createEngineTransport(id);
     return new ApiClient({ ...transport, hostId: transport.hostId });
   }
 
@@ -306,7 +306,7 @@
 
   let client: ApiClient | undefined;
   let clientReady = false;
-  let agentReadiness: AgentReadiness = 'starting';
+  let engineReadiness: EngineReadiness = 'starting';
   let splashComplete = false;
 
   function completeSplash(): void {
@@ -355,14 +355,14 @@
           (caps.nativeTransfers.protocol !== 1 || !caps.nativeTransfers.streamUpload)
         )
           throw new Error(
-            'Native transfers are unavailable on this host. Update the agent or resolve its staging error before choosing a file.',
+            'Native transfers are unavailable on this host. Update the engine or resolve its staging error before choosing a file.',
           );
         if (
           bindings.targetServerId === null &&
           caps.nativeTransfers &&
           !caps.nativeTransfers.creationContext
         )
-          throw new Error('Update this agent to select files before creating a server.');
+          throw new Error('Update this engine to select files before creating a server.');
         const platform = await getPlatform();
         if (!platform.pickNativeFile)
           throw new Error('Native file selection is unavailable in this desktop build.');
@@ -387,7 +387,7 @@
           await source.close();
           throw new Error('The selected host or server changed. Choose the file again.');
         }
-        return Object.freeze({ ...source, uploadApi: scoped, olderAgent: !caps.nativeTransfers });
+        return Object.freeze({ ...source, uploadApi: scoped, olderEngine: !caps.nativeTransfers });
       },
       snapshot: () => {
         const initiating = currentClient();
@@ -583,7 +583,7 @@
       const key = next.code ?? next.linkURL ?? 'present';
       if (key !== hiddenBroadcastAuthKey) broadcastAuth = next;
     } catch {
-      // The shell can continue while the agent is reconnecting. The next poll
+      // The shell can continue while the engine is reconnecting. The next poll
       // will pick up a newly available device-code prompt.
     }
   }
@@ -637,7 +637,7 @@
         const auth = new DesktopSessionAuth(await loadTauriDesktopCredentialBridge());
         await auth.forgetCredentials(
           resetClientAfterHost ? hosts.map((host) => host.id) : [result.hostId],
-          resetClientAfterHost || hostId === localAgentHostId,
+          resetClientAfterHost || hostId === localEngineHostId,
         );
       } catch (error) {
         credentialCleanupFailed = true;
@@ -660,16 +660,16 @@
       let localServiceRemoved = true;
       try {
         const platform = await getPlatform();
-        const serviceStatus = await platform.agentServiceStatus();
+        const serviceStatus = await platform.engineServiceStatus();
         if (serviceStatus.state === 'running') {
-          await platform.manageAgentService('stop');
+          await platform.manageEngineService('stop');
         }
-        const uninstallStatus = await platform.manageAgentService('uninstall');
-        agentReadiness = uninstallStatus.state === 'not-installed' ? 'missing' : 'unavailable';
-        if (agentReadiness === 'unavailable') {
+        const uninstallStatus = await platform.manageEngineService('uninstall');
+        engineReadiness = uninstallStatus.state === 'not-installed' ? 'missing' : 'unavailable';
+        if (engineReadiness === 'unavailable') {
           throw new Error(uninstallStatus.detail);
         }
-        shellMessage = cleanupError || 'The local host was reset. Install the agent to continue.';
+        shellMessage = cleanupError || 'The local host was reset. Install the engine to continue.';
 
         if (resetClientAfterHost && !credentialCleanupFailed) {
           hostStore.reset();
@@ -679,8 +679,8 @@
         }
       } catch (error) {
         localServiceRemoved = false;
-        agentReadiness = 'unavailable';
-        shellMessage = `The host was reset, but the local agent service could not be removed: ${String(error)}`;
+        engineReadiness = 'unavailable';
+        shellMessage = `The host was reset, but the local engine service could not be removed: ${String(error)}`;
       }
       if (resetClientAfterHost && localServiceRemoved && !credentialCleanupFailed) {
         hostStore.reset();
@@ -689,27 +689,27 @@
         return;
       }
       hostStore.updateConnection(hostId, 'error');
-      await selectSection('agent-setup');
+      await selectSection('engine-setup');
       return;
     }
 
     hostStore.updateConnection(hostId, 'error');
     if (isLocalHostForReset() && isDesktopShell) {
-      agentReadiness = 'starting';
+      engineReadiness = 'starting';
       shellMessage =
         cleanupError || 'The local host was reset. Reconnecting with its new identity…';
-      await selectSection('agent-setup');
+      await selectSection('engine-setup');
       void initializeClient();
     } else {
-      agentReadiness = 'unavailable';
+      engineReadiness = 'unavailable';
       shellMessage =
         cleanupError || `Host reset complete. Pair ${hostLabelForCurrentHost()} again.`;
-      await selectSection('agent-setup');
+      await selectSection('engine-setup');
     }
   }
 
   function isLocalHostForReset(): boolean {
-    return hostId === localAgentHostId;
+    return hostId === localEngineHostId;
   }
 
   function hostLabelForCurrentHost(): string {
@@ -752,7 +752,7 @@
     return hosts.length ? hostOrchestrator.hostSummaries() : new Map();
   })();
 
-  function readinessForService(status: AgentServiceStatus): AgentReadiness {
+  function readinessForService(status: EngineServiceStatus): EngineReadiness {
     switch (status.state) {
       case 'not-installed':
         return 'missing';
@@ -765,14 +765,14 @@
     }
   }
 
-  function readinessForError(error: unknown): AgentReadiness {
+  function readinessForError(error: unknown): EngineReadiness {
     if (
       error instanceof ApiError &&
       (error.status === 426 || error.error.code === 'client_version_unsupported')
     ) {
       return 'incompatible';
     }
-    if (error instanceof AgentHealthTimeoutError) return 'starting';
+    if (error instanceof EngineHealthTimeoutError) return 'starting';
     return 'unavailable';
   }
 
@@ -824,7 +824,7 @@
         nextStatus.activeServerId,
         rememberedServerId ?? selectedServerId,
       );
-      // The sidebar's fallback selection must also become the agent's active
+      // The sidebar's fallback selection must also become the engine's active
       // server before section APIs can serve that server's data.
       if (nextServerId && nextServerId !== nextStatus.activeServerId) {
         try {
@@ -853,7 +853,7 @@
       selectedServerId = nextServerId;
       hostStore.setServers(selectedHostId, nextServers);
       if (nextServerId) hostStore.selectServer(selectedHostId, nextServerId);
-      agentReadiness = 'ready';
+      engineReadiness = 'ready';
       shellMessage = `Connected to ${hosts.find((host) => host.id === selectedHostId)?.displayName ?? selectedHostId}`;
       hostStore.updateConnection(selectedHostId, 'connected');
       await selectFromLocation(generation);
@@ -866,10 +866,10 @@
       selectedServerId = '';
       status = defaultStatus;
       forgetHostRuns(hostId);
-      agentReadiness = readinessForError(error);
+      engineReadiness = readinessForError(error);
       shellMessage = `Unable to establish the selected host context: ${formatConnectionFailure(error)}`;
       hostStore.updateConnection(hostId, 'error');
-      await selectSection('agent-setup');
+      await selectSection('engine-setup');
       return false;
     }
   }
@@ -1098,28 +1098,29 @@
     selectedServerId = '';
     status = defaultStatus;
     forgetHostRuns(hostId);
-    agentReadiness = 'starting';
+    engineReadiness = 'starting';
     hostStore.updateConnection(selectedHostId, 'connecting');
     try {
       // Only the local host has an OS service this client can prepare --
-      // a remote host's agent is either already reachable or it isn't;
+      // a remote host's engine is either already reachable or it isn't;
       // there is nothing here to install/start on someone else's machine.
-      const serviceStatus = selectedHostId === localAgentHostId ? await prepareLocalAgent() : null;
+      const serviceStatus =
+        selectedHostId === localEngineHostId ? await prepareLocalEngine() : null;
       if (generation !== hostOrchestrator.currentGeneration) return;
       if (serviceStatus) {
-        agentReadiness = readinessForService(serviceStatus);
+        engineReadiness = readinessForService(serviceStatus);
         if (serviceStatus.state !== 'running') {
           shellMessage = serviceStatus.detail;
-          await selectSection('agent-setup', true, generation);
+          await selectSection('engine-setup', true, generation);
           return;
         }
       }
-      if (isDesktopShell && selectedHostId !== localAgentHostId) {
+      if (isDesktopShell && selectedHostId !== localEngineHostId) {
         const host = hostStore.getState(selectedHostId).host;
         if (
           host.ssh.authentication === 'password' &&
           !hostConnectionManager.hasSessionPassword(host.id) &&
-          !host.manualAgentAddress
+          !host.manualEngineAddress
         ) {
           promptForSshPassword(host.id);
           return;
@@ -1140,7 +1141,7 @@
       const connectionError = formatConnectionFailure(error);
       if (
         isDesktopShell &&
-        selectedHostId !== localAgentHostId &&
+        selectedHostId !== localEngineHostId &&
         host.ssh.authentication === 'password' &&
         (connectionError.includes('Password authentication needs a password') ||
           connectionError.includes('SSH password or key was refused'))
@@ -1153,10 +1154,10 @@
         hostStore.updateConnection(selectedHostId, 'connecting');
         return;
       }
-      agentReadiness = readinessForError(error);
+      engineReadiness = readinessForError(error);
       shellMessage = `Unable to prepare the selected host connection: ${connectionError}`;
       hostStore.updateConnection(selectedHostId, 'error');
-      await selectSection('agent-setup', true, generation);
+      await selectSection('engine-setup', true, generation);
     }
   }
 
@@ -1204,7 +1205,7 @@
     const platform = await getPlatform();
     isDesktopShell = platform.kind === 'tauri';
     hostStore.addHost({
-      ...createLocalHostRecord(LOCAL_AGENT_ORIGIN),
+      ...createLocalHostRecord(LOCAL_ENGINE_ORIGIN),
     });
     if (isDesktopShell) {
       for (const host of loadSavedRemoteHosts()) hostStore.addHost(host);
@@ -1227,9 +1228,9 @@
     const request = ++sectionRequest;
     const section = router.get(id);
     const context = currentNavigationContext();
-    // Setup is deliberately reachable before an agent exists, so service
+    // Setup is deliberately reachable before an engine exists, so service
     // installation can be the first meaningful action.
-    if (!section || (!context && section.id !== 'agent-setup')) {
+    if (!section || (!context && section.id !== 'engine-setup')) {
       shellMessage = 'That section is unavailable for the selected host or credential.';
       return;
     }
@@ -1252,7 +1253,7 @@
     const context = currentNavigationContext();
     if (!context) return;
     if (window.location.pathname === '/') {
-      await selectSection('agent-setup', true, generation);
+      await selectSection('engine-setup', true, generation);
       return;
     }
     const resolution = router.resolve(window.location.pathname, context);
@@ -1269,8 +1270,8 @@
     await selectSection(resolution.descriptor.id, false, generation);
   }
 
-  function openAgentSetup(): void {
-    void selectSection('agent-setup');
+  function openEngineSetup(): void {
+    void selectSection('engine-setup');
   }
 </script>
 
@@ -1279,7 +1280,7 @@
 </svelte:head>
 
 <ApplicationShell
-  hostLabel={hosts.find((host) => host.id === hostId)?.displayName ?? 'Local agent'}
+  hostLabel={hosts.find((host) => host.id === hostId)?.displayName ?? 'Local engine'}
   {hosts}
   activeHostId={hostId}
   {isDesktopShell}
@@ -1308,7 +1309,7 @@
   onResumeInitiation={resumeInitiation}
   onDiscardInitiation={() => void discardInitiation()}
   {discardingInitiation}
-  onOpenAgentSetup={openAgentSetup}
+  onOpenEngineSetup={openEngineSetup}
   onManage={() => (manageOpen = true)}
   {addressesVisible}
   onToggleAddresses={toggleAddresses}
@@ -1339,15 +1340,15 @@
           {hosts}
           activeHostId={hostId}
           hostSummaries={currentHostSummaries}
-          hostLabel={hosts.find((host) => host.id === hostId)?.displayName ?? 'Local agent'}
+          hostLabel={hosts.find((host) => host.id === hostId)?.displayName ?? 'Local engine'}
           hostBaseUrl={hostManagementUrl(hostStore.getState(hostId).host)}
           {isDesktopShell}
-          isLocalHost={hostId === localAgentHostId}
+          isLocalHost={hostId === localEngineHostId}
           serverId={selectedServerId}
           active={loaded.id === activeSection}
           {permissions}
-          readiness={agentReadiness}
-          onAgentRetry={() => initializeClient()}
+          readiness={engineReadiness}
+          onEngineRetry={() => initializeClient()}
           {servers}
           serverRunning={status.running}
           onOpenServer={async (id: string) => {
@@ -1357,7 +1358,7 @@
           onPairAgain={(code: string) => pairAgain(code)}
           onConnectHost={(input: RemoteHostConnectionInput) => connectRemoteHost(input)}
           onSelectRoute={(id: HostId, route: HostRoute) => selectHostRoute(id, route)}
-          onRemoveHost={isDesktopShell && hostId !== localAgentHostId
+          onRemoveHost={isDesktopShell && hostId !== localEngineHostId
             ? removeCurrentRemoteHost
             : undefined}
           onSwitchHost={(id: string) => switchHost(id)}
@@ -1538,7 +1539,7 @@
 {#if splashComplete && clientReady}
   <FirstLaunchGate
     api={screenApi}
-    agentReady={agentReadiness === 'ready'}
+    engineReady={engineReadiness === 'ready'}
     onResetRecovery={() => {
       resetOpen = true;
     }}
@@ -1571,17 +1572,17 @@
   }
   .ssh-password-prompt p {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     line-height: 1.5;
   }
   .ssh-password-label {
     display: grid;
     gap: 6px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 13px;
   }
   .ssh-password-prompt .ssh-password-error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .ssh-password-actions {
     display: flex;

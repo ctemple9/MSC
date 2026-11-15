@@ -162,7 +162,7 @@
             () =>
               reject(
                 new Error(
-                  `The agent did not return ${label} within 30 seconds. Retry preparation.`,
+                  `The engine did not return ${label} within 30 seconds. Retry preparation.`,
                 ),
               ),
             30_000,
@@ -193,7 +193,7 @@
     try {
       const caps = await settingsRead<Schema['CapabilitiesDTO']>(
         '/v1/capabilities',
-        'agent capabilities',
+        'engine capabilities',
       );
       if (
         !caps.contentCatalog?.contentPublications ||
@@ -202,7 +202,7 @@
         !caps.contentCatalog?.personalContentExports
       )
         throw new Error(
-          'Update this agent to use local modpack exports without publication approvals.',
+          'Update this engine to use local modpack exports without publication approvals.',
         );
       const results = await Promise.allSettled([
         settingsRead<ContentSnapshot>(`${root}/collection?metadataOnly=true`, 'content metadata'),
@@ -307,7 +307,7 @@
         `${root}/publication-reviews/${encodeURIComponent(result.reviewId)}`,
       );
       if (!value.candidates)
-        throw new Error('Update this agent to display exact per-file publication approvals.');
+        throw new Error('Update this engine to display exact per-file publication approvals.');
       if (current()) {
         review = value;
         dirty = false;
@@ -772,7 +772,7 @@
     font-size: 12px;
     line-height: 1.5;
     overflow-wrap: anywhere;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .modes {
     display: grid;
@@ -813,9 +813,9 @@
   input:not([type='checkbox'], [type='radio']) {
     min-width: 0;
     padding: 7px 9px;
-    background: var(--msc2-tier-content);
-    color: var(--msc2-text-primary);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-content);
+    color: var(--msc-text-primary);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 6px;
   }
   .preparation-progress {
@@ -826,7 +826,7 @@
   .preparation-progress span {
     min-width: 3ch;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-variant-numeric: tabular-nums;
   }
   progress {
@@ -836,20 +836,20 @@
     border: 0;
     border-radius: 2px;
     overflow: hidden;
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
   }
   progress::-webkit-progress-bar {
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
   }
   progress::-webkit-progress-value {
-    background: var(--msc2-text-secondary);
+    background: var(--msc-text-secondary);
   }
   progress::-moz-progress-bar {
-    background: var(--msc2-text-secondary);
+    background: var(--msc-text-secondary);
   }
   .error,
   .issue {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   summary {
     font-size: 12px;

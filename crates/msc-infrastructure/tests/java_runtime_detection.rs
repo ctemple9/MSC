@@ -72,7 +72,7 @@ fn load(case: &str) -> Fixture {
 /// `path`, `searchRoots`, and every expected path) restores the real
 /// temp-directory semantics the Swift test relied on, uniformly rather than
 /// special-casing just the one case that happens to expose the gap.
-const TMP_ROOT: &str = "/private/tmp/msc2-fixture-java-runtime";
+const TMP_ROOT: &str = "/private/tmp/msc-fixture-java-runtime";
 
 fn resolve_tmp(s: &str) -> String {
     s.replace("<TMP>", TMP_ROOT)
@@ -193,7 +193,7 @@ fn java_runtime_detection_windows_real_filesystem_recognizes_java_exe() {
         .unwrap()
         .as_nanos();
     let root = std::env::temp_dir().join(format!(
-        "msc2-java-discovery-{}-{unique}",
+        "msc-java-discovery-{}-{unique}",
         std::process::id()
     ));
     struct Cleanup(PathBuf);

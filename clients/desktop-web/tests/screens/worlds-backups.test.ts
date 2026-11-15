@@ -353,7 +353,7 @@ describe('operation polling -- activate/convert/backup-now/restore are all opera
     expect(seen).toEqual(['poll', 'running', 'poll', 'succeeded']);
   });
 
-  it('returns undefined without a connected agent instead of polling forever', async () => {
+  it('returns undefined without a connected engine instead of polling forever', async () => {
     expect(await pollOperation(undefined, 'op-1')).toBeUndefined();
   });
 });

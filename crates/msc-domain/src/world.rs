@@ -4,7 +4,7 @@
 //! Ported from `WorldSlotManager.swift`'s pure metadata/resolution rules
 //! (P6.4's fixtures, `fixtures/world-slots/`) — the directory listing, zip/
 //! unzip, and process work MSC 1 mixes into the same functions stays out of
-//! this crate per `msc2-engineering.md`'s module-boundary rule.
+//! this crate per `msc-engineering.md`'s module-boundary rule.
 //! `msc-infrastructure::world_store` (P6.10) owns the I/O half of
 //! `loadSlots`/`saveMetadata`/`createSlot`'s archive step; `msc-application`
 //! (P6.11+) owns orchestration (running-server guards, reconciliation).

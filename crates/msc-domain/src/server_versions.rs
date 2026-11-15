@@ -10,7 +10,7 @@
 //! Components-tab picker both call), and `NeoForgeInstaller.swift`
 //! (`NeoForgeInstaller`/`ForgeInstaller`'s `listVersionPairs`/
 //! `parseMavenMetadata`). Every function here takes bytes/strings already in
-//! memory -- `msc-domain` carries no I/O, per `msc2-engineering.md` §6; the
+//! memory -- `msc-domain` carries no I/O, per `msc-engineering.md` §6; the
 //! real HTTP fetch is `msc-infrastructure`'s job (P7.13).
 //!
 //! Deliberately NOT unified across providers, per P7.4's fixture notes: each

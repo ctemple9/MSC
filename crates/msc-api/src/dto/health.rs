@@ -1,5 +1,5 @@
 //! `HealthResponseDTO` / `HealthCardDTO` — `GET /v1/health`'s response
-//! shape, carried forward from the MSC 1 baseline (`docs/msc2/api-baseline
+//! shape, carried forward from the MSC 1 baseline (`docs/msc/api-baseline
 //! /openapi.json`) unchanged in wire shape by P2.8's assembly.
 
 use serde::{Deserialize, Serialize};

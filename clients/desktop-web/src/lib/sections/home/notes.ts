@@ -1,7 +1,7 @@
-// Legacy migration only. New notes are owned by the agent and travel through
+// Legacy migration only. New notes are owned by the engine and travel through
 // the server API, so localStorage must not remain a second source of truth.
 function legacyKey(hostId: string, serverId: string): string {
-  return `msc2.notes.${hostId}.${serverId}`;
+  return `msc.notes.${hostId}.${serverId}`;
 }
 
 export function readLegacyNotes(hostId: string, serverId: string): string {

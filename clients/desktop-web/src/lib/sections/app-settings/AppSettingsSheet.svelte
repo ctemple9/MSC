@@ -1,18 +1,18 @@
 <script lang="ts">
   // Ports MSCSettingsView.swift's MSC Settings sheet, reduced to what the
   // frozen contract actually backs -- see this step's rolling-plan.md entry
-  // for the full accounting. Four MSC 1 cards are gone because MSC 2
+  // for the full accounting. Four MSC 1 cards are gone because MSC
   // replaced the thing they managed, not because they were never ported:
   // Remote Access -> named tokens + Tailscale (AccessSection, D-012);
   // Bedrock Runtime toggle -> automatic per-host runtime detection
   // (Phase 10); Process Management (orphan scan, relaunch-on-crash) -> the
-  // agent is itself the OS-managed persistent service, so MSC 1's "orphaned
+  // engine is itself the OS-managed persistent service, so MSC 1's "orphaned
   // by a crashed app" problem doesn't exist here. Four more -- Config
   // Recovery and Archives were dropped at the owner's direction. Storage
   // now has host-scoped preview/cleanup routes for abandoned map data;
   // Network Ports remains a future contract-amendment step. "Testing reset" and "Open App Support Folder" are dropped
   // outright -- the former has no backend and reads as a dev-only escape
-  // hatch, the latter has no meaning for a possibly-remote agent host.
+  // hatch, the latter has no meaning for a possibly-remote engine host.
   //
   // What's left and real: Open Server Folder (GET /v1/config/servers-root +
   // the revealInFileManager seam P12.9 built for the Files tab), plus
@@ -132,7 +132,7 @@
       });
       curseforgeApiKey = '';
       curseforgeNotice = curseforge.configured
-        ? 'CurseForge API key saved for this agent.'
+        ? 'CurseForge API key saved for this engine.'
         : 'CurseForge API key cleared.';
     } catch (error) {
       curseforgeNotice = errorMessage(error);
@@ -218,12 +218,12 @@
 
     {#if activeTab === 'general'}
       <section class="zone">
-        <p class="msc2-type-overline">Updates</p>
+        <p class="msc-type-overline">Updates</p>
         <Card padding="0">
           <div class="update-block">
             <div class="row update-summary">
               <div class="row-text">
-                <span class="name">MSC 2</span>
+                <span class="name">MSC</span>
                 <span class="hint">Installed bundle v{bundleIdentity.version}</span>
               </div>
               <Button
@@ -309,7 +309,7 @@
               <p class="update-status" role="status">{updateNotice}</p>
             {:else if updateState === 'installing'}
               <p class="update-status" role="status">
-                Installing the verified release locally… MSC 2 will relaunch when the installer
+                Installing the verified release locally… MSC will relaunch when the installer
                 finishes.
               </p>
             {:else if updateState === 'error'}
@@ -324,7 +324,7 @@
       </section>
 
       <section class="zone">
-        <p class="msc2-type-overline">Performance</p>
+        <p class="msc-type-overline">Performance</p>
         <Card padding="0">
           <div class="row">
             <div class="row-text">
@@ -337,7 +337,7 @@
       </section>
 
       <section class="zone">
-        <p class="msc2-type-overline">Reset and uninstall</p>
+        <p class="msc-type-overline">Reset and uninstall</p>
         <Card padding="0">
           <div class="row">
             <div class="row-text">
@@ -350,7 +350,7 @@
           </div>
           <div class="row">
             <div class="row-text">
-              <span class="name">Uninstall MSC 2</span>
+              <span class="name">Uninstall MSC</span>
               <span class="hint"
                 >Permanently remove this computer's MSC installation, servers, worlds, and backups.</span
               >
@@ -363,13 +363,13 @@
 
     {#if activeTab === 'services'}
       <section class="zone">
-        <p class="msc2-type-overline">Modpack Imports</p>
+        <p class="msc-type-overline">Modpack Imports</p>
         <p class="hint">
           CurseForge modpacks need an API key to resolve their files. You can create one in the
           <a href="https://console.curseforge.com/" target="_blank" rel="noreferrer"
             >CurseForge API Console</a
-          >, or enter it when an import asks for it. The key is stored securely on this agent and is
-          never shown again.
+          >, or enter it when an import asks for it. The key is stored securely on this engine and
+          is never shown again.
         </p>
         <Card padding="0">
           <div class="row">
@@ -418,9 +418,9 @@
       </section>
 
       <section class="zone">
-        <p class="msc2-type-overline">Playit</p>
+        <p class="msc-type-overline">Playit</p>
         <p class="hint">
-          The Playit account and shared tunnels belong to this agent. Per-server tunnel
+          The Playit account and shared tunnels belong to this engine. Per-server tunnel
           participation stays under Manage → Services.
         </p>
         <Card padding="0">
@@ -451,7 +451,7 @@
           </div>
           {#if playit.agentId}
             <div class="row bordered">
-              <span class="name">Agent</span>
+              <span class="name">Background Service</span>
               <span class="hint mono playit-value"
                 >{playitAddressesVisible ? playit.agentId : 'Hidden'}</span
               >
@@ -486,7 +486,7 @@
 
       {#if showDuckDns}
         <section class="zone">
-          <p class="msc2-type-overline">DuckDNS</p>
+          <p class="msc-type-overline">DuckDNS</p>
           <p class="hint">
             This hostname is used for port-forwarded servers that are not using Playit.
           </p>
@@ -515,7 +515,7 @@
       <div class="storage-tab" class:inactive={activeTab !== 'storage'}>
         {#if storageAtOverview}
           <section class="zone">
-            <p class="msc2-type-overline">Server folder</p>
+            <p class="msc-type-overline">Server folder</p>
             <Card padding="0">
               <div class="row">
                 <div class="row-text">
@@ -599,13 +599,13 @@
   .update-boundary,
   .update-status {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .update-status {
     padding-bottom: 12px;
   }
   .update-status.error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .update-details {
     display: flex;
@@ -620,7 +620,7 @@
     gap: 12px;
   }
   .release-id {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   .release-notes {
@@ -631,7 +631,7 @@
     margin-bottom: 4px;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .release-notes pre {
     max-height: 160px;
@@ -641,7 +641,7 @@
     font-family: inherit;
     font-size: 12px;
     line-height: 1.45;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .update-actions {
     display: flex;
@@ -655,7 +655,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 0 2px;
-    border-top: 1px solid var(--msc2-hairline-faint);
+    border-top: 1px solid var(--msc-hairline-faint);
   }
   .row-text {
     display: flex;
@@ -666,7 +666,7 @@
   .name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .control {
     display: flex;
@@ -694,16 +694,16 @@
     height: 20px;
     padding: 0;
     transform: translateY(-50%);
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: transparent;
     border: none;
     cursor: pointer;
   }
   .visibility-toggle:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .visibility-toggle:focus-visible {
-    outline: 2px solid var(--msc2-hairline);
+    outline: 2px solid var(--msc-hairline);
     outline-offset: 2px;
     border-radius: 3px;
   }
@@ -714,29 +714,29 @@
     width: 28px;
     height: 28px;
     padding: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: transparent;
     border: none;
     border-radius: 4px;
     cursor: pointer;
   }
   .playit-visibility-toggle:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .playit-visibility-toggle:focus-visible {
-    outline: 2px solid var(--msc2-hairline);
+    outline: 2px solid var(--msc-hairline);
     outline-offset: 2px;
   }
   .hint {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint a {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .mono {
-    font-family: var(--msc2-font-mono, monospace);
+    font-family: var(--msc-font-mono, monospace);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -749,7 +749,7 @@
   }
   .hint.dir {
     overflow: hidden;
-    font-family: var(--msc2-font-mono, monospace);
+    font-family: var(--msc-font-mono, monospace);
     text-overflow: ellipsis;
     white-space: nowrap;
   }

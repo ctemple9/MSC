@@ -30,25 +30,25 @@
     display: flex;
     gap: 20px;
     margin-bottom: 18px;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .providers button {
     padding: 0 0 10px;
     background: none;
     border: 0;
     border-bottom: 2px solid transparent;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font: inherit;
     font-size: 12px;
     cursor: pointer;
   }
   .providers button.chosen {
-    border-bottom-color: var(--msc2-selection);
-    color: var(--msc2-text-primary);
+    border-bottom-color: var(--msc-selection);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .providers button:focus-visible {
-    outline: 2px solid var(--msc2-selection);
+    outline: 2px solid var(--msc-selection);
     outline-offset: 3px;
   }
 </style>

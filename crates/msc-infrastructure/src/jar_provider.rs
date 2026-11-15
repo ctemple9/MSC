@@ -1,4 +1,4 @@
-//! The server-jar provider boundary: the first place MSC 2 makes an
+//! The server-jar provider boundary: the first place MSC makes an
 //! outbound network request on a user's behalf.
 //!
 //! Architecture call, decided for you rather than asked (per this phase's
@@ -6,7 +6,7 @@
 //! client (`ureq`, rustls TLS backend via its default feature set) rather
 //! than pulling `reqwest`+`tokio` into this crate. Every existing
 //! `msc-infrastructure` trait (`FileSystem`, `process`) is synchronous;
-//! this stays consistent. The async agent layer (`msc-agent`, which
+//! this stays consistent. The async engine layer (`msc-engine`, which
 //! already depends on `tokio`) can wrap a blocking call in
 //! `spawn_blocking` when it gets there in a later step — that's not this
 //! step's job.
@@ -50,7 +50,7 @@ use msc_domain::server_versions::{self, CatalogError};
 use crate::download_staging::{self, CachedFile, DownloadStagingError, ExpectedChecksum};
 use crate::fs::FileSystem;
 
-const USER_AGENT: &str = "MinecraftServerController/2.0 (msc2 agent)";
+const USER_AGENT: &str = "MinecraftServerController/2.0 (msc engine)";
 
 /// Reads a provider host override for P7.27's portable smoke -- a local
 /// fake HTTP server serving `corpus/providers/` responses, with no real
@@ -158,7 +158,7 @@ fn required_hex_digest(
 
 /// The real implementation, backed by `ureq`.
 pub struct HttpTransport {
-    agent: ureq::Agent,
+    engine: ureq::Agent,
 }
 
 impl Default for HttpTransport {
@@ -173,7 +173,7 @@ impl HttpTransport {
             .timeout_global(Some(REQUEST_TIMEOUT))
             .build();
         Self {
-            agent: ureq::Agent::new_with_config(config),
+            engine: ureq::Agent::new_with_config(config),
         }
     }
 }
@@ -181,7 +181,7 @@ impl HttpTransport {
 impl Transport for HttpTransport {
     fn get(&self, url: &str, what: &str, max_bytes: u64) -> Result<Vec<u8>, JarProviderError> {
         let response = self
-            .agent
+            .engine
             .get(url)
             .header("User-Agent", USER_AGENT)
             .header("Accept", "*/*")

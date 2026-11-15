@@ -4,7 +4,7 @@
 //! port (`msc_domain::java_runtime`, which carries the pure Minecraft
 //! version -> required-Java-major mapping and warning text) until this
 //! phase's [`FileSystem`] trait existed to back it — `msc-domain` carries
-//! no I/O, per `msc2-engineering.md` §6.
+//! no I/O, per `msc-engineering.md` §6.
 //!
 //! One thing this still deliberately does *not* port, since no fixture
 //! exercises it and P1.5's own fixture notes are explicit about why:
@@ -291,7 +291,7 @@ fn infer_java_major_version(text: &str) -> Option<i64> {
     None
 }
 
-/// Which host platform is running MSC 2 — governs both
+/// Which host platform is running MSC — governs both
 /// [`default_java_runtime_search_roots`] here and the managed-install
 /// archive format in `java_runtime_install.rs`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

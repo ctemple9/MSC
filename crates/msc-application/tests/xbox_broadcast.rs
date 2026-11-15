@@ -15,12 +15,12 @@ use msc_infrastructure::xbox_broadcast::{
 };
 use std::path::{Path, PathBuf};
 
-const OPERATIONS_DIR: &str = "/agent/operations";
+const OPERATIONS_DIR: &str = "/engine/operations";
 
 fn launch() -> XboxBroadcastLaunch {
     XboxBroadcastLaunch {
-        java_path: PathBuf::from("/agent/bin/java"),
-        working_directory: PathBuf::from("/agent/broadcast"),
+        java_path: PathBuf::from("/engine/bin/java"),
+        working_directory: PathBuf::from("/engine/broadcast"),
     }
 }
 

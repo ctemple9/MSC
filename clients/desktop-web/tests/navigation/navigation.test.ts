@@ -142,11 +142,11 @@ describe('client navigation', () => {
     expect(appSource).toContain("'/v1/me'");
     expect(appSource).toContain('router.visibleSections(navigationContext)');
     expect(appSource).toContain('buildSectionPath(section, hostId, selectedServerId)');
-    expect(appSource).toContain('const localAgentHostId = LOCAL_HOST_ID');
+    expect(appSource).toContain('const localEngineHostId = LOCAL_HOST_ID');
     expect(appSource).toContain('let loadedSections: LoadedSection[] = []');
     expect(appSource).toContain('active={loaded.id === activeSection}');
     expect(appSource).toContain('loadedSections = []');
-    expect(appSource).not.toContain('demo-agent');
+    expect(appSource).not.toContain('demo-engine');
     expect(appSource).toContain('switchHost');
   });
 });

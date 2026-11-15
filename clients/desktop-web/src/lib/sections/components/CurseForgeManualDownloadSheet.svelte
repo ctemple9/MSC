@@ -1,10 +1,10 @@
 <script lang="ts">
   // Ports CurseForgeManualDownloadSheet.swift's purpose (D-027): resolve
   // provider-blocked or failed modpack files before the import operation can
-  // finish. The agent supplies the reason and provider page when it has one;
+  // finish. The engine supplies the reason and provider page when it has one;
   // the user can open that page, choose or drop the matching JAR, retry after
   // a failed attempt, or explicitly skip the file. Every upload is bound to
-  // POST /v1/modpacks/{operationId}/manual-file for validation on the agent.
+  // POST /v1/modpacks/{operationId}/manual-file for validation on the engine.
   import { onMount, onDestroy } from 'svelte';
   import Sheet from '../../components/base/Sheet.svelte';
   import Button from '../../components/base/Button.svelte';
@@ -187,9 +187,9 @@
       curseforgeApiKey = '';
       if (status.configured) {
         curseforgeKeyConfigured = true;
-        curseforgeKeyNotice = 'CurseForge API key saved for this agent.';
+        curseforgeKeyNotice = 'CurseForge API key saved for this engine.';
       } else {
-        curseforgeKeyNotice = 'The agent did not save a CurseForge API key.';
+        curseforgeKeyNotice = 'The engine did not save a CurseForge API key.';
       }
     } catch (error) {
       curseforgeKeyNotice = errorMessage(error) || 'The CurseForge API key could not be saved.';
@@ -221,7 +221,7 @@
       <div class="key-actions">
         <span class="key-hint"
           >{curseforgeKeyConfigured
-            ? 'CurseForge API key is configured for this agent.'
+            ? 'CurseForge API key is configured for this engine.'
             : 'Need to update the provider credential?'}</span
         >
         <Button
@@ -239,7 +239,7 @@
     {#if showCurseForgeKeySetup && hasCurseForgeFiles}
       <div class="key-setup">
         <p class="key-explain">
-          The key is saved on the connected agent and is never shown again.
+          The key is saved on the connected engine and is never shown again.
           <button type="button" class="provider-link" onclick={openCurseForgeConsole}
             >Open CurseForge API Console</button
           >
@@ -357,7 +357,7 @@
     margin: 0 0 12px;
     font-size: 12px;
     line-height: 1.6;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .list {
     display: flex;
@@ -368,9 +368,9 @@
   .drop-area {
     margin: 4px 0 10px;
     padding: 12px;
-    border: 1px dashed var(--msc2-hairline);
+    border: 1px dashed var(--msc-hairline);
     border-radius: 7px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
     text-align: center;
   }
@@ -380,7 +380,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .row:first-child {
     border-top: none;
@@ -394,16 +394,16 @@
   .name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .filename {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .reason {
     font-size: 11px;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .provider-link {
     width: fit-content;
@@ -412,12 +412,12 @@
     background: transparent;
     font: inherit;
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     text-decoration: underline;
     cursor: pointer;
   }
   .provider-link:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .actions {
     display: flex;
@@ -427,7 +427,7 @@
   }
   .error {
     font-size: 11px;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .drop-error {
     margin: 0 0 8px;
@@ -450,21 +450,21 @@
     margin: 0;
     font-size: 11px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .key-explain .provider-link {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .key-setup {
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 10px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .key-notice {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .key-control {
     position: relative;
@@ -481,7 +481,7 @@
     place-items: center;
     border: 0;
     background: transparent;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     cursor: pointer;
   }
   .hidden-input {

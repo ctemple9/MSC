@@ -1,7 +1,7 @@
 <script lang="ts">
-  // The S1 shell skeleton, rebuilt to docs/msc2/renderings/shell.html and MSC 1's
+  // The S1 shell skeleton, rebuilt to docs/msc/renderings/shell.html and MSC 1's
   // ContentView/SidebarView/DetailsHeaderSectionView/MSCTabBar. Governed by
-  // docs/msc2/antiAIslop.md. bannerColor appears in exactly four places: the
+  // docs/msc/antiAIslop.md. bannerColor appears in exactly four places: the
   // running terrain banner, the header wash, the selected tab pill, and (later)
   // sidebar selection.
   import TopBar from './shell/TopBar.svelte';
@@ -21,7 +21,7 @@
   export let isDesktopShell = false;
   export let onSwitchHost: (id: HostId) => void = () => undefined;
   // Threaded straight through to ConsoleDock (P12.10) and ControlSidebar
-  // (P12.21) — the shell chrome that needs to call the agent directly, the
+  // (P12.21) — the shell chrome that needs to call the engine directly, the
   // same `api` every section already receives.
   export let api: ScreenApi | undefined = undefined;
   export let servers: readonly Schema['ServerDTO'][] = [];
@@ -45,7 +45,7 @@
   export let onResumeInitiation: () => void = () => undefined;
   export let onDiscardInitiation: () => void = () => undefined;
   export let discardingInitiation = false;
-  export let onOpenAgentSetup: () => void;
+  export let onOpenEngineSetup: () => void;
   export let onManage: () => void;
   export let onHelp: (() => void) | undefined = undefined;
   export let onSettings: (() => void) | undefined = undefined;
@@ -54,7 +54,7 @@
   export let addressesVisible = false;
   export let onToggleAddresses: () => void = () => undefined;
 
-  const SIDEBAR_KEY = 'msc2.sidebarCollapsed';
+  const SIDEBAR_KEY = 'msc.sidebarCollapsed';
 
   // Mirrors MSC 1 ContentView.swift's consoleDivider: drag resizes within a
   // floor, and releasing well past that floor collapses the console instead.
@@ -158,7 +158,7 @@
         {onResumeInitiation}
         {onDiscardInitiation}
         {discardingInitiation}
-        {onOpenAgentSetup}
+        {onOpenEngineSetup}
         {onManage}
         {addressesVisible}
         {onToggleAddresses}
@@ -217,9 +217,9 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: var(--msc2-tier-atmosphere);
-    color: var(--msc2-text-primary);
-    font-family: var(--msc2-font-sans);
+    background: var(--msc-tier-atmosphere);
+    color: var(--msc-text-primary);
+    font-family: var(--msc-font-sans);
     overflow: hidden;
   }
   .body {
@@ -234,9 +234,9 @@
     align-items: center;
     justify-content: center;
     color: rgba(255, 255, 255, 0.4);
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border: none;
-    border-right: 1px solid var(--msc2-hairline-faint);
+    border-right: 1px solid var(--msc-hairline-faint);
     cursor: pointer;
   }
   .sidebar-rail:hover {
@@ -254,7 +254,7 @@
   .tabs-row {
     flex-shrink: 0;
     padding: 10px 14px 0;
-    background: var(--msc2-tier-atmosphere);
+    background: var(--msc-tier-atmosphere);
   }
   .content {
     flex: 1;
@@ -263,7 +263,7 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
     padding: 14px;
-    background: var(--msc2-tier-atmosphere);
+    background: var(--msc-tier-atmosphere);
   }
   /* The map takes the space left by chrome and the resizable console.
      Other tab content keeps its ordinary document scrolling. */
@@ -287,7 +287,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--msc2-tier-atmosphere);
+    background: var(--msc-tier-atmosphere);
     cursor: row-resize;
     touch-action: none;
   }

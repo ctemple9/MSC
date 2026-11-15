@@ -58,7 +58,7 @@ func writeSidecarResponse(_ response: SidecarResponse, to handle: FileHandle = .
             } else if result < 0, errno == EINTR {
                 continue
             } else {
-                // The agent can close the authenticated socket while the
+                // The engine can close the authenticated socket while the
                 // VM's asynchronous stop callback is still finishing. A raw
                 // POSIX write reports that teardown as an errno instead of
                 // allowing FileHandle to raise an Objective-C exception.
@@ -284,7 +284,7 @@ struct BedrockGuestFileOwner: Equatable, Sendable {
     }
 }
 
-/// The only component in MSC 2 that knows about Virtualization.framework.
+/// The only component in MSC that knows about Virtualization.framework.
 /// It intentionally exposes no management API: the foreground diagnostic
 /// process and privileged service mode both carry this narrow protocol, while
 /// `serverDirectory` is the only persistent state.
@@ -665,7 +665,7 @@ final class BedrockSidecarController: NSObject, @unchecked Sendable {
         if Self.isBedrockServerReadyLine(line) {
             // launchd captures this one lifecycle milestone for the
             // unprivileged live inspector; the full console remains on the
-            // authenticated agent stream.
+            // authenticated engine stream.
             FileHandle.standardOutput.write(Data("bedrock guest: \(line)\n".utf8))
             bedrockReady = true
             emitReadyIfPossible()
@@ -1412,7 +1412,7 @@ func runSidecar(vmWorker: Bool = false) {
                 }
             }
         }
-        // EOF is the agent's shutdown signal. A live VM must not outlive its
+        // EOF is the engine's shutdown signal. A live VM must not outlive its
         // supervisor, so force the guest down before the sidecar exits.
         DispatchQueue.main.async {
             controller.shutdown {

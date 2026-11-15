@@ -13,7 +13,7 @@ fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 client_dir="$repo_root/clients/desktop-web"
-evidence_dir="$repo_root/docs/msc2/clients/evidence"
+evidence_dir="$repo_root/docs/msc/clients/evidence"
 driver_bin="${MSC_TAURI_DRIVER:-$(command -v tauri-driver || true)}"
 webkit_driver="$(command -v WebKitWebDriver || command -v webkit2gtk-driver || true)"
 
@@ -44,7 +44,7 @@ done
 curl --fail --silent http://127.0.0.1:4173/v1/capabilities >/dev/null
 
 VITE_MSC_API_BASE_URL=http://127.0.0.1:4173 npm exec tauri build -- --debug --no-bundle
-tauri_binary="$client_dir/src-tauri/target/debug/msc2-desktop-web"
+tauri_binary="$client_dir/src-tauri/target/debug/msc-desktop-web"
 if [[ ! -x "$tauri_binary" ]]; then
   echo "expected built Tauri binary at $tauri_binary" >&2
   exit 1

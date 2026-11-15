@@ -2,7 +2,7 @@
 //! its fixture, building a `FakeFileSystem` from its `existingFiles`, and
 //! exercising `stage_download`. No MSC 1 test file exercises a
 //! checksum-verified download (see each fixture's own `notes`), so these
-//! fixtures were characterized directly from `msc2-engineering.md` §7 and
+//! fixtures were characterized directly from `msc-engineering.md` §7 and
 //! the three real download workflows it names.
 
 use msc_infrastructure::download_staging::{

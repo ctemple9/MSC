@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kill a real msc-agent process mid world-activation/backup-restore
+"""Kill a real msc-engine process mid world-activation/backup-restore
 transaction, to prove `reconcile_interrupted_activation`/
 `reconcile_interrupted_restore` (P6.13/P6.18) actually recover a real
 on-disk `.activation/`-or-`.restore/` transaction, not just a
@@ -21,11 +21,11 @@ fixed sleep, and (discovered running this on real Windows CI) too
 narrow to reliably even *observe* by busy-polling there: GitHub's
 Windows runners have enough per-syscall filesystem overhead that the
 whole transaction can complete between one poll and the next,
-regardless of how fast the kill itself lands afterward. `msc-agent`
+regardless of how fast the kill itself lands afterward. `msc-engine`
 (`worlds::test_pause_after_world_move`/`backups`'s call to it) closes
 that gap by durably blocking in the real window when
 `MSC2_TEST_PAUSE_AFTER_WORLD_MOVE` is set -- the caller
-(`phase6-gate-smoke.sh`) sets it only for an agent instance it starts
+(`phase6-gate-smoke.sh`) sets it only for an engine instance it starts
 dedicated to one racy call. That turns the window from microseconds
 into "however long it takes this poller to notice", so the busy-poll
 below still does real work (there is no other way to learn *when* to
@@ -46,11 +46,11 @@ P6.35 adds one more thing worth catching from the caught attempt: the
 real operation id the killed CLI call was driving, scraped from its
 own captured stdout (`extract_operation_id`) rather than invented --
 `finish_operation`'s "operation id: <id>" line prints as soon as the
-agent admits the operation, well before the on-disk work this script
+engine admits the operation, well before the on-disk work this script
 races to interrupt. The caller uses it to fetch the operation's
-durable record (`GET /v1/operations/{id}`) after the killed agent is
+durable record (`GET /v1/operations/{id}`) after the killed engine is
 restarted, and confirm the record itself explains what happened
-(`agent restarted mid-operation`) rather than only checking that the
+(`engine restarted mid-operation`) rather than only checking that the
 recovered folders/markers look right.
 """
 import argparse
@@ -71,7 +71,7 @@ def hard_kill(pid: int) -> None:
     # first fix here (P6.27), but the real interruption window this
     # script targets is a handful of `rename()` syscalls wide -- low
     # double-digit microseconds, per this file's own module doc -- so
-    # that spawn latency is enough for the agent to race past the
+    # that spawn latency is enough for the engine to race past the
     # window and finish the whole transaction before the kill lands.
     # `TerminateProcess` via `ctypes` is a single direct WinAPI call,
     # not a process spawn, and lands at comparable latency to POSIX
@@ -116,7 +116,7 @@ def process_alive(pid: int) -> bool:
 
 def extract_operation_id(stdout: str) -> str | None:
     # `finish_operation`'s own non-JSON print (`cli/mod.rs`), the first
-    # thing it writes once the agent has journaled the operation and
+    # thing it writes once the engine has journaled the operation and
     # admitted it for its target -- present in the captured stdout even
     # when this same process is killed later, mid-transaction, since the
     # print happens well before the on-disk work this script is racing

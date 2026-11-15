@@ -3,7 +3,7 @@
   "case": "live-plus-matching-slot-proven-identical",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "resolvedActiveSlotID(forServerDir:) chain plus a Phase 6 file-by-file archive comparison — see docs/msc2/worlds/phase6-scope.md §\"State 3 — both together\", step 3, \"Proven identical\"",
+    "test": "resolvedActiveSlotID(forServerDir:) chain plus a Phase 6 file-by-file archive comparison — see docs/msc/worlds/phase6-scope.md §\"State 3 — both together\", step 3, \"Proven identical\"",
     "line": 128
   },
   "input": {

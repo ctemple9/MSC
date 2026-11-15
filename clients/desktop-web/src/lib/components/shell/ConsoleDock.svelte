@@ -1,6 +1,6 @@
 <script lang="ts">
   // The docked console — real behavior (P12.10): filter chips, search, a live
-  // buffered stream, command input + Send, copy/clear. docs/msc2/renderings/shell.html,
+  // buffered stream, command input + Send, copy/clear. docs/msc/renderings/shell.html,
   // MSC 1 ConsoleView/ConsoleManager, ~/Documents/MSCSS/Main View.
   import { onDestroy, onMount } from 'svelte';
   import { ApiError } from '../../api/client';
@@ -135,7 +135,7 @@
         lines = consoleLinesAfterClear(fetchedLines, clearedAt, clearedLineKeys);
       }
     } catch {
-      // Agent unreachable this cycle — keep showing the last known buffer.
+      // Engine unreachable this cycle — keep showing the last known buffer.
     }
   }
 
@@ -164,7 +164,7 @@
           url.searchParams.set('ticket', result.ticket);
         }
       } catch {
-        // Older agents and browser sessions can still authenticate the socket
+        // Older engines and browser sessions can still authenticate the socket
         // directly; the ticket is an additive desktop-auth capability.
       }
       return url.toString();
@@ -359,7 +359,7 @@
           commandConfirmation = { command: trimmed, serverId: expectedServerId, ...prompt };
         else
           sendFeedback = {
-            text: error instanceof Error ? error.message : 'The agent did not run that command.',
+            text: error instanceof Error ? error.message : 'The engine did not run that command.',
             tone: 'error',
           };
       }
@@ -380,7 +380,7 @@
     } catch (error) {
       if (generation === sendGeneration && api === currentApi) {
         sendFeedback = {
-          text: error instanceof Error ? error.message : 'The agent did not run that time action.',
+          text: error instanceof Error ? error.message : 'The engine did not run that time action.',
           tone: 'error',
         };
       }
@@ -731,8 +731,8 @@
 <style>
   .dock {
     flex-shrink: 0;
-    background: var(--msc2-tier-terminal);
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-terminal);
+    border-top: 1px solid var(--msc-hairline-subtle);
     padding: 8px 12px;
     box-sizing: border-box;
     position: relative;
@@ -766,7 +766,7 @@
     font-weight: 600;
     letter-spacing: 0.8px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     flex-shrink: 0;
   }
   .search-field {
@@ -774,9 +774,9 @@
     align-items: center;
     gap: 6px;
     width: 200px;
-    color: var(--msc2-text-tertiary);
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-field);
+    color: var(--msc-text-tertiary);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 6px;
     padding: 4px 8px;
     margin-left: 8px;
@@ -786,7 +786,7 @@
     min-width: 0;
     font: inherit;
     font-size: 11px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     background: transparent;
     border: none;
   }
@@ -799,7 +799,7 @@
     gap: 6px;
     margin-left: auto;
     padding: 5px 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: transparent;
     border: none;
     border-radius: 6px;
@@ -809,11 +809,11 @@
   }
   .filter-trigger:hover,
   .filter-trigger[aria-expanded='true'] {
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-primary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-primary);
   }
   .filter-trigger.active {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .filter-trigger:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.4);
@@ -822,7 +822,7 @@
   .filter-count {
     min-width: 14px;
     text-align: center;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 10px;
     font-variant-numeric: tabular-nums;
   }
@@ -838,7 +838,7 @@
     gap: 4px;
     font-size: 10px;
     font-weight: 500;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: transparent;
     border: none;
     border-radius: 5px;
@@ -848,7 +848,7 @@
   }
   .chip.active {
     color: rgba(255, 255, 255, 0.9);
-    background: var(--msc2-neutral-elevated);
+    background: var(--msc-neutral-elevated);
     font-weight: 600;
   }
   .filter-panel {
@@ -859,17 +859,17 @@
     width: min(520px, calc(100% - 24px));
     box-sizing: border-box;
     padding: 10px 12px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline);
     border-radius: 8px;
-    box-shadow: var(--msc2-shadow-float);
+    box-shadow: var(--msc-shadow-float);
   }
   .filter-panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 6px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
     font-weight: 600;
   }
@@ -879,10 +879,10 @@
     gap: 6px;
     margin-top: 8px;
     padding: 8px 4px 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 10px;
     white-space: nowrap;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .auto-filter :global(.track) {
     transform: scale(0.68);
@@ -897,25 +897,25 @@
   .custom-options {
     margin-top: 8px;
     padding: 4px 4px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .reset {
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: transparent;
     border: none;
     cursor: pointer;
     padding: 0;
   }
   .reset:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .group-label {
     font-size: 9px;
     font-weight: 600;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin: 8px 0 4px;
   }
   .check-row {
@@ -923,16 +923,16 @@
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     padding: 3px 0;
   }
   .body {
     flex: 1;
     min-height: 0;
     margin-top: 7px;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     line-height: 1.5;
     overflow-y: auto;
     scrollbar-width: none;
@@ -950,17 +950,17 @@
     background: rgba(255, 255, 255, 0.018);
   }
   .line.tone-error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .line.tone-warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .line.tone-muted {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .empty {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .autocomplete-strip {
     flex-shrink: 0;
@@ -971,12 +971,12 @@
   }
   .suggestion {
     flex-shrink: 0;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.85);
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--msc2-hairline-field);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 6px;
     padding: 4px 9px;
     cursor: pointer;
@@ -993,28 +993,28 @@
     margin-top: 7px;
   }
   .prompt {
-    color: var(--msc2-text-tertiary);
-    font-family: var(--msc2-font-mono);
+    color: var(--msc-text-tertiary);
+    font-family: var(--msc-font-mono);
     font-size: 12px;
   }
   .command {
     flex: 1;
     box-sizing: border-box;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-field);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 7px;
     padding: 5px 9px;
   }
   .command:focus {
     outline: none;
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
   .command:disabled {
     cursor: not-allowed;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .icon-action {
     display: inline-flex;
@@ -1025,7 +1025,7 @@
     flex-shrink: 0;
     color: rgba(255, 255, 255, 0.6);
     background: transparent;
-    border: 1px solid var(--msc2-hairline-field);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 7px;
     cursor: pointer;
   }
@@ -1044,12 +1044,12 @@
     background: none;
     font-family: inherit;
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     text-align: left;
     cursor: pointer;
   }
   .send-feedback button.error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .send-feedback button:focus-visible {
     outline: 2px solid currentColor;
@@ -1059,8 +1059,8 @@
     min-height: 0;
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
-    color: var(--msc2-text-secondary);
+    border-top: 1px solid var(--msc-hairline-subtle);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     overflow-y: auto;
   }
@@ -1068,7 +1068,7 @@
     margin: 0 0 5px;
   }
   .confirmation-title {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .confirmation-actions {

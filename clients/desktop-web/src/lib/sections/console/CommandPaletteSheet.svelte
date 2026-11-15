@@ -1,6 +1,6 @@
 <script lang="ts">
   // Ports CommandPaletteView.swift + its GuidedCommandBuilderView/ArgFieldView
-  // (docs/msc2/antiAIslop.md). This sheet only builds a command string and
+  // (docs/msc/antiAIslop.md). This sheet only builds a command string and
   // hands it to `onUse` -- it never sends anything itself. P12.10b wires it
   // (and the console's own send path) into ConsoleDock.
   //
@@ -256,7 +256,7 @@
       {/if}
 
       <div class="preview-block">
-        <span class="msc2-type-overline">Preview</span>
+        <span class="msc-type-overline">Preview</span>
         <div class="preview-row">
           <span class="preview-text">{builtCommand}</span>
           <button
@@ -295,7 +295,7 @@
       <Field bind:value={searchText} placeholder="Search commands…" />
 
       <section class="semantic-actions" aria-label="Same-day time shortcuts">
-        <p class="msc2-type-overline">Same-day time</p>
+        <p class="msc-type-overline">Same-day time</p>
         <p class="semantic-description">
           These actions keep the current Minecraft day. Raw numeric <code>/time set</code> values below
           remain absolute.
@@ -351,7 +351,7 @@
           {#each COMMAND_CATEGORIES as cat (cat)}
             {@const items = filtered.filter((def) => def.category === cat)}
             {#if items.length}
-              <p class="msc2-type-overline group-header">{cat}</p>
+              <p class="msc-type-overline group-header">{cat}</p>
               {#each items as def (def.name)}
                 <button type="button" class="command-row" onclick={() => open(def)}>
                   <span class="command-info">
@@ -399,16 +399,16 @@
     font-family: inherit;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-secondary);
-    background: var(--msc2-tier-content);
-    border: 1px solid var(--msc2-hairline-subtle);
+    color: var(--msc-text-secondary);
+    background: var(--msc-tier-content);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 999px;
     padding: 5px 12px;
     cursor: pointer;
   }
   .chip.active {
-    color: var(--msc2-text-primary);
-    background: var(--msc2-neutral-elevated);
+    color: var(--msc-text-primary);
+    background: var(--msc-neutral-elevated);
     font-weight: 600;
   }
   .command-list {
@@ -451,30 +451,30 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .command-name :global(svg) {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .command-description {
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .empty {
     padding: 32px 8px;
     text-align: center;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .summary {
     display: flex;
     flex-direction: column;
     gap: 4px;
     padding: 12px;
-    background: var(--msc2-tier-content);
+    background: var(--msc-tier-content);
     border-radius: 10px;
   }
   .semantic-actions {
@@ -489,41 +489,41 @@
     margin: 0;
     font-size: 11px;
     line-height: 1.45;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .semantic-unavailable {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .semantic-note {
     padding-top: 4px;
   }
   code {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 0.95em;
   }
   .description {
     margin: 0;
     font-size: 13px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .syntax {
     margin: 0;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .rule-number {
     box-sizing: border-box;
     width: 100%;
     padding: 7px 10px;
-    border: 1px solid var(--msc2-hairline-field);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
-    background: var(--msc2-tier-chrome);
-    color: var(--msc2-text-primary);
+    background: var(--msc-tier-chrome);
+    color: var(--msc-text-primary);
     font: inherit;
   }
   .rule-number:focus-visible {
-    outline: 1px solid var(--msc2-hairline-field-focus);
+    outline: 1px solid var(--msc-hairline-field-focus);
   }
   .arg-field {
     display: flex;
@@ -537,29 +537,29 @@
     gap: 8px;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .arg-index {
     font-size: 9px;
     font-weight: 600;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .pick-chip {
     font-family: inherit;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
-    background: var(--msc2-tier-content);
-    border: 1px solid var(--msc2-hairline-subtle);
+    color: var(--msc-text-secondary);
+    background: var(--msc-tier-content);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 999px;
     padding: 5px 10px;
     cursor: pointer;
   }
   .pick-chip.selected {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     background: rgba(59, 130, 246, 0.12);
-    border-color: var(--msc2-selection);
+    border-color: var(--msc-selection);
     font-weight: 600;
   }
   .preview-block {
@@ -572,16 +572,16 @@
     align-items: center;
     gap: 8px;
     padding: 8px 10px;
-    background: var(--msc2-tier-terminal);
-    border: 1px solid var(--msc2-hairline-faint);
+    background: var(--msc-tier-terminal);
+    border: 1px solid var(--msc-hairline-faint);
     border-radius: 8px;
   }
   .preview-text {
     flex: 1;
     min-width: 0;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow-x: auto;
     white-space: nowrap;
   }
@@ -592,7 +592,7 @@
     width: 24px;
     height: 24px;
     flex-shrink: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: transparent;
     border: none;
     border-radius: 6px;
@@ -600,6 +600,6 @@
   }
   .icon-action:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 </style>

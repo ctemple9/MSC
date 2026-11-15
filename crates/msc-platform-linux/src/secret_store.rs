@@ -1,8 +1,8 @@
 //! `SecretStore` (P3.8) for Linux.
 //!
-//! **Design history, not guessed scope creep:** `docs/msc2/substrate/secret-storage.md`
+//! **Design history, not guessed scope creep:** `docs/msc/substrate/secret-storage.md`
 //! (P3.2) picked `systemd-creds` as the intended backend, per
-//! `msc2-engineering.md` §8's own stated preference. Building this step
+//! `msc-engineering.md` §8's own stated preference. Building this step
 //! against that choice surfaced that `systemd-creds` does not fit
 //! `SecretStore`'s live `get`/`set`/`delete` shape at all, on any machine
 //! without a TPM chip -- which includes plain cloud/VM Linux hosts and
@@ -18,19 +18,19 @@
 //! demand," which is what this trait needs.
 //!
 //! **the owner confirmed, 2026-08-01** (see
-//! `docs/msc2/substrate/secret-storage.md` §12 for the full record): the
+//! `docs/msc/substrate/secret-storage.md` §12 for the full record): the
 //! real target design is a small privileged helper the installer sets up
 //! once, at the same elevated moment it already writes the `systemd`
-//! unit file (P3.1) -- the agent talks to it locally whenever it needs a
+//! unit file (P3.1) -- the engine talks to it locally whenever it needs a
 //! secret, and only the helper ever touches `systemd-creds`. That
 //! helper needs its own service registration, which is Phase 4's job
-//! (the same line `phase3-scope.md` already draws for the *agent's* own
+//! (the same line `phase3-scope.md` already draws for the *engine's* own
 //! registration applies to a second privileged component) -- so it is
 //! not built here.
 //!
 //! **This module ships the explicitly-labeled v1 stand-in instead:** a
 //! plain file per secret, encrypted with a key that belongs to the
-//! agent's own installing-user account (P3.1), not root -- so the agent
+//! engine's own installing-user account (P3.1), not root -- so the engine
 //! reads and writes it with no elevation at any point, unlike
 //! `systemd-creds`. Threat model, stated plainly per `secret-storage.md`
 //! §8's own requirement: anything running as that same OS user account
@@ -103,7 +103,7 @@ impl LinuxSecretStore {
     /// Production default: the installing user's own data directory --
     /// `$XDG_DATA_HOME/msc2/secrets`, falling back to
     /// `$HOME/.local/share/msc2/secrets` -- readable and writable by
-    /// that account alone, with no elevation, matching P3.1's "agent
+    /// that account alone, with no elevation, matching P3.1's "engine
     /// runs as the installing user" design.
     pub fn new() -> Self {
         Self::at(default_base_dir())
@@ -285,7 +285,7 @@ mod tests {
         fn create(name: &str) -> Self {
             let mut dir = std::env::temp_dir();
             dir.push(format!(
-                "msc2-secret-store-contract-{name}-{}",
+                "msc-secret-store-contract-{name}-{}",
                 std::process::id()
             ));
             Self {

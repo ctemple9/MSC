@@ -44,7 +44,7 @@ export interface StorageBridge {
   running(): Promise<Record<string, string>>;
   local(action: 'cached' | 'refresh' | 'status' | 'cancel'): Promise<LocalFootprint>;
   cached(agentHostId: string): Promise<StorageSnapshot | null>;
-  overview(agentHostIds: string[]): Promise<StorageSummary[]>;
+  overview(engineHostIds: string[]): Promise<StorageSummary[]>;
   composed(agentHostId: string): Promise<StorageSnapshot | null>;
   remote<T>(
     agentHostId: string,
@@ -72,7 +72,7 @@ export async function loadStorageBridge(): Promise<StorageBridge> {
     running: () => invoke<Record<string, string>>('storage_active_scans'),
     local: (action) => invoke<LocalFootprint>('storage_local', { action }),
     cached: (agentHostId) => invoke<StorageSnapshot | null>('storage_cached', { agentHostId }),
-    overview: (agentHostIds) => invoke<StorageSummary[]>('storage_overview', { agentHostIds }),
+    overview: (engineHostIds) => invoke<StorageSummary[]>('storage_overview', { engineHostIds }),
     composed: (agentHostId) => invoke<StorageSnapshot | null>('storage_composed', { agentHostId }),
     remote: <T>(agentHostId: string, action: string, operationId?: string) =>
       invoke<T>('storage_remote', {

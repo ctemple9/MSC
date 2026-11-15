@@ -810,7 +810,7 @@ fn repair_problem_disable_verification_fails_when_neither_file_exists() {
 }
 
 // --- P7.36: remove_repaired_problem -- no MSC 1 equivalent (this
-// module's own doc explains why a headless agent needs this where the
+// module's own doc explains why a headless engine needs this where the
 // Mac app didn't), so these are plain tests rather than fixture-driven. ---
 
 #[test]

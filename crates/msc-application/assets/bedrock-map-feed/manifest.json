@@ -2,7 +2,7 @@
   "format_version": 2,
   "header": {
     "name": "MSC live map players",
-    "description": "Reports player positions to the local MSC agent for the world map.",
+    "description": "Reports player positions to the local MSC engine for the world map.",
     "uuid": "98328b20-538c-47fd-96e1-9ed1d057d675",
     "version": [0, 0, 1],
     "min_engine_version": [1, 20, 0]

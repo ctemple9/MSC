@@ -1,7 +1,7 @@
 @import './lib/styles/tokens.css';
 
 :root {
-  font-family: var(--msc2-font-sans);
+  font-family: var(--msc-font-sans);
   color: var(--msc-text);
   background: var(--msc-bg);
   font-synthesis: none;

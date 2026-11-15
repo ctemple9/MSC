@@ -54,7 +54,7 @@ s.close()
 PY
 }
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc2-phase8-gate.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc-phase8-gate.XXXXXX")"
 PORT="$(free_port)"
 BASE_URL="http://127.0.0.1:${PORT}"
 
@@ -89,6 +89,6 @@ cd "${ROOT}"
 cargo nextest run -p msc-domain --test addon_dependency --test modpack_policy
 cargo nextest run -p msc-infrastructure --test addon_provider --test addon_store
 cargo nextest run -p msc-application --test addons --test addon_dependencies --test addon_updates --test modpack_inspection --test modpack_server_creation --test client_export --test diagnostics
-cargo nextest run -p msc-agent --test phase8_routes --test cli_phase8
+cargo nextest run -p msc-engine --test phase8_routes --test cli_phase8
 
 echo "PHASE 8 GATE SMOKE PASSED"

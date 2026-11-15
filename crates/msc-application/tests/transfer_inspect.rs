@@ -34,7 +34,7 @@ struct TempPaths {
 impl TempPaths {
     fn new(name: &str) -> Self {
         let base = std::env::temp_dir().join(format!(
-            "msc2-transfer-inspect-{name}-{}",
+            "msc-transfer-inspect-{name}-{}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&base);
@@ -226,7 +226,7 @@ fn symlink_entry_is_rejected_and_staging_removed() {
 fn bedrock_port_conflict_detected_end_to_end() {
     let fixture = load_fixture("bedrock-worlds-export");
     let export_dir = std::env::temp_dir().join(format!(
-        "msc2-transfer-inspect-export-src-{}",
+        "msc-transfer-inspect-export-src-{}",
         std::process::id()
     ));
     let _ = std::fs::remove_dir_all(&export_dir);

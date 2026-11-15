@@ -129,7 +129,7 @@ export function createNativeFileUploader(bridge: NativeTransferBridge): NativeFi
         options.signal?.removeEventListener('abort', abort);
         await cancellation;
         // This releases only an unused local handle; the native worker owns
-        // all agent staging cleanup and reports its outcome through wait().
+        // all engine staging cleanup and reports its outcome through wait().
         await source.close().catch(() => undefined);
       }
     },

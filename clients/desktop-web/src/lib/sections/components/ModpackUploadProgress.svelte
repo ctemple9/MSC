@@ -70,8 +70,8 @@
       The file is ready for inspection or import. Transfer completion does not mean installation is
       finished.
     </p>{/if}
-  {#if progress.transport === 'legacy-buffered-agent'}<p class="status">
-      This older agent buffers incoming files. Update it for streamed receipt.
+  {#if progress.transport === 'legacy-buffered-engine'}<p class="status">
+      This older engine buffers incoming files. Update it for streamed receipt.
     </p>{/if}
   {#if onCancel && !['complete', 'cancelling', 'cancelled', 'failed'].includes(progress.phase)}
     <div class="actions"><Button variant="secondary" onclick={onCancel}>Cancel</Button></div>
@@ -92,14 +92,14 @@
 
   .filename {
     overflow-wrap: anywhere;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 13px;
     font-weight: 500;
   }
 
   .status,
   .counts {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
   }
 
@@ -107,7 +107,7 @@
     display: block;
     width: 100%;
     height: 8px;
-    accent-color: var(--msc2-accent);
+    accent-color: var(--msc-accent);
   }
 
   .counts {

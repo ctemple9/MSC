@@ -24,7 +24,7 @@ use std::path::PathBuf;
 #[test]
 fn path_safety_backslash_and_long_paths() {
     let fs = FakeFileSystem::new();
-    let root = PathBuf::from(r"C:\Users\steve\MSC2Test\ServerRoot");
+    let root = PathBuf::from(r"C:\Users\steve\MSCTest\ServerRoot");
     let home = PathBuf::from(r"C:\Users\steve");
 
     // A plain backslash-separated in-root path resolves cleanly.
@@ -87,7 +87,7 @@ fn atomic_write_destination_locked_by_open_handle() {
 
     let fs = StdFileSystem;
     let dir = std::env::temp_dir().join(format!(
-        "msc2-windows-substrate-{}-{}",
+        "msc-windows-substrate-{}-{}",
         std::process::id(),
         "atomic-write-locked"
     ));
@@ -131,7 +131,7 @@ fn atomic_write_destination_locked_by_open_handle() {
 #[test]
 fn path_safety_case_difference_is_not_an_escape() {
     let fs = FakeFileSystem::new();
-    let root = PathBuf::from(r"C:\Users\steve\MSC2Test\ServerRoot");
+    let root = PathBuf::from(r"C:\Users\steve\MSCTest\ServerRoot");
     let home = PathBuf::from(r"C:\Users\steve");
 
     let result = safe_path(&fs, &root, Some(r"..\SERVERROOT\file.txt"), &home);

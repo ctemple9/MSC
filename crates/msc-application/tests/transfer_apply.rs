@@ -27,7 +27,7 @@ struct TempRoot {
 impl TempRoot {
     fn new(name: &str) -> Self {
         let path =
-            std::env::temp_dir().join(format!("msc2-transfer-apply-{name}-{}", std::process::id()));
+            std::env::temp_dir().join(format!("msc-transfer-apply-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&path);
         std::fs::create_dir_all(&path).unwrap();
         Self { path }

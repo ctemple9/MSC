@@ -22,7 +22,7 @@ struct TempRoot {
 impl TempRoot {
     fn new(name: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "msc2-raw-import-{name}-{}-{}",
+            "msc-raw-import-{name}-{}-{}",
             std::process::id(),
             unique_suffix()
         ));

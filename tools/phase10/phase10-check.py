@@ -19,8 +19,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SCOPE_PATH = ROOT / "docs/msc2/bedrock/phase10-scope.md"
-CI_EVIDENCE_PATH = ROOT / "docs/msc2/bedrock/evidence/phase10-ci.md"
+SCOPE_PATH = ROOT / "docs/msc/bedrock/phase10-scope.md"
+CI_EVIDENCE_PATH = ROOT / "docs/msc/bedrock/evidence/phase10-ci.md"
 SMOKE_PATH = ROOT / "tools/phase10/phase10-smoke.sh"
 PRODUCTION_CHECK_PATH = ROOT / "tools/phase10/phase10-production-check.py"
 WORKFLOW_PATH = ROOT / ".github/workflows/ci.yml"
@@ -232,7 +232,7 @@ def check_gate() -> list[str]:
             [
                 sys.executable,
                 "tools/phase10/compatibility-check.py",
-                "docs/msc2/bedrock/compatibility-matrix.csv",
+                "docs/msc/bedrock/compatibility-matrix.csv",
                 "--require-cell",
                 "macOS (Apple Silicon)=unavailable",
             ],

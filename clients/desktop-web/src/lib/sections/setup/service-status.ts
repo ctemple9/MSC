@@ -1,10 +1,10 @@
-import type { AgentServiceStatus } from '../../platform';
+import type { EngineServiceStatus } from '../../platform';
 
 /** One native query at a time. A timeout changes the display without spawning
  * more native workers while an earlier OS service query is still pending. */
 export function createServiceStatusMonitor(
-  read: () => Promise<AgentServiceStatus>,
-  update: (status: AgentServiceStatus) => void,
+  read: () => Promise<EngineServiceStatus>,
+  update: (status: EngineServiceStatus) => void,
   failed: (error: unknown) => void,
 ) {
   let context: string | undefined;
@@ -20,7 +20,7 @@ export function createServiceStatusMonitor(
     deadline = setTimeout(() => {
       if (!disposed && context && request === generation)
         failed(
-          new Error('The local agent service status check did not respond within 10 seconds.'),
+          new Error('The local engine service status check did not respond within 10 seconds.'),
         );
     }, 10_000);
   }

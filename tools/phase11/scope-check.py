@@ -29,14 +29,14 @@ REQUIRED_MARKERS = (
 
 
 def contract_routes() -> set[tuple[str, str]]:
-    openapi = json.loads(Path("docs/msc2/api-contract/openapi.json").read_text())
+    openapi = json.loads(Path("docs/msc/api-contract/openapi.json").read_text())
     routes = {
         (method.upper(), path)
         for path, operations in openapi["paths"].items()
         for method in operations
         if method in {"get", "post", "put", "patch", "delete"}
     }
-    websocket = json.loads(Path("docs/msc2/api-contract/websocket-v1.json").read_text())
+    websocket = json.loads(Path("docs/msc/api-contract/websocket-v1.json").read_text())
     routes.update(("WS", channel["path"]) for channel in websocket["channels"])
     return routes
 

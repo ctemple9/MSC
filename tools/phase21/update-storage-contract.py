@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-path = root / "docs/msc2/api-contract/openapi.json"
+path = root / "docs/msc/api-contract/openapi.json"
 original = path.read_text()
 doc = json.loads(original)
 schemas = doc["components"]["schemas"]

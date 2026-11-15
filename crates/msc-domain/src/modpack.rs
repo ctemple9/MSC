@@ -3,12 +3,12 @@
 //! extraction from a mirror list, and the pack-managed mutation guard.
 //!
 //! Ported from `ModpackClientOnlyClassifier.swift`, per
-//! `docs/msc2/addons/phase8-scope.md` and `fixtures/modpack-client-only/`
+//! `docs/msc/addons/phase8-scope.md` and `fixtures/modpack-client-only/`
 //! (P6/P7 + P8.6's two closed gaps). The pack-managed guard has no MSC 1
 //! source to port at all -- `phase8-scope.md`'s own "Pack-managed guard"
 //! finding confirms production code checks `packManaged` nowhere before a
 //! mutation; [`pack_mutation_refused`]/[`pack_replace_refused`] are new,
-//! agent-owned policy characterized against the decided contract in
+//! engine-owned policy characterized against the decided contract in
 //! `fixtures/pack-managed-guard/`, cited there against `phase8-scope.md`/
 //! `rolling-plan.md` rather than an oracle file/line.
 //!
@@ -19,7 +19,7 @@
 //! CurseForge-imported jar (no per-file manifest env available) instead
 //! checks [`known_client_only_reason`] (Tier 0) first, falling back to
 //! [`client_only_reason`] (Tier 2 Modrinth / Tier 3 embedded jar) only when
-//! Tier 0 doesn't match. Both paths are real MSC 2 call sites; this module
+//! Tier 0 doesn't match. Both paths are real MSC call sites; this module
 //! doesn't collapse them into one shared "try all four tiers in order"
 //! function, since that isn't what either real path does.
 

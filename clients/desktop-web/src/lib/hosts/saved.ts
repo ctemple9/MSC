@@ -5,7 +5,7 @@ import { LOCAL_HOST_ID, normalizeHostRecord, type HostRecord } from './types';
  * Bearer credentials remain in the native desktop secret store; this file only
  * keeps the editable profile needed to rediscover a saved host after restart.
  */
-export const SAVED_REMOTE_HOSTS_KEY = 'msc2.saved-remote-hosts';
+export const SAVED_REMOTE_HOSTS_KEY = 'msc.saved-remote-hosts';
 export const SAVED_REMOTE_HOSTS_SCHEMA_VERSION = 2;
 
 interface SavedHostsEnvelope {

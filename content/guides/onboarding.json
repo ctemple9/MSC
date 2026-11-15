@@ -1,7 +1,7 @@
 {
   "id": "first-launch-tour",
   "source": {"path": "MSCmacOS/MSCmacOS Swift/OnboardingManager.swift", "symbols": ["OnboardingStep", "OnboardingManager"]},
-  "presentationBoundary": "Content, order, branching, and persistence state are agent data. Spotlight placement, visual anchoring, and animation are client-owned.",
+  "presentationBoundary": "Content, order, branching, and persistence state are engine data. Spotlight placement, visual anchoring, and animation are client-owned.",
   "reopen": {"label": "Restart this tour", "source": "OnboardingManager.reset()", "persistenceKey": "msc_onboarding_tour_complete"},
   "skip": {"label": "Skip tour", "effect": "marks the tour complete; it can be reopened from Preferences", "source": "OnboardingOverlayView.fullScreenCard / OnboardingManager.complete()"},
   "steps": [

@@ -84,7 +84,7 @@ impl RelativeTimeTarget {
     }
 
     /// Returns the runtime command, keeping the runtime distinction at the
-    /// agent boundary even though Java and Bedrock currently share syntax.
+    /// engine boundary even though Java and Bedrock currently share syntax.
     pub fn absolute_command(self, server_type: ServerType) -> String {
         match server_type {
             ServerType::Java | ServerType::Bedrock => {

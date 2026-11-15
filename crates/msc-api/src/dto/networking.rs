@@ -27,7 +27,7 @@ pub struct PlayitActionResultDto {
     pub operation_id: Option<String>,
 }
 
-/// Credentials submitted to the agent for the native Playit account flow.
+/// Credentials submitted to the engine for the native Playit account flow.
 /// This type intentionally derives `Deserialize` only: email and password
 /// must never be serialized into an operation result, status response, or log.
 #[derive(Deserialize)]
@@ -41,7 +41,7 @@ pub struct PlayitSetupRequestDto {
 
 /// Admission response for the native Playit setup operation. The operation
 /// status contains progress and any structured failure; this response carries
-/// only its opaque identifier and never account or agent data.
+/// only its opaque identifier and never account or engine data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayitSetupAcceptedDto {

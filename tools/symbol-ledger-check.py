@@ -2,7 +2,7 @@
 """Symbol ledger bucket-count checker (P0.26a).
 
 Used as P0.27's Verify command. Counts the unique `file` values in
-docs/msc2/audit/msc2-symbol-ledger.csv for a given bucket, re-runs P0.25's
+docs/msc/audit/msc-symbol-ledger.csv for a given bucket, re-runs P0.25's
 density scanner (tools/symbol-scan/scan.py --bucket ui --min-hits 3) against
 a live MSC 1 source tree, and asserts the two counts match exactly -- so the
 check stays live against whatever the scanner currently finds, never a
@@ -23,7 +23,7 @@ import sys
 import tempfile
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LEDGER_CSV = os.path.join(REPO_ROOT, "docs", "msc2", "audit", "msc2-symbol-ledger.csv")
+LEDGER_CSV = os.path.join(REPO_ROOT, "docs", "msc", "audit", "msc-symbol-ledger.csv")
 SCANNER = os.path.join(REPO_ROOT, "tools", "symbol-scan", "scan.py")
 
 FIELDNAMES = ["file", "bucket", "symbol", "kind", "disposition", "target_domain", "source_line", "notes"]
@@ -71,7 +71,7 @@ def _write_temp_csv(rows):
 def _row(file, bucket="ui-flagged"):
     return {
         "file": file, "bucket": bucket, "symbol": "x", "kind": "parser",
-        "disposition": "agent", "target_domain": "n/a", "source_line": "1", "notes": "selftest",
+        "disposition": "engine", "target_domain": "n/a", "source_line": "1", "notes": "selftest",
     }
 
 

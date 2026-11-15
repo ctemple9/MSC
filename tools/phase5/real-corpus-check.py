@@ -2,7 +2,7 @@
 """Phase 5 real-corpus checker (P5.2).
 
 Gates P5.3's evidence collection, and later P5.24/P5.25's exercise run,
-against docs/msc2/config-migration/phase5-scope.md's "Evidence required"
+against docs/msc/config-migration/phase5-scope.md's "Evidence required"
 section: this fails loudly, not silently, when the real MSC 1 corpus that
 section demands isn't actually there yet.
 

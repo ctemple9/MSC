@@ -33,7 +33,11 @@
     try {
       const caps = await connection.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
       if (!current()) return;
-      if (!caps.contentCatalog?.sourceIdentification?.includes('curseforge') || !caps.contentCatalog?.reviewedUpdates?.includes('curseforge')) throw new Error('Update this agent to identify and update CurseForge content.');
+      if (
+        !caps.contentCatalog?.sourceIdentification?.includes('curseforge') ||
+        !caps.contentCatalog?.reviewedUpdates?.includes('curseforge')
+      )
+        throw new Error('Update this engine to identify and update CurseForge content.');
       const found = await connection.get<Schema['ContentIdentificationDTO']>(`${root}/identify`);
       if (!current()) return;
       identities = found;
@@ -280,7 +284,7 @@
   }
   p {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 13px;
   }
   h3 {
@@ -292,7 +296,7 @@
     justify-items: start;
     gap: 6px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .row strong {
     overflow-wrap: anywhere;
@@ -300,7 +304,7 @@
   }
   .row span {
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   label {
     display: grid;
@@ -308,13 +312,13 @@
     font-size: 12px;
   }
   input {
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-content);
-    border: 1px solid var(--msc2-hairline-subtle);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-content);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 6px;
     padding: 6px 8px;
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
 </style>

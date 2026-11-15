@@ -1,6 +1,6 @@
 export type ChecklistStepEntry = { number: number; title: string; detail: string };
 
-/** Mirrors `HelpContentBlock` (crates/msc-agent/src/help.rs) — one ordered content
+/** Mirrors `HelpContentBlock` (crates/msc-engine/src/help.rs) — one ordered content
  *  block, additional to `HelpTopic.body`. Only handbook.* topics carry these. */
 export type HelpContentBlock =
   | { type: 'body'; markdown: string }
@@ -26,7 +26,7 @@ export type HelpCatalog = {
   topics: readonly Pick<HelpTopic, 'helpId' | 'title' | 'category'>[];
 };
 
-/** Mirrors `RouterGuideStepDTO` (crates/msc-agent/src/routes/help.rs). */
+/** Mirrors `RouterGuideStepDTO` (crates/msc-engine/src/routes/help.rs). */
 export type RouterGuideStep = {
   id: string;
   kind: string;

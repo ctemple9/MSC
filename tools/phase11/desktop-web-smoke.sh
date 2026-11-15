@@ -29,7 +29,7 @@ require_text() {
 synthetic() {
   local ci="$ROOT/.github/workflows/ci.yml"
   local package="$ROOT/clients/desktop-web/package.json"
-  local evidence="$ROOT/docs/msc2/clients/evidence/tri-platform-ci.md"
+  local evidence="$ROOT/docs/msc/clients/evidence/tri-platform-ci.md"
 
   [[ -f "$ci" ]] || fail "CI workflow is missing"
   [[ -f "$package" ]] || fail "client package manifest is missing"

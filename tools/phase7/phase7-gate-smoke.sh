@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Phase 7 portable six-family provisioning and launch smoke (P7.27).
 #
-# Drives a real foreground `msc-agent` through nothing but the CLI and
+# Drives a real foreground `msc-engine` through nothing but the CLI and
 # API -- the same public surface every retained client and any other
 # caller uses -- to create all six create-flow families (Vanilla, Paper,
 # Purpur, Fabric, NeoForge, Forge), start each one, and prove the thing
@@ -22,13 +22,13 @@ set -euo pipefail
 # stand in for a real downloaded jar and a real Forge/NeoForge installer.
 # `crates/msc-infrastructure/src/jar_provider.rs`'s per-family
 # `MSC2_PROVIDER_*_BASE` env var overrides (added alongside this script)
-# are what make a real, unmodified `msc-agent` binary reachable this way
+# are what make a real, unmodified `msc-engine` binary reachable this way
 # -- every URL path is otherwise exactly what a real provider would be
 # asked for; only the host is redirected.
 #
 # Also exercises the failure side named in this step's own "What": an
 # injected download failure and an injected installer failure each
-# leave no server directory behind, and SIGKILLing the agent mid-install
+# leave no server directory behind, and SIGKILLing the engine mid-install
 # proves the operation journal reconciles the interrupted "server-create"
 # operation to `failed` on restart -- the same generic
 # `LifecycleOperations::reconcile_on_startup` mechanism
@@ -39,7 +39,7 @@ set -euo pipefail
 # working-exit-criteria's "a Phase 5-imported non-Paper server actually
 # starts") to prove the new launch-shape dispatch this step's own
 # smoke-writing surfaced a real gap in
-# (`crates/msc-agent/src/routes/lifecycle.rs::build_launch_request` --
+# (`crates/msc-engine/src/routes/lifecycle.rs::build_launch_request` --
 # see this script's own findings note below) works on an *imported*
 # server too, not only one this same process just created.
 #
@@ -127,7 +127,7 @@ fail() {
 }
 
 TOKEN="msc2_phase7_gate_bootstrap_secret"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc2-phase7-gate.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc-phase7-gate.XXXXXX")"
 if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* ]]; then
   MSC_BIN="${TMP_DIR}/msc.exe"
   cp "${ROOT}/target/debug/msc.exe" "${MSC_BIN}"
@@ -142,7 +142,7 @@ BUILD_DIR="${TMP_DIR}/build"
 CONTROL_DIR="${TMP_DIR}/control"
 KEYCHAIN_SERVICE="com.msc2.phase7.gate.$(date +%Y%m%d%H%M%S).$$"
 
-AGENT_PID=""
+ENGINE_PID=""
 PORT=""
 BASE_URL=""
 PROVIDER_PID=""
@@ -150,9 +150,9 @@ PROVIDER_PORT=""
 PROVIDER_BASE=""
 
 cleanup() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill -9 "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill -9 "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
   if [[ -n "${PROVIDER_PID}" ]] && kill -0 "${PROVIDER_PID}" 2>/dev/null; then
     kill -9 "${PROVIDER_PID}" 2>/dev/null || true
@@ -251,11 +251,11 @@ PROVIDER_PID="$!"
 wait_for_url_ok "${PROVIDER_BASE}/__ready__" "fake provider"
 
 # =====================================================================
-# 3. Agent lifecycle helpers -- same shape as
-#    tools/phase6/phase6-gate-smoke.sh's own start_agent/stop_agent/
+# 3. Engine lifecycle helpers -- same shape as
+#    tools/phase6/phase6-gate-smoke.sh's own start_engine/stop_engine/
 #    run_msc/operation_json/assert_operation_interrupted_by_restart.
 # =====================================================================
-wait_for_agent_healthy() {
+wait_for_engine_healthy() {
   local base_url="$1"
   python3 - "${base_url}" <<'PY'
 import sys
@@ -272,11 +272,11 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy")
+raise SystemExit("engine did not become healthy")
 PY
 }
 
-start_agent() {
+start_engine() {
   export MSC2_TEST_BOOTSTRAP_TOKEN="${TOKEN}"
   export MSC2_DATA_DIR="${DATA_DIR}"
   export MSC2_APP_CONFIG_PATH="${CONFIG_PATH}"
@@ -300,29 +300,29 @@ start_agent() {
   PORT="$(free_port)"
   BASE_URL="http://127.0.0.1:${PORT}"
   "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >>"${TMP_DIR}/agent.log" 2>&1 &
-  AGENT_PID="$!"
-  wait_for_agent_healthy "${BASE_URL}"
+  ENGINE_PID="$!"
+  wait_for_engine_healthy "${BASE_URL}"
 }
 
-stop_agent() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+stop_engine() {
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
-  AGENT_PID=""
+  ENGINE_PID=""
 }
 
-kill_agent_hard() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill -9 "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+kill_engine_hard() {
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill -9 "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
-  AGENT_PID=""
+  ENGINE_PID=""
 }
 
-restart_agent() {
-  stop_agent
-  start_agent
+restart_engine() {
+  stop_engine
+  start_engine
 }
 
 run_msc() {
@@ -391,7 +391,7 @@ console_lines_json() {
   run_msc_json console tail --lines 500
 }
 
-# The console buffer is cumulative across every server this same agent
+# The console buffer is cumulative across every server this same engine
 # process has started, not cleared between servers -- so after several
 # create/start/stop cycles it holds every earlier server's own boot
 # lines too. Both console assertions below take the display `name` that
@@ -563,10 +563,10 @@ assert_checksum_refused() {
 }
 
 # =====================================================================
-# 4. Start the agent, pointed at the fake provider.
+# 4. Start the engine, pointed at the fake provider.
 # =====================================================================
-echo "== starting agent =="
-start_agent
+echo "== starting engine =="
+start_engine
 
 # =====================================================================
 # 5. Create, start, and prove the launch shape of all six create-flow
@@ -724,17 +724,17 @@ rm -f "${CONTROL_DIR}/fail_install"
 echo "injected installer failure left no directory behind"
 
 # =====================================================================
-# 9. Kill the agent mid-install: the operation journal reconciles the
+# 9. Kill the engine mid-install: the operation journal reconciles the
 #    interrupted "server-create" operation on restart.
 # =====================================================================
-echo "== killing the agent mid-install (neoforge) =="
+echo "== killing the engine mid-install (neoforge) =="
 KILL_DIR="${SERVERS_ROOT}/java/smoke-kill-neoforge"
 create_json="$(run_msc_json server create smoke-kill-neoforge --flavor neoforge --port "$(( PORT_COUNTER++ ))" --no-wait)"
 operation_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["operationId"])' <<<"${create_json}")"
 [[ -n "${operation_id}" ]] || fail "no operationId returned for --no-wait create"
 wait_for_path "${KILL_DIR}/neoforge-installer.jar" "neoforge installer download (pre-kill signal)"
-kill_agent_hard
-restart_agent
+kill_engine_hard
+restart_engine
 assert_operation_interrupted_by_restart "${operation_id}"
 # P7.37: the reconciled record alone doesn't prove the half-provisioned
 # directory is gone -- `LifecycleOperations::reconcile_on_startup`'s own
@@ -832,8 +832,8 @@ run_msc doctor repair "${crash_problem_id}" delete >/dev/null
 assert_no_doctor_problem_containing "CoolMod"
 echo "verified delete repair removed CoolMod-1.0.jar from disk and removed its problem"
 
-# End the foreground agent before the next CI step can rebuild the same
+# End the foreground engine before the next CI step can rebuild the same
 # Windows executable. The exit trap remains a failure-path backstop.
-stop_agent
+stop_engine
 
 echo "PHASE 7 GATE SMOKE PASSED"

@@ -1,6 +1,6 @@
 <script lang="ts">
   // Dev-only component gallery — not a product screen. Renders the S0 base
-  // kit for visual comparison against docs/msc2/renderings/*.html. Never
+  // kit for visual comparison against docs/msc/renderings/*.html. Never
   // linked from the shipped app; opened directly via gallery.html in dev.
   import Card from '../lib/components/base/Card.svelte';
   import Button from '../lib/components/base/Button.svelte';
@@ -22,42 +22,42 @@
 </script>
 
 <div class="page">
-  <h1 class="msc2-type-page">S0 component gallery</h1>
-  <p class="msc2-type-body intro">
+  <h1 class="msc-type-page">S0 component gallery</h1>
+  <p class="msc-type-body intro">
     Compare each group below against its locked reference in
-    <code>docs/msc2/renderings/</code>.
+    <code>docs/msc/renderings/</code>.
   </p>
 
   <section>
-    <h2 class="msc2-type-overline">Card + status label</h2>
+    <h2 class="msc-type-overline">Card + status label</h2>
     <div class="row">
       <Card>
         <div class="card-head">
           <span class="card-icon" aria-hidden="true"></span>
-          <span class="msc2-type-card">Components</span>
+          <span class="msc-type-card">Components</span>
         </div>
         <StatusDot tone="ok" label="OK" />
-        <p class="msc2-type-meta meta-line">1 component — up to date</p>
+        <p class="msc-type-meta meta-line">1 component — up to date</p>
       </Card>
       <Card>
         <div class="card-head">
           <span class="card-icon" aria-hidden="true"></span>
-          <span class="msc2-type-card">Port</span>
+          <span class="msc-type-card">Port</span>
         </div>
         <StatusDot tone="warn" label="Warn" />
-        <p class="msc2-type-meta meta-line">Port 25565 (TCP)</p>
+        <p class="msc-type-meta meta-line">Port 25565 (TCP)</p>
       </Card>
     </div>
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Buttons — filled</h2>
+    <h2 class="msc-type-overline">Buttons — filled</h2>
     <div class="row">
       <Button variant="primary">Save changes</Button>
       <Button variant="start">Start</Button>
       <Button variant="stop">Stop</Button>
     </div>
-    <h2 class="msc2-type-overline">Buttons — quiet</h2>
+    <h2 class="msc-type-overline">Buttons — quiet</h2>
     <div class="row">
       <Button variant="secondary">Manage…</Button>
       <Button variant="destructive">Delete</Button>
@@ -67,22 +67,22 @@
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Type — 7 roles</h2>
+    <h2 class="msc-type-overline">Type — 7 roles</h2>
     <div class="type-rows">
-      <span class="msc2-type-page">Survival</span>
-      <span class="msc2-type-section">Server health</span>
-      <span class="msc2-type-card">Connection info</span>
-      <span class="msc2-type-body"
-        >The background agent keeps servers running after this window closes.</span
+      <span class="msc-type-page">Survival</span>
+      <span class="msc-type-section">Server health</span>
+      <span class="msc-type-card">Connection info</span>
+      <span class="msc-type-body"
+        >The background engine keeps servers running after this window closes.</span
       >
-      <span class="msc2-type-meta">/Users/example/MinecraftServers/java/test · port 25565</span>
-      <span class="msc2-type-overline">Server controls</span>
-      <span class="msc2-type-mono">[02:11:43 INFO]: Done (5.231s)! For help, type "help"</span>
+      <span class="msc-type-meta">/Users/example/MinecraftServers/java/test · port 25565</span>
+      <span class="msc-type-overline">Server controls</span>
+      <span class="msc-type-mono">[02:11:43 INFO]: Done (5.231s)! For help, type "help"</span>
     </div>
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Segmented control</h2>
+    <h2 class="msc-type-overline">Segmented control</h2>
     <SegmentedControl
       options={[
         { value: 'peaceful', label: 'Peaceful' },
@@ -95,19 +95,19 @@
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Toggles</h2>
+    <h2 class="msc-type-overline">Toggles</h2>
     <div class="toggle-row">
-      <span class="msc2-type-body">PvP</span>
+      <span class="msc-type-body">PvP</span>
       <Toggle bind:checked={pvp} label="PvP" />
     </div>
     <div class="toggle-row">
-      <span class="msc2-type-body">Hardcore</span>
+      <span class="msc-type-body">Hardcore</span>
       <Toggle bind:checked={hardcore} label="Hardcore" />
     </div>
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Field · number · select</h2>
+    <h2 class="msc-type-overline">Field · number · select</h2>
     <div class="field-col">
       <Field value="Test" />
       <div class="row">
@@ -124,7 +124,7 @@
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Badges</h2>
+    <h2 class="msc-type-overline">Badges</h2>
     <div class="row">
       <Badge variant="category">Java</Badge>
       <Badge variant="category">Paper</Badge>
@@ -135,7 +135,7 @@
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">List rows (divided, not carded)</h2>
+    <h2 class="msc-type-overline">List rows (divided, not carded)</h2>
     <div class="narrow">
       <Card padding="0">
         <ListRow title="config" subtitle="2 minutes ago" />
@@ -145,18 +145,18 @@
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Empty state</h2>
+    <h2 class="msc-type-overline">Empty state</h2>
     <div class="narrow">
       <EmptyState title="No resource packs" message="Add a .zip pack, or drag one here." />
     </div>
   </section>
 
   <section>
-    <h2 class="msc2-type-overline">Sheet</h2>
+    <h2 class="msc-type-overline">Sheet</h2>
     <Button variant="secondary" onclick={() => (sheetOpen = true)}>Open sheet</Button>
     {#if sheetOpen}
       <Sheet title="Manage servers" size="md" onClose={() => (sheetOpen = false)}>
-        <p class="msc2-type-body">Sheet body content goes here.</p>
+        <p class="msc-type-body">Sheet body content goes here.</p>
       </Sheet>
     {/if}
   </section>
@@ -164,14 +164,14 @@
 
 <style>
   .page {
-    background: var(--msc2-tier-atmosphere);
+    background: var(--msc-tier-atmosphere);
     min-height: 100vh;
     padding: 32px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 
   .intro {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     margin-bottom: 32px;
   }
 

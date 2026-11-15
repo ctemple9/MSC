@@ -1,9 +1,9 @@
 import { writable } from 'svelte/store';
 
 /**
- * Anchor ids this MSC 2 build actually wires up to real UI, ported 1:1 from
- * MSC 1's `OnboardingAnchorID` string values. The agent's `/v1/guides/onboarding`
- * data is oracle-faithful and untouched (content/order/branching are agent
+ * Anchor ids this MSC build actually wires up to real UI, ported 1:1 from
+ * MSC 1's `OnboardingAnchorID` string values. The engine's `/v1/guides/onboarding`
+ * data is oracle-faithful and untouched (content/order/branching are engine
  * data per that guide's own `presentationBoundary`). The Add Server wizard
  * now exposes its real multi-page flow; the Packs tab was permanently dropped
  * (P12.5). A guide step

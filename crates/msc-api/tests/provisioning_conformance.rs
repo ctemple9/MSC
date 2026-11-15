@@ -1,6 +1,6 @@
 //! Round-trips one representative instance of every P7.23 provisioning/
 //! fleet DTO through `serde_json` and checks the result against
-//! `docs/msc2/api-contract/openapi.json`'s schema for it — the same
+//! `docs/msc/api-contract/openapi.json`'s schema for it — the same
 //! `assert_conforms` depth-check `dto_conformance.rs`/
 //! `world_backup_conformance.rs` already established, duplicated here per
 //! those two files' own precedent rather than shared across a test-only
@@ -19,7 +19,7 @@ use std::path::Path;
 
 fn load_contract() -> Value {
     let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc2/api-contract/openapi.json");
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc/api-contract/openapi.json");
     let text = std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("reading {}: {e}", path.display()));
     serde_json::from_str(&text).expect("openapi.json is valid JSON")

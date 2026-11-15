@@ -3,7 +3,7 @@
 //! exercising `load_config`/`save_config`. No MSC 1 test file exercises
 //! `ConfigManager`'s corruption-recovery or unknown-field behavior (see
 //! each fixture's own `notes`), so these fixtures were characterized
-//! directly from `ConfigManager.swift` and `msc2-engineering.md` §7
+//! directly from `ConfigManager.swift` and `msc-engineering.md` §7
 //! rather than pulled from Swift assertions.
 
 use msc_infrastructure::config_repository::{corrupt_backup_path, load_config, save_config};

@@ -1,13 +1,13 @@
 // Personal app identity for the sidebar avatar — MSC 1's minecraftUsername /
 // minecraftBedrockGamertag / minecraftAvatarEditionRawValue config fields. This
-// is the human's own identity, not agent-owned server data, so it is global
+// is the human's own identity, not engine-owned server data, so it is global
 // (not host/server-scoped) and held client-locally until a real field exists —
 // the same treatment P12.1 gave bannerColor (see ../styles/bannerColor.ts).
 export type AvatarEdition = 'java' | 'bedrock';
 
-const EDITION_KEY = 'msc2.player.edition';
-const JAVA_KEY = 'msc2.player.javaUsername';
-const BEDROCK_KEY = 'msc2.player.bedrockGamertag';
+const EDITION_KEY = 'msc.player.edition';
+const JAVA_KEY = 'msc.player.javaUsername';
+const BEDROCK_KEY = 'msc.player.bedrockGamertag';
 
 function readKey(key: string): string {
   if (typeof localStorage === 'undefined') return '';

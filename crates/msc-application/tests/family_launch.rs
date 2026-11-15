@@ -243,7 +243,7 @@ fn family_launch_fabric_script_uses_jar_with_nogui() {
 fn family_launch_forge_args_file_missing_emits_error_in_script() {
     let fixture = load("forge-args-file-missing-emits-error-in-script");
     let nonexistent = std::env::temp_dir().join(format!(
-        "msc2-family-launch-test-nonexistent-{}",
+        "msc-family-launch-test-nonexistent-{}",
         std::process::id()
     ));
     let _ = fs::remove_dir_all(&nonexistent);

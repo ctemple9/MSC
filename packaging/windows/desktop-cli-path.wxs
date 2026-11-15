@@ -3,11 +3,11 @@
   <Fragment>
     <DirectoryRef Id="INSTALLDIR">
       <Component Id="MscCliPath" Guid="*">
-        <RegistryValue Root="HKLM" Key="Software\CTemple\MSC2" Name="DesktopCliPath" Type="string" Value="[INSTALLDIR]agent" KeyPath="yes" />
-        <Environment Id="MscCliPathEntry" Name="PATH" Value="[INSTALLDIR]agent" Action="set" Part="last" System="yes" Permanent="no" />
+        <RegistryValue Root="HKLM" Key="Software\CTemple\MSC2" Name="DesktopCliPath" Type="string" Value="[INSTALLDIR]engine" KeyPath="yes" />
+        <Environment Id="MscCliPathEntry" Name="PATH" Value="[INSTALLDIR]engine" Action="set" Part="last" System="yes" Permanent="no" />
       </Component>
     </DirectoryRef>
-    <CustomAction Id="MscRemoveIndicatorStartup" FileKey="Path" ExeCommand="--unregister-agent-indicator" Execute="immediate" Return="ignore" />
+    <CustomAction Id="MscRemoveIndicatorStartup" FileKey="Path" ExeCommand="--unregister-engine-indicator" Execute="immediate" Return="ignore" />
     <InstallExecuteSequence>
       <Custom Action="MscRemoveIndicatorStartup" Before="InstallValidate">Installed AND REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
     </InstallExecuteSequence>

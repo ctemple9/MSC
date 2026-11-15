@@ -426,10 +426,10 @@ createServer(async (request, response) => {
     return response.end();
   }
   // BrowserSessionAuth (src/lib/auth/browser.ts) fetches this before every
-  // mutation and throws if the agent never serves it -- without this route
+  // mutation and throws if the engine never serves it -- without this route
   // every POST/PUT/DELETE in the shared browser transport fails client-side
-  // before a request is even sent, matching the real agent's
-  // GET /v1/auth/csrf (crates/msc-agent/src/routes/browser_session.rs).
+  // before a request is even sent, matching the real engine's
+  // GET /v1/auth/csrf (crates/msc-engine/src/routes/browser_session.rs).
   if (url.pathname === '/v1/auth/csrf' && request.method === 'GET')
     return json(response, {
       csrfToken: 'test-csrf-token',

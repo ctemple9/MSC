@@ -84,7 +84,7 @@
         (entry) => entry.id !== pack.id,
       );
     } catch (error) {
-      packError = `Agent cleanup could not be confirmed: ${errorMessage(error)}`;
+      packError = `Engine cleanup could not be confirmed: ${errorMessage(error)}`;
     }
   }
 
@@ -201,7 +201,7 @@
           (serverType === 'java' && response.worldSettings.context.javaFlavor !== javaFlavor))
       ) {
         throw new Error(
-          'The agent returned settings for a different server type or flavor. Retry the World step.',
+          'The engine returned settings for a different server type or flavor. Retry the World step.',
         );
       }
       capabilities = response.worldSettings;
@@ -276,7 +276,7 @@
   </div>
 
   <section class="block" use:onboardingAnchor={'ob_world_source'}>
-    <p class="msc2-type-overline">World Source</p>
+    <p class="msc-type-overline">World Source</p>
     <SegmentedControl
       options={[
         { value: 'fresh', label: 'New World' },
@@ -430,7 +430,7 @@
 
 <style>
   .packs-disclosure {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   summary {
     display: flex;
@@ -452,11 +452,11 @@
   small {
     display: block;
     margin-top: 2px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .chevron {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   details[open] .chevron {
     transform: rotate(180deg);
@@ -471,14 +471,14 @@
     text-align: left;
     padding: 14px;
     background: none;
-    border: 1px solid var(--msc2-hairline-subtle);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     cursor: pointer;
   }
   .pack-choice:hover {
-    background: var(--msc2-neutral-muted);
+    background: var(--msc-neutral-muted);
   }
   .pack-choice:disabled {
     opacity: 0.5;
@@ -532,12 +532,12 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p {
     margin: 0;
     font-size: 12.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .block {
@@ -550,10 +550,10 @@
     margin: 0;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .hidden-input {
     position: absolute;

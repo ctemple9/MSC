@@ -1,6 +1,6 @@
 <script lang="ts">
   // Neutral content-area line icons — health cards, section overlines, list
-  // rows. Never colored on an informational element (docs/msc2/antiAIslop.md
+  // rows. Never colored on an informational element (docs/msc/antiAIslop.md
   // #6). Same visual language as ShellIcon (24x24, stroke 1.8) but this set
   // is for card/section content rather than chrome.
   export let name:

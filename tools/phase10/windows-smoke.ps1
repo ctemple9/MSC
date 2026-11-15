@@ -17,7 +17,7 @@ try {
     }
 
     Write-Host '== exercising the synthetic Windows Bedrock HTTP contract =='
-    cargo nextest run -p msc-agent `
+    cargo nextest run -p msc-engine `
         --test bedrock_windows_routes `
         --test bedrock_windows_cli
     if ($LASTEXITCODE -ne 0) {

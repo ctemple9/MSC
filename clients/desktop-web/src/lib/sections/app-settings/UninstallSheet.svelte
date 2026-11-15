@@ -26,7 +26,7 @@
     !loading &&
     !busy &&
     acknowledged &&
-    confirmation === 'UNINSTALL MSC 2';
+    confirmation === 'UNINSTALL MSC';
 
   async function refresh(): Promise<void> {
     if (loading || busy) return;
@@ -47,7 +47,7 @@
     const path = await (
       await getPlatform()
     ).pickFilePath({
-      label: 'Select an MSC 2 installer',
+      label: 'Select an MSC installer',
       extensions: ['dmg', 'msi', 'deb', 'rpm'],
     });
     if (!path || installers.includes(path)) return;
@@ -84,7 +84,7 @@
 </script>
 
 <Sheet
-  title="Uninstall MSC 2"
+  title="Uninstall MSC"
   size="lg"
   onClose={busy || scheduled || showConfirmation ? undefined : onClose}
 >
@@ -104,9 +104,9 @@
     {:else}
       <h2>Remove MSC from this computer</h2>
       <p>
-        This permanently deletes the local agent, managed Minecraft servers, worlds and backups,
+        This permanently deletes the local engine, managed Minecraft servers, worlds and backups,
         settings, credentials, helpers, and installed MSC app. Saved remote connections on this
-        device are cleared; agents on other computers stay installed.
+        device are cleared; engines on other computers stay installed.
       </p>
       {#if loading}<p role="status">Inspecting the local installation…</p>{/if}
       {#if inventory}
@@ -163,7 +163,7 @@
         my home folder.</label
       >
       <div class="confirmation">
-        <label for="local-uninstall-confirm">Type <code>UNINSTALL MSC 2</code> to continue</label>
+        <label for="local-uninstall-confirm">Type <code>UNINSTALL MSC</code> to continue</label>
         <input
           id="local-uninstall-confirm"
           class="confirm-field"
@@ -180,7 +180,7 @@
       <div class="actions">
         <Button disabled={busy} onclick={onClose}>Cancel</Button>
         <Button variant="destructive" disabled={!ready} onclick={() => (showConfirmation = true)}
-          >{busy ? 'Scheduling removal…' : 'Uninstall MSC 2…'}</Button
+          >{busy ? 'Scheduling removal…' : 'Uninstall MSC…'}</Button
         >
       </div>
     {/if}
@@ -190,8 +190,8 @@
 <ConfirmDialog
   open={showConfirmation}
   context={`Computer: ${inventory?.computer ?? 'This computer'}`}
-  title="Permanently uninstall MSC 2?"
-  message="The listed local worlds, servers, backups, and MSC data will be deleted permanently. MSC will close and its local services and installed app will be removed. Remote agents will remain installed."
+  title="Permanently uninstall MSC?"
+  message="The listed local worlds, servers, backups, and MSC data will be deleted permanently. MSC will close and its local services and installed app will be removed. Remote engines will remain installed."
   confirmLabel="Uninstall and close MSC"
   onConfirm={() => void uninstall()}
   onClose={() => (showConfirmation = false)}
@@ -225,7 +225,7 @@
   .exclusions {
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .targets {
     list-style: none;
@@ -237,7 +237,7 @@
     flex-direction: column;
     gap: 4px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--msc2-hairline);
+    border-bottom: 1px solid var(--msc-hairline);
   }
   .path {
     font-size: 12px;
@@ -249,7 +249,7 @@
   }
   .error,
   .blocked .detail {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .actions {
     display: flex;
@@ -277,14 +277,14 @@
   }
   .confirm-field {
     padding: 9px 12px;
-    background: var(--msc2-tier-terminal);
-    color: var(--msc2-text-primary);
-    border: 1px solid var(--msc2-hairline);
+    background: var(--msc-tier-terminal);
+    color: var(--msc-text-primary);
+    border: 1px solid var(--msc-hairline);
     border-radius: 6px;
     font: inherit;
   }
   .confirm-field:focus-visible {
-    outline: 2px solid var(--msc2-text-secondary);
+    outline: 2px solid var(--msc-text-secondary);
     outline-offset: 2px;
   }
 </style>

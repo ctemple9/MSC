@@ -31,7 +31,7 @@ point at others. In inventory mode it requires, directly in this directory:
 
 Real Bedrock evidence (a top-level directory named `bedrock*`, containing
 its own `level.dat`) is optional and checked when present, per
-`docs/msc2/worlds/phase6-scope.md`'s Bedrock deferral (repair stays Phase
+`docs/msc/worlds/phase6-scope.md`'s Bedrock deferral (repair stays Phase
 10) -- never fabricated to fill this category.
 
 The checker's own passing and deliberately-broken self-test cases live
@@ -87,7 +87,7 @@ whose vanilla world format nests dimensions inside the main world folder
 of the classic sibling convention `WorldSlotManager.swift`'s multi-folder
 assumption was written against.
 
-the owner chose to relax the checker (`docs/msc2/rolling-plan.md`'s P6.3
+the owner chose to relax the checker (`docs/msc/rolling-plan.md`'s P6.3
 entry records the question and the choice) rather than chase evidence for a
 layout neither real server produces. `check_worlds_structure` now accepts
 all three real shapes — see this file's own requirements list above — and

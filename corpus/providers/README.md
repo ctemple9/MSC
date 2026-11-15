@@ -80,7 +80,7 @@ except `manifest.json` and `README.md`):
 - A fixture may carry an optional top-level `corpus_source` field — a list
   of paths, relative to `corpus/providers/`, naming which recorded
   response(s) it was characterized from. This is additive to the six
-  fields `docs/msc2/fixture-format.md` defines; existing fixture tooling
+  fields `docs/msc/fixture-format.md` defines; existing fixture tooling
   ignores fields it doesn't know about, so no fixtures actually need to
   change until they choose to carry this.
 - Every path a fixture cites must have a real manifest entry here — a
@@ -93,7 +93,7 @@ except `manifest.json` and `README.md`):
 ## Evidence mode (P7.28)
 
 `python3 tools/phase7/provider-corpus-check.py --evidence [DIR]` (default
-`DIR`: `docs/msc2/families/provisioning-evidence`). Independent of this
+`DIR`: `docs/msc/families/provisioning-evidence`). Independent of this
 corpus -- it checks the real-provisioning evidence P7.28 recorded there
 against the live internet, not against anything captured here. See that
 directory's own `README.md` for what was found. Requires exactly one
@@ -102,7 +102,7 @@ rest of the shape documented in the checker's own module docstring.
 
 ## P7.28 findings
 
-Real provisioning against the live internet (2026-08-19, `docs/msc2/
+Real provisioning against the live internet (2026-08-19, `docs/msc/
 families/provisioning-evidence/`) confirmed every finding above still holds
 one day later against live data -- Forge's `maven-metadata.xml`
 under-report, the `26.2` `YY.n` release, Java 25 required -- and surfaced

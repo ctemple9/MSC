@@ -4,7 +4,7 @@
 //! oracle, **not** `AppViewModel+ComponentsVersions.swift`'s
 //! `downloadAndApplyJarVersion`, a separate Mac-local-UI-only code path
 //! the remote route reimplements independently rather than calling (a
-//! fork-agent research pass confirmed this by reading both functions
+//! fork-engine research pass confirmed this by reading both functions
 //! end to end). Also composes `ServerJarProvider.listVersions(for:)`
 //! (`ServerJarProviders.swift:68-77`) for the version-listing half this
 //! step's own "What" line asks for.

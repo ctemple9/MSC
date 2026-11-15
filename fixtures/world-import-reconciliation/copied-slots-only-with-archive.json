@@ -3,7 +3,7 @@
   "case": "copied-slots-only-with-archive",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "activateSlot(_:for:...) archive-extraction branch, reused for Phase 6 reconciliation State 2 (world_slots only, archived) — see docs/msc2/worlds/phase6-scope.md §\"State 2 — world_slots only\"",
+    "test": "activateSlot(_:for:...) archive-extraction branch, reused for Phase 6 reconciliation State 2 (world_slots only, archived) — see docs/msc/worlds/phase6-scope.md §\"State 2 — world_slots only\"",
     "line": 707
   },
   "input": {

@@ -1,6 +1,6 @@
 //! Hand-written coverage of operation-model.md §3's transition table.
 //!
-//! Greenfield MSC 2 construction, not a port (per P2.9's own framing in
+//! Greenfield MSC construction, not a port (per P2.9's own framing in
 //! `rolling-plan.md`: "MSC 1 has no operation-journal concept... there is
 //! no MSC 1 fixture to extract"), so unlike most of `msc-domain`'s test
 //! suite this exercises the implementation directly against its written

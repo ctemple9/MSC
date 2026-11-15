@@ -1,7 +1,7 @@
 <script lang="ts">
   // One surface, hairline dividers inset past the icon — not a card per row.
   // Compose inside <Card padding="0"> for the divided-list container.
-  // docs/msc2/renderings/primitives.html
+  // docs/msc/renderings/primitives.html
   export let title: string;
   export let subtitle = '';
   export let last = false;
@@ -90,7 +90,7 @@
 
   .title {
     font-size: 13px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 
   .subtitle {
@@ -106,7 +106,7 @@
 
   .divider {
     height: 1px;
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
     margin-left: 41px;
   }
 </style>

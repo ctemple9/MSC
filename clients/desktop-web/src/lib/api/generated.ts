@@ -1,5 +1,5 @@
-// Generated from docs/msc2/api-contract/openapi.json. Do not edit by hand.
-// Contract SHA-256: a9953910ae42c11e609bedd587d75a12b5c78c16d363552e04b9e91d86b786db
+// Generated from docs/msc/api-contract/openapi.json. Do not edit by hand.
+// Contract SHA-256: d27e6fdc454a98d54925167d346fd0b048c2de1b266df346d86a6146caa183b5
 
 export interface paths {
   '/v1/active-server': {
@@ -917,7 +917,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Report agent capabilities for this host and this token */
+    /** Report engine capabilities for this host and this token */
     get: {
       parameters: {
         query?: {
@@ -1586,7 +1586,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get whether this agent has a CurseForge API key */
+    /** Get whether this engine has a CurseForge API key */
     get: {
       parameters: {
         query?: never;
@@ -1617,7 +1617,7 @@ export interface paths {
       };
     };
     put?: never;
-    /** Save or clear this agent's CurseForge API key */
+    /** Save or clear this engine's CurseForge API key */
     post: {
       parameters: {
         query?: never;
@@ -1760,7 +1760,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get whether one-time setup is complete for this agent host */
+    /** Get whether one-time setup is complete for this engine host */
     get: {
       parameters: {
         query?: never;
@@ -1798,7 +1798,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Mark one-time setup complete for this agent host */
+    /** Mark one-time setup complete for this engine host */
     post: {
       parameters: {
         query?: never;
@@ -2012,7 +2012,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get the folder where this agent stores servers */
+    /** Get the folder where this engine stores servers */
     get: {
       parameters: {
         query?: never;
@@ -2034,7 +2034,7 @@ export interface paths {
       };
     };
     put?: never;
-    /** Set the folder where this agent stores servers */
+    /** Set the folder where this engine stores servers */
     post: {
       parameters: {
         query?: never;
@@ -3766,7 +3766,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Install a Java runtime the agent manages itself */
+    /** Install a Java runtime the engine manages itself */
     post: operations['installJavaRuntime'];
     delete?: never;
     options?: never;
@@ -4867,7 +4867,7 @@ export interface paths {
     put?: never;
     /**
      * Clear host-local Playit credentials and derived state
-     * @description Stops every MSC-managed Playit helper before clearing the host-scoped agent key, saved agent ID, public addresses, and setup prompt state. The operation is idempotent: an already-clear host returns success. It never deletes Playit cloud agents or tunnels.
+     * @description Stops every MSC-managed Playit helper before clearing the host-scoped engine key, saved engine ID, public addresses, and setup prompt state. The operation is idempotent: an already-clear host returns success. It never deletes Playit cloud engines or tunnels.
      */
     post: operations['resetPlayit'];
     delete?: never;
@@ -4887,7 +4887,7 @@ export interface paths {
     put?: never;
     /**
      * Start native Playit account and tunnel setup
-     * @description Accepts Playit email and password only through the authenticated MSC agent API. The agent signs in, claims or reuses the host's Playit agent, creates or reuses applicable tunnels, and reports progress through the shared operation routes. Credentials and temporary Playit session details are memory-only; the resulting agent key is stored in the host secret store and is never returned.
+     * @description Accepts Playit email and password only through the authenticated MSC engine API. The engine signs in, claims or reuses the host's Playit engine, creates or reuses applicable tunnels, and reports progress through the shared operation routes. Credentials and temporary Playit session details are memory-only; the resulting engine key is stored in the host secret store and is never returned.
      */
     post: operations['setupPlayit'];
     delete?: never;
@@ -8662,7 +8662,7 @@ export interface components {
         duckdns: boolean;
         geyser: boolean;
         playit: boolean;
-        /** @description Optional installed-state probe for the Tailscale helper. Absent on older agents. */
+        /** @description Optional installed-state probe for the Tailscale helper. Absent on older engines. */
         tailscale?: boolean;
       } & {
         [key: string]: unknown;
@@ -8682,7 +8682,7 @@ export interface components {
         | 'fleet'
         | 'admin'
       )[];
-      /** @description The agent supports server-scoped player commands and Bedrock allowlist edits. Older agents omit this flag. */
+      /** @description The engine supports server-scoped player commands and Bedrock allowlist edits. Older engines omit this flag. */
       playerActions?: boolean;
       /** @description Java flags and Bedrock runtime state are host capabilities. Bedrock uses the separate D-022 compatibility matrix for published evidence. */
       serverTypes: {
@@ -8977,7 +8977,7 @@ export interface components {
       [key: string]: unknown;
     };
     ConsoleLineDTO: {
-      /** @description True when the agent identifies the line as routine automatic output. */
+      /** @description True when the engine identifies the line as routine automatic output. */
       auto?: boolean;
       level?: string;
       /**
@@ -9556,13 +9556,13 @@ export interface components {
     /** @description Reset admitted. Acceptance is not completion; poll the narrow completion receipt, which survives credential revocation. */
     HostResetAcceptedDTO: {
       /**
-       * @description Truthful post-admission state: the agent will restart, remains installed but requires fresh pairing, or cannot be reached to report completion.
+       * @description Truthful post-admission state: the engine will restart, remains installed but requires fresh pairing, or cannot be reached to report completion.
        * @enum {string}
        */
       agentState: 'restarting' | 'needs_pairing' | 'unavailable';
       /** @description Random capability for reading only this reset outcome after credentials are revoked. Keep private. */
       completionToken?: string;
-      /** @description The pre-reset agent host identity, for client-side correlation only. */
+      /** @description The pre-reset engine host identity, for client-side correlation only. */
       hostId: string;
       message: string;
       /** @enum {string} */
@@ -9578,9 +9578,9 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
-    /** @description A destructive host reset request. The serving agent validates the administrator credential and the fixed confirmation phrase before starting the reset. */
+    /** @description A destructive host reset request. The serving engine validates the administrator credential and the fixed confirmation phrase before starting the reset. */
     HostResetRequestDTO: {
-      /** @description Must exactly equal RESET AGENT. */
+      /** @description Must exactly equal RESET ENGINE. */
       confirmation: string;
       /**
        * @description configuration clears MSC host state but preserves the managed server tree; everything removes that tree too.
@@ -9667,7 +9667,7 @@ export interface components {
       executablePath?: string;
       reason?: string;
       requiredMajor?: number;
-      /** @description available, unavailable, or unknown; newer agents may add states. */
+      /** @description available, unavailable, or unknown; newer engines may add states. */
       state: string;
     } & {
       [key: string]: unknown;
@@ -9680,7 +9680,7 @@ export interface components {
       [key: string]: unknown;
     };
     JavaRuntimeInstallRequestDTO: {
-      /** @description One of JavaInstaller.minecraftInstallOptions' four majors (8/17/21/25, P7.7). OS/architecture are never client-supplied -- the agent always installs for its own host (D-009). */
+      /** @description One of JavaInstaller.minecraftInstallOptions' four majors (8/17/21/25, P7.7). OS/architecture are never client-supplied -- the engine always installs for its own host (D-009). */
       major: number;
     } & {
       [key: string]: unknown;
@@ -9743,7 +9743,7 @@ export interface components {
     ModpackInspectionResultDTO: {
       /** @description Files this pack's own precedence chain (manifest/Modrinth/embedded-jar/known-list, phase8-scope.md) will skip or disable -- reported so a client can show 'N files' vs 'N will actually install' before committing to import. */
       clientOnlyFileCount?: number;
-      /** @description Whether MSC successfully resolved this CurseForge pack's file IDs during inspection. False means the file list is unknown, usually because no API key is configured or the provider lookup failed. Omitted by older agents for backward compatibility. */
+      /** @description Whether MSC successfully resolved this CurseForge pack's file IDs during inspection. False means the file list is unknown, usually because no API key is configured or the provider lookup failed. Omitted by older engines for backward compatibility. */
       curseforgeLookupAvailable?: boolean;
       fileCount: number;
       /** @description Manifest files available for an mrpack inspection. CurseForge packs leave this empty because their file ids need provider resolution. */
@@ -9801,10 +9801,10 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
-    /** @description Protocol 1 supports bounded streamUpload. localHandoff is true only while the private installing-user Unix descriptor endpoint is available. P20.5 serverArchive enables raw ZIP, generated server-folder TAR, local folder descriptor and MSC-transfer staging/import plus SHA-256 verified streamed downloads. Remote and Windows folders generate an exact-length uncompressed TAR directly into the bounded native stream; no complete source archive is written on the desktop. Omission means an older agent; explicit false means unavailable. Permission and staging recovery dependent. */
+    /** @description Protocol 1 supports bounded streamUpload. localHandoff is true only while the private installing-user Unix descriptor endpoint is available. P20.5 serverArchive enables raw ZIP, generated server-folder TAR, local folder descriptor and MSC-transfer staging/import plus SHA-256 verified streamed downloads. Remote and Windows folders generate an exact-length uncompressed TAR directly into the bounded native stream; no complete source archive is written on the desktop. Omission means an older engine; explicit false means unavailable. Permission and staging recovery dependent. */
     NativeTransfersDTO: {
       /**
-       * @description P20.6: supports explicit creation-time world/add-on/modpack inputs without an existing server. Missing/false requires an agent update for these native inputs.
+       * @description P20.6: supports explicit creation-time world/add-on/modpack inputs without an existing server. Missing/false requires an engine update for these native inputs.
        * @default false
        */
       creationContext: boolean;
@@ -10033,7 +10033,7 @@ export interface components {
       ts: string;
       /**
        * Format: int64
-       * @description Current Minecraft daylight-cycle day when the running server has answered the agent's world-time query.
+       * @description Current Minecraft daylight-cycle day when the running server has answered the engine's world-time query.
        */
       worldDay?: number;
       worldSizeMB?: components['schemas']['PerformanceMetricNumberDTO'];
@@ -10209,7 +10209,7 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
-    /** @description Admission response for a native Playit setup operation. It contains no submitted credential, agent key, or provider session detail. */
+    /** @description Admission response for a native Playit setup operation. It contains no submitted credential, engine key, or provider session detail. */
     PlayitSetupAcceptedDTO: {
       message?: string | null;
       /** @description Opaque operation identifier for GET /v1/operations/{id} or the operation stream. */
@@ -10825,7 +10825,7 @@ export interface components {
     };
     ServerCreateRequestDTO: {
       acceptEula?: boolean;
-      /** @description Requested BDS release for serverType=bedrock. The agent resolves and verifies the platform-appropriate distribution entry. */
+      /** @description Requested BDS release for serverType=bedrock. The engine resolves and verifies the platform-appropriate distribution entry. */
       bedrockVersion?: string;
       /** @description Whether provider-backed mod/plugin update checks are enabled for the new server. Defaults to false. */
       checkAddonUpdates?: boolean;
@@ -10836,7 +10836,7 @@ export interface components {
       dockerImage?: string;
       enableCrossPlay?: boolean;
       enablePlayit?: boolean;
-      /** @description Creation-time intent from a staged Simple Voice Chat add-on. The agent creates the voice tunnel only after an active SVC plugin or mod is present in plugins/ or mods/. */
+      /** @description Creation-time intent from a staged Simple Voice Chat add-on. The engine creates the voice tunnel only after an active SVC plugin or mod is present in plugins/ or mods/. */
       enableVoiceChat?: boolean;
       enableXboxBroadcast?: boolean;
       gamemode?: string;
@@ -10855,7 +10855,7 @@ export interface components {
       versionId?: string;
       worldName?: string;
       worldSeed?: string;
-      /** @description Optional complete profile for the first fresh world. The agent applies it before the server's first start. */
+      /** @description Optional complete profile for the first fresh world. The engine applies it before the server's first start. */
       worldSettings?: components['schemas']['ServerCreateWorldSettingsDTO'];
     } & {
       [key: string]: unknown;
@@ -10873,7 +10873,7 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
-    /** @description Creation-time world profile. Safety and readback metadata are produced by the agent after the world slot exists. */
+    /** @description Creation-time world profile. Safety and readback metadata are produced by the engine after the world slot exists. */
     ServerCreateWorldSettingsDTO: {
       gameplay?: components['schemas']['WorldGameplayDTO'];
       generation?: components['schemas']['WorldGenerationDTO'];
@@ -10932,7 +10932,7 @@ export interface components {
       /** @description Source manifest identity for servers created from or imported from a recognized modpack. Missing fields remain absent. */
       modpackIdentity?: components['schemas']['ModpackIdentityDTO'];
       name: string;
-      /** @description Agent-owned Overview notes for this server. */
+      /** @description Engine-owned Overview notes for this server. */
       notes?: string;
       /** @description Whether Playit is enabled for this server. */
       playitEnabled?: boolean;
@@ -11010,9 +11010,9 @@ export interface components {
       maxPlayers?: number;
       port?: number;
       serverType?: string;
-      /** @description Agent-local source for scan/importExisting/importTransfer, mutually exclusive with stagedUploadId; omitted for rescan. */
+      /** @description Engine-local source for scan/importExisting/importTransfer, mutually exclusive with stagedUploadId; omitted for rescan. */
       sourcePath?: string;
-      /** @description P20.5: verified native raw-server-archive/raw-server-folder or msc-transfer-archive. Mutually exclusive with sourcePath. scan leases the input; import redeems it once. Existing agent-local sourcePath remains supported. */
+      /** @description P20.5: verified native raw-server-archive/raw-server-folder or msc-transfer-archive. Mutually exclusive with sourcePath. scan leases the input; import redeems it once. Existing engine-local sourcePath remains supported. */
       stagedUploadId?: string;
       transferMode?: string;
     } & {
@@ -11232,7 +11232,7 @@ export interface components {
       fileId?: string;
       /** @description The client-provided name of the file in this staged upload, used to preserve the provider's expected filename during manual modpack recovery. */
       fileName?: string;
-      /** @description Required, curseforge-manual-file only: the pending modpack-import operation this upload resumes. The agent looks up the expected file's own reported byte size/name from CurseForge's file metadata already recorded against that operation -- maxBytes on the result is sized to that exact file, not a flat ceiling. */
+      /** @description Required, curseforge-manual-file only: the pending modpack-import operation this upload resumes. The engine looks up the expected file's own reported byte size/name from CurseForge's file metadata already recorded against that operation -- maxBytes on the result is sized to that exact file, not a flat ceiling. */
       operationId?: string;
       /** @enum {string} */
       purpose:
@@ -11249,7 +11249,7 @@ export interface components {
     StagedUploadBeginResultDTO: {
       expiresAt: string;
       maxBytes: number;
-      /** @description Maximum chunk request size supported by this agent; omitted by older agents. */
+      /** @description Maximum chunk request size supported by this engine; omitted by older engines. */
       maxChunkBytes?: number;
       stagedUploadId: string;
       /** @description PUT /v1/staged-uploads/{id} -- bounded to this token, not an arbitrary remote path. */
@@ -11700,7 +11700,7 @@ export interface components {
       };
       hardcore?: boolean | null;
       startingMap?: boolean | null;
-      /** @description Edition-specific gameplay toggles advertised by the agent. */
+      /** @description Edition-specific gameplay toggles advertised by the engine. */
       supportedToggles: {
         [key: string]: boolean;
       };
@@ -11874,16 +11874,16 @@ export interface components {
       /** @description Edition-specific pack records owned by this slot. Pack files stay below this world's root and travel with its archive. */
       packs: components['schemas']['WorldPackRecordDTO'][];
       safety: components['schemas']['WorldSafetyDTO'];
-      /** @description World profile schema version. Version 1 is the initial MSC 2 shape. */
+      /** @description World profile schema version. Version 1 is the initial MSC shape. */
       schemaVersion: number;
     } & {
       [key: string]: unknown;
     };
     /** @description Capability and teaching metadata for one world-profile field. */
     WorldProfileFieldMetadataDTO: {
-      /** @description Capability key supplied by the agent for this field. */
+      /** @description Capability key supplied by the engine for this field. */
       capability: string;
-      /** @description Agent-served explanation resolved through GET /v1/help/{helpId}. */
+      /** @description Engine-served explanation resolved through GET /v1/help/{helpId}. */
       helpId?: string | null;
       /** @enum {string} */
       lifecycle: 'creation_only' | 'apply_on_activation' | 'live_safe' | 'restart_required';
@@ -12660,7 +12660,7 @@ export interface operations {
       };
     };
     responses: {
-      /** @description Reset accepted as a journaled operation. The old credential may stop working while the agent restarts or changes to a needs-pairing/unavailable state. */
+      /** @description Reset accepted as a journaled operation. The old credential may stop working while the engine restarts or changes to a needs-pairing/unavailable state. */
       202: {
         headers: {
           [name: string]: unknown;

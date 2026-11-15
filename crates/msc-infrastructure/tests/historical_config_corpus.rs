@@ -30,7 +30,7 @@ struct TempRoot {
 impl TempRoot {
     fn new(label: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "msc2-historical-config-corpus-{label}-{}-{}",
+            "msc-historical-config-corpus-{label}-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -116,7 +116,7 @@ fn exercise_one_config(source_path: &Path, label: &str) -> Result<(), String> {
     std::fs::write(&work_path, &original_bytes).map_err(|e| format!("stage copy: {e}"))?;
 
     let fs_impl = StdFileSystem;
-    let defaults = AppConfig::default_config("/tmp/msc2-historical-config-corpus/servers");
+    let defaults = AppConfig::default_config("/tmp/msc-historical-config-corpus/servers");
     let now = SystemTime::now();
 
     let first =

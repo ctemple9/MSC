@@ -152,12 +152,12 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .empty p {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     text-align: center;
   }
   .chart {
@@ -167,32 +167,32 @@
     cursor: crosshair;
   }
   .grid-line {
-    stroke: var(--msc2-hairline-faint);
+    stroke: var(--msc-hairline-faint);
     stroke-width: 1;
   }
   .reference-line {
-    stroke: var(--msc2-hairline);
+    stroke: var(--msc-hairline);
     stroke-width: 1;
     stroke-dasharray: 3 3;
   }
   .tick-label {
     font-size: 8px;
-    fill: var(--msc2-text-tertiary);
+    fill: var(--msc-text-tertiary);
   }
   .crosshair {
-    stroke: var(--msc2-hairline);
+    stroke: var(--msc-hairline);
     stroke-width: 1;
   }
   .hover-dot {
-    stroke: var(--msc2-tier-content);
+    stroke: var(--msc-tier-content);
     stroke-width: 1.5;
   }
   .tooltip-bg {
-    fill: var(--msc2-neutral-elevated);
+    fill: var(--msc-neutral-elevated);
   }
   .tooltip-text {
     font-size: 10px;
     font-weight: 500;
-    fill: var(--msc2-text-primary);
+    fill: var(--msc-text-primary);
   }
 </style>

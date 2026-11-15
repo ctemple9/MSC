@@ -367,7 +367,7 @@ fn raw_server_scan_zip_single_root_folder_unwrapped_before_scan() {
 #[allow(clippy::redundant_closure_call)]
 fn raw_server_scan_indexes_large_macos_zip_without_extracting_it() {
     let zip_path = std::env::temp_dir().join(format!(
-        "msc2-raw-scan-{}-{}.zip",
+        "msc-raw-scan-{}-{}.zip",
         std::process::id(),
         std::thread::current().name().unwrap_or("test")
     ));

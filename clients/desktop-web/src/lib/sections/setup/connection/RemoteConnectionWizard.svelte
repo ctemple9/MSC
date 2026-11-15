@@ -32,7 +32,7 @@
     { value: 'tailscale', label: 'Tailscale' },
   ];
   const authenticationOptions = [
-    { value: 'agent', label: 'SSH agent' },
+    { value: 'keychain', label: 'SSH key helper' },
     { value: 'private-key', label: 'Private key' },
     { value: 'password', label: 'Password' },
   ];
@@ -49,7 +49,7 @@
   let localForwardedPort: number | string = 48002;
   let preferredRoute: HostRoute = 'lan';
   let manualTunnel = false;
-  let manualAgentAddress = 'http://127.0.0.1:48002';
+  let manualEngineAddress = 'http://127.0.0.1:48002';
   let pairingCode = '';
   let expectedHostKeyFingerprint = '';
   let hostKeyReview: RemoteDesktopPairingResult | undefined;
@@ -98,7 +98,7 @@
     localForwardedPort = 48002;
     preferredRoute = 'lan';
     manualTunnel = false;
-    manualAgentAddress = 'http://127.0.0.1:48002';
+    manualEngineAddress = 'http://127.0.0.1:48002';
     pairingCode = '';
     expectedHostKeyFingerprint = '';
     hostKeyReview = undefined;
@@ -118,8 +118,8 @@
     localForwardedPort = host.localForwardedPort ?? 48002;
     preferredRoute =
       host.preferredRouteOrder[0] ?? (host.tailscaleAddresses.length ? 'tailscale' : 'lan');
-    manualTunnel = !host.tryDirectFirst && Boolean(host.manualAgentAddress);
-    manualAgentAddress = host.manualAgentAddress ?? manualAgentAddress;
+    manualTunnel = !host.tryDirectFirst && Boolean(host.manualEngineAddress);
+    manualEngineAddress = host.manualEngineAddress ?? manualEngineAddress;
   }
 
   function validationMessage(): string {
@@ -137,7 +137,7 @@
     if (authentication === 'private-key' && !privateKeyPath.trim()) {
       return 'Enter the path or OS reference for the private key.';
     }
-    if (manualTunnel && !manualAgentAddress.trim()) {
+    if (manualTunnel && !manualEngineAddress.trim()) {
       return 'Enter the local address of the tunnel you already maintain.';
     }
     return '';
@@ -180,7 +180,7 @@
   }
 
   function selectedBaseUrl(): string {
-    if (manualTunnel) return manualAgentAddress.trim();
+    if (manualTunnel) return manualEngineAddress.trim();
     return `http://127.0.0.1:${portNumber(localForwardedPort) ?? DEFAULT_LOCAL_FORWARDED_PORT}`;
   }
 
@@ -229,7 +229,7 @@
         managementPort: portNumber(managementPort) ?? DEFAULT_MANAGEMENT_PORT,
         localForwardedPort: portNumber(localForwardedPort) ?? DEFAULT_LOCAL_FORWARDED_PORT,
         manualTunnel,
-        ...(manualTunnel ? { manualAgentAddress: manualAgentAddress.trim() } : {}),
+        ...(manualTunnel ? { manualEngineAddress: manualEngineAddress.trim() } : {}),
         baseUrl: selectedBaseUrl(),
         pairingCode: pairingCode.trim(),
         ...(expectedHostKeyFingerprint ? { expectedHostKeyFingerprint } : {}),
@@ -252,7 +252,7 @@
 <div class="wizard" aria-label="Connect to another host wizard">
   {#if step === 'details'}
     <section class="form-section">
-      <p class="msc2-type-overline">The host</p>
+      <p class="msc-type-overline">The host</p>
       <label class="field-label">
         Host name
         <Field bind:value={displayName} placeholder="Home server" />
@@ -279,7 +279,7 @@
         <summary>How do I find these addresses?</summary>
         <div class="address-help-content">
           <p class="section-help">
-            Find these on the computer running the MSC agent, not on this computer.
+            Find these on the computer running the MSC engine, not on this computer.
           </p>
           <div>
             <h3 class="address-help-heading">LAN address</h3>
@@ -301,8 +301,8 @@
           <div>
             <h3 class="address-help-heading">Tailscale address</h3>
             <p class="section-help">
-              If Tailscale is installed and connected on the agent computer, find its address in the
-              Tailscale app or run <code>tailscale ip -4</code> there. Tailscale is optional.
+              If Tailscale is installed and connected on the engine computer, find its address in
+              the Tailscale app or run <code>tailscale ip -4</code> there. Tailscale is optional.
             </p>
           </div>
         </div>
@@ -310,7 +310,7 @@
     </section>
 
     <section class="form-section">
-      <p class="msc2-type-overline">SSH access</p>
+      <p class="msc-type-overline">SSH access</p>
       <p class="section-help">
         MSC uses SSH to create a private tunnel to the address selected below. Your password is used
         only for the connection attempt; MSC saves a key path, never the key contents.
@@ -331,12 +331,12 @@
           <Field bind:value={privateKeyPath} placeholder="~/.ssh/id_ed25519" />
         </label>
       {:else}
-        <p class="field-help">MSC will ask the operating system's SSH agent for the key.</p>
+        <p class="field-help">MSC will ask the operating system's SSH key helper for the key.</p>
       {/if}
     </section>
 
     <section class="form-section">
-      <p class="msc2-type-overline">SSH tunnel</p>
+      <p class="msc-type-overline">SSH tunnel</p>
       <div class="route-row">
         <div>
           <span class="field-label">Connect over</span>
@@ -352,7 +352,7 @@
           Remote MSC management port
           <NumberField bind:value={managementPort} min={1} max={65535} width="100%" />
           <span class="field-help"
-            >The agent listens on 48001 by default. This is not a Minecraft port.</span
+            >The engine listens on 48001 by default. This is not a Minecraft port.</span
           >
         </label>
         <label class="field-label">
@@ -375,7 +375,7 @@
   {:else}
     <div class="intro">
       <h2>Review this host before saving it</h2>
-      <p>MSC will use this plan to reach the agent and keep the host's identity stable.</p>
+      <p>MSC will use this plan to reach the engine and keep the host's identity stable.</p>
     </div>
 
     <section class="review-summary">
@@ -396,7 +396,9 @@
               : 'Tailscale'}</strong
         >
       </div>
-      <div class="summary-row"><span>Agent port</span><strong>{managementPort}</strong></div>
+      <div class="summary-row">
+        <span>Background Service port</span><strong>{managementPort}</strong>
+      </div>
       <div class="summary-row">
         <span>Local tunnel port</span><strong>{localForwardedPort}</strong>
       </div>
@@ -408,10 +410,10 @@
     </section>
 
     <section class="command-explanation">
-      <p class="msc2-type-overline">What MSC is doing</p>
+      <p class="msc-type-overline">What MSC is doing</p>
       <p>
         The managed tunnel is equivalent to the command below. It forwards this computer's local
-        port to the agent's loopback-only management port on the other computer. You do not need to
+        port to the engine's loopback-only management port on the other computer. You do not need to
         open Terminal or run this command yourself.
       </p>
       <div class="command-row">
@@ -439,13 +441,13 @@
       {#if hostKeyReview}
         <div class="host-key-review" role="alert">
           {#if hostKeyReview.state === 'awaiting-host-key'}
-            <p class="msc2-type-overline">Could not save this connection</p>
+            <p class="msc-type-overline">Could not save this connection</p>
             <p>
               MSC could not remember this computer's SSH identity. Check that secure storage is
               available, then try again.
             </p>
           {:else}
-            <p class="msc2-type-overline">SSH identity changed</p>
+            <p class="msc-type-overline">SSH identity changed</p>
             <p>
               This server's SSH identity no longer matches the one MSC remembers. If you recently
               reinstalled SSH or replaced the server, confirm it is still your computer before
@@ -514,7 +516,7 @@
   }
 
   h2 {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 15px;
     font-weight: 600;
   }
@@ -525,7 +527,7 @@
   .command-explanation p,
   .inline-warning,
   .error {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -533,7 +535,7 @@
   .form-section {
     gap: 10px;
     padding-top: 14px;
-    border-top: 1px solid var(--msc2-hairline-faint);
+    border-top: 1px solid var(--msc-hairline-faint);
   }
 
   .field-grid.two-up {
@@ -544,7 +546,7 @@
   .field-label {
     display: grid;
     gap: 5px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
   }
 
@@ -555,12 +557,12 @@
   }
 
   .field-help {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
 
   .address-help summary {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     cursor: pointer;
     font-size: 12px;
   }
@@ -573,7 +575,7 @@
 
   .address-help-heading {
     margin: 0 0 4px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
     font-weight: 500;
   }
@@ -583,24 +585,24 @@
     gap: 5px;
     margin: 0;
     padding-left: 18px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.5;
   }
 
   .address-help-content strong {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
 
   .address-help-content code {
-    color: var(--msc2-text-primary);
-    font-family: var(--msc2-font-mono, monospace);
+    color: var(--msc-text-primary);
+    font-family: var(--msc-font-mono, monospace);
     font-size: 11px;
   }
 
   .optional {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
 
@@ -617,7 +619,7 @@
   }
 
   .inline-warning {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
 
   .wizard-actions {
@@ -628,7 +630,7 @@
 
   .review-summary {
     display: grid;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 9px;
     overflow: hidden;
   }
@@ -638,7 +640,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 9px 12px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     font-size: 12px;
   }
 
@@ -647,11 +649,11 @@
   }
 
   .summary-row span {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .summary-row strong {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
     text-align: right;
     overflow-wrap: anywhere;
@@ -661,7 +663,7 @@
     display: grid;
     gap: 8px;
     padding-top: 14px;
-    border-top: 1px solid var(--msc2-hairline-faint);
+    border-top: 1px solid var(--msc-hairline-faint);
   }
 
   .host-key-review {
@@ -670,8 +672,8 @@
     padding-top: 2px;
   }
 
-  .host-key-review > p:not(.msc2-type-overline) {
-    color: var(--msc2-text-secondary);
+  .host-key-review > p:not(.msc-type-overline) {
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -685,12 +687,12 @@
   .command-row :global(.field) {
     min-width: 0;
     flex: 1;
-    font-family: var(--msc2-font-mono, monospace);
+    font-family: var(--msc-font-mono, monospace);
     font-size: 11px;
   }
 
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
 
   @media (max-width: 640px) {

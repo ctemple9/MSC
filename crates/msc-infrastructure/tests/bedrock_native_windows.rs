@@ -37,7 +37,7 @@ fn windows_direct_udp_preflight_reports_an_occupied_port() {
 #[cfg(target_os = "windows")]
 fn windows_server_directory_file_lock_is_observable_before_start() {
     let path = std::env::temp_dir().join(format!(
-        "msc2-bedrock-windows-lock-{}.dat",
+        "msc-bedrock-windows-lock-{}.dat",
         std::process::id()
     ));
     let _ = fs::remove_file(&path);

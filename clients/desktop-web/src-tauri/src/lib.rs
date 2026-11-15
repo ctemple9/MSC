@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 #[cfg(any(not(target_os = "linux"), debug_assertions, test))]
 use std::sync::Mutex;
 
-mod agent_indicator;
+mod engine_indicator;
 mod indicator_startup;
 mod native_transfer;
 mod ssh;
@@ -25,9 +25,9 @@ mod windows_service;
 
 const DESKTOP_CREDENTIAL_KEY_PREFIX: &str = "msc.desktop.host-token.";
 const LOCAL_HOST_ID_KEY: &str = "msc.desktop.local-agent-host-id";
-const AGENT_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
-const AGENT_PORT: u16 = 48001;
-const LOCAL_AGENT_ORIGIN: &str = "http://127.0.0.1:48001";
+const ENGINE_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
+const ENGINE_PORT: u16 = 48001;
+const LOCAL_ENGINE_ORIGIN: &str = "http://127.0.0.1:48001";
 const LOCAL_BOOTSTRAP_SOCKET: &str = "local-bootstrap.sock";
 
 #[tauri::command]
@@ -41,19 +41,19 @@ const PROTOCOL_VERSION: u32 = 1;
 #[cfg(target_os = "macos")]
 const PROOF_DOMAIN: &[u8] = b"msc2-local-bootstrap-v1\0";
 #[cfg(any(not(target_os = "linux"), debug_assertions, test))]
-static STAGED_PACKAGED_AGENT_PATH: PackagedAgentPathCache = PackagedAgentPathCache::new();
+static STAGED_PACKAGED_ENGINE_PATH: PackagedEnginePathCache = PackagedEnginePathCache::new();
 
 #[cfg(any(not(target_os = "linux"), debug_assertions, test))]
-struct PackagedAgentPathCache(Mutex<Option<Result<PathBuf, String>>>);
+struct PackagedEnginePathCache(Mutex<Option<Result<PathBuf, String>>>);
 
 #[cfg(any(not(target_os = "linux"), debug_assertions, test))]
-impl PackagedAgentPathCache {
+impl PackagedEnginePathCache {
     const fn new() -> Self {
         Self(Mutex::new(None))
     }
 
     fn resolve(&self, stage: impl FnOnce() -> Result<PathBuf, String>) -> Result<PathBuf, String> {
-        let mut cached = self.0.lock().expect("packaged agent path cache poisoned");
+        let mut cached = self.0.lock().expect("packaged engine path cache poisoned");
         if let Some(path) = cached.as_ref() {
             return path.clone();
         }
@@ -64,14 +64,14 @@ impl PackagedAgentPathCache {
 
     fn refresh(&self, stage: impl FnOnce() -> Result<PathBuf, String>) -> Result<PathBuf, String> {
         let path = stage();
-        *self.0.lock().expect("packaged agent path cache poisoned") = Some(path.clone());
+        *self.0.lock().expect("packaged engine path cache poisoned") = Some(path.clone());
         path
     }
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-enum AgentServiceAction {
+enum EngineServiceAction {
     Install,
     Start,
     Stop,
@@ -81,7 +81,7 @@ enum AgentServiceAction {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct AgentServiceStatus {
+struct EngineServiceStatus {
     available: bool,
     platform: &'static str,
     service_name: &'static str,
@@ -209,7 +209,7 @@ struct LocalBootstrapResponse {
 }
 
 /// Redeems a pairing code entirely in the native process. The webview receives
-/// only the agent host ID; the bearer value goes directly to the platform
+/// only the engine host ID; the bearer value goes directly to the platform
 /// credential store and is never a Tauri command result.
 #[tauri::command]
 async fn desktop_exchange_pairing(
@@ -229,7 +229,7 @@ async fn desktop_exchange_pairing(
         return Err(describe_pairing_refusal(response.status().as_u16()));
     }
     let result: DesktopCredentialResult = response.json().await.map_err(|error| {
-        format!("MSC agent: Desktop pairing returned an invalid response: {error}")
+        format!("MSC engine: Desktop pairing returned an invalid response: {error}")
     })?;
     if result.agent_host_id.trim().is_empty()
         || result.credential_id.trim().is_empty()
@@ -275,10 +275,10 @@ async fn desktop_automate_remote_pairing(
     }
 
     let agent_host_id = bootstrap.agent_host_id.ok_or_else(|| {
-        "MSC agent: The remote MSC pairing command returned no host identity.".to_string()
+        "MSC engine: The remote MSC pairing command returned no host identity.".to_string()
     })?;
     let pairing_code = bootstrap.pairing_code.as_deref().ok_or_else(|| {
-        "MSC agent: The remote MSC pairing command returned no pairing challenge.".to_string()
+        "MSC engine: The remote MSC pairing command returned no pairing challenge.".to_string()
     })?;
     let fingerprint = bootstrap.host_key_fingerprint.as_deref().ok_or_else(|| {
         "SSH: The remote MSC pairing command returned no host fingerprint.".to_string()
@@ -290,7 +290,7 @@ async fn desktop_automate_remote_pairing(
     }
     let credential: DesktopCredentialResult =
         serde_json::from_slice(&response.body).map_err(|error| {
-            format!("MSC agent: Desktop pairing returned an invalid response: {error}")
+            format!("MSC engine: Desktop pairing returned an invalid response: {error}")
         })?;
     if credential.agent_host_id != agent_host_id
         || credential.credential_id.trim().is_empty()
@@ -324,18 +324,18 @@ fn describe_pairing_refusal(status: u16) -> String {
         409 => "Authentication: This desktop pairing code was already used. Create a new code and try again."
             .to_string(),
         410 => "Authentication: This desktop pairing code expired. Create a new code and try again.".to_string(),
-        401 | 403 => "Authentication: The desktop pairing code was refused by the remote agent.".to_string(),
-        426 => "MSC agent: The remote agent is below the supported client version floor.".to_string(),
-        503 => "MSC agent: The remote agent is stopped or unavailable.".to_string(),
-        _ => format!("MSC agent: Desktop pairing was refused (HTTP {status})."),
+        401 | 403 => "Authentication: The desktop pairing code was refused by the remote engine.".to_string(),
+        426 => "MSC engine: The remote engine is below the supported client version floor.".to_string(),
+        503 => "MSC engine: The remote engine is stopped or unavailable.".to_string(),
+        _ => format!("MSC engine: Desktop pairing was refused (HTTP {status})."),
     }
 }
 
-/// Authorizes this desktop with the local agent using the platform bootstrap
+/// Authorizes this desktop with the local engine using the platform bootstrap
 /// or host-local one-use pairing. Credentials remain in the native store.
 #[tauri::command]
 async fn desktop_bootstrap_local() -> Result<DesktopPairingResult, String> {
-    ensure_current_local_agent_service()?;
+    ensure_current_local_engine_service()?;
     #[cfg(target_os = "macos")]
     {
         return bootstrap_local_macos();
@@ -359,7 +359,7 @@ async fn bootstrap_local_pairing() -> Result<DesktopPairingResult, String> {
     {
         let probe = desktop_probe_host_route(DesktopRouteProbeRequest {
             agent_host_id: host_id.clone(),
-            base_url: LOCAL_AGENT_ORIGIN.to_string(),
+            base_url: LOCAL_ENGINE_ORIGIN.to_string(),
         })
         .await;
         if probe.is_ok_and(|result| result.reachable) {
@@ -368,8 +368,8 @@ async fn bootstrap_local_pairing() -> Result<DesktopPairingResult, String> {
             });
         }
     }
-    let binary = expected_local_agent_binary()?;
-    let data_directory = agent_data_directory()?;
+    let binary = expected_local_engine_binary()?;
+    let data_directory = engine_data_directory()?;
     let output = tauri::async_runtime::spawn_blocking(move || {
         let mut command = std::process::Command::new(binary);
         #[cfg(target_os = "windows")]
@@ -397,18 +397,20 @@ async fn bootstrap_local_pairing() -> Result<DesktopPairingResult, String> {
         // Child output can contain credentials; report only its exit status.
         return Err(format!("Local desktop pairing failed ({}).", output.status));
     }
-    let pairing: DesktopPairingBootstrapResult = serde_json::from_slice(&output.stdout)
-        .map_err(|_| "The local agent returned an invalid desktop pairing response.".to_string())?;
+    let pairing: DesktopPairingBootstrapResult =
+        serde_json::from_slice(&output.stdout).map_err(|_| {
+            "The local engine returned an invalid desktop pairing response.".to_string()
+        })?;
     if pairing.client_kind != "desktop" || pairing.agent_host_id.trim().is_empty() {
-        return Err("The local agent returned an invalid desktop pairing identity.".to_string());
+        return Err("The local engine returned an invalid desktop pairing identity.".to_string());
     }
     let result = desktop_exchange_pairing(DesktopPairingRequest {
-        base_url: LOCAL_AGENT_ORIGIN.to_string(),
+        base_url: LOCAL_ENGINE_ORIGIN.to_string(),
         pairing_code: pairing.pairing_code,
     })
     .await?;
     if result.agent_host_id != pairing.agent_host_id {
-        return Err("The local agent identity changed during desktop pairing.".to_string());
+        return Err("The local engine identity changed during desktop pairing.".to_string());
     }
     store
         .set(LOCAL_HOST_ID_KEY, &result.agent_host_id)
@@ -478,10 +480,10 @@ fn bootstrap_local_macos() -> Result<DesktopPairingResult, String> {
     }
 
     let key = ensure_local_bootstrap_key()?;
-    let socket = agent_data_directory()?.join(LOCAL_BOOTSTRAP_SOCKET);
+    let socket = engine_data_directory()?.join(LOCAL_BOOTSTRAP_SOCKET);
     let mut stream = UnixStream::connect(&socket).map_err(|error| {
         format!(
-            "Could not connect to the local agent bootstrap channel at {}: {error}",
+            "Could not connect to the local engine bootstrap channel at {}: {error}",
             socket.display()
         )
     })?;
@@ -501,10 +503,10 @@ fn bootstrap_local_macos() -> Result<DesktopPairingResult, String> {
         .read_line(&mut line)
         .map_err(|error| format!("Could not read the bootstrap challenge: {error}"))?;
     let challenge: LocalBootstrapChallenge = serde_json::from_str(&line).map_err(|error| {
-        format!("The local agent returned an invalid bootstrap challenge: {error}")
+        format!("The local engine returned an invalid bootstrap challenge: {error}")
     })?;
     if challenge.status != "challenge" || challenge.version != PROTOCOL_VERSION {
-        return Err("The local agent rejected the bootstrap protocol.".to_string());
+        return Err("The local engine rejected the bootstrap protocol.".to_string());
     }
 
     let proof = local_bootstrap_proof(&key, &challenge.challenge, &challenge.host_id);
@@ -526,11 +528,11 @@ fn bootstrap_local_macos() -> Result<DesktopPairingResult, String> {
         .read_line(&mut line)
         .map_err(|error| format!("Could not read the bootstrap result: {error}"))?;
     let response: LocalBootstrapResponse = serde_json::from_str(&line).map_err(|error| {
-        format!("The local agent returned an invalid bootstrap result: {error}")
+        format!("The local engine returned an invalid bootstrap result: {error}")
     })?;
     if response.status != "ok" || response.version != PROTOCOL_VERSION {
         return Err(format!(
-            "The local agent refused desktop bootstrap{}.",
+            "The local engine refused desktop bootstrap{}.",
             response
                 .code
                 .map(|code| format!(" ({code})"))
@@ -540,11 +542,11 @@ fn bootstrap_local_macos() -> Result<DesktopPairingResult, String> {
     let host_id = response
         .agent_host_id
         .filter(|value| !value.trim().is_empty())
-        .ok_or_else(|| "The local agent returned no host identity.".to_string())?;
+        .ok_or_else(|| "The local engine returned no host identity.".to_string())?;
     let token = response
         .token
         .filter(|value| value.starts_with("msc2_"))
-        .ok_or_else(|| "The local agent returned no valid desktop credential.".to_string())?;
+        .ok_or_else(|| "The local engine returned no valid desktop credential.".to_string())?;
     let record = StoredDesktopCredential {
         base_url: "http://127.0.0.1:48001".to_string(),
         token,
@@ -565,9 +567,9 @@ fn bootstrap_local_macos() -> Result<DesktopPairingResult, String> {
     })
 }
 
-/// A plain 0600 file under the agent's own secrets directory, not the
+/// A plain 0600 file under the engine's own secrets directory, not the
 /// keychain (see `secret_store.rs`'s module doc): the desktop app and the
-/// agent daemon always run as the same regular user, so this file's own
+/// engine daemon always run as the same regular user, so this file's own
 /// Unix permissions are exactly as strong a boundary as a keychain ACL would
 /// be here, without the ACL/session pitfalls that mechanism kept hitting in
 /// practice. Generated once, unprivileged, before the elevated install step
@@ -598,7 +600,7 @@ fn ensure_local_bootstrap_key() -> Result<String, String> {
 
 #[cfg(target_os = "macos")]
 fn secrets_directory() -> Result<PathBuf, String> {
-    Ok(agent_data_directory()?.join("secrets"))
+    Ok(engine_data_directory()?.join("secrets"))
 }
 
 #[cfg(target_os = "macos")]
@@ -637,8 +639,8 @@ async fn desktop_authorized_request(request: DesktopRequest) -> Result<DesktopRe
     let record: StoredDesktopCredential = serde_json::from_str(&record).map_err(|error| {
         format!("Authentication: Stored desktop credential is invalid: {error}")
     })?;
-    if record.base_url == LOCAL_AGENT_ORIGIN {
-        ensure_current_local_agent_service()?;
+    if record.base_url == LOCAL_ENGINE_ORIGIN {
+        ensure_current_local_engine_service()?;
     }
     let method = Method::from_bytes(request.method.as_bytes())
         .map_err(|_| "The requested HTTP method is not supported.".to_string())?;
@@ -683,7 +685,7 @@ async fn desktop_authorized_request(request: DesktopRequest) -> Result<DesktopRe
         .to_vec();
     if status == reqwest::StatusCode::UNAUTHORIZED && !update::health_trial() {
         // A revoked or expired credential must not linger locally after the
-        // agent has authoritatively rejected it.
+        // engine has authoritatively rejected it.
         let _authorization_change = native_transfer::changing_authorization(&request.agent_host_id);
         store.delete(&key).map_err(|error| error.to_string())?;
     }
@@ -758,8 +760,8 @@ async fn desktop_probe_host_route(
     if !status.is_success() {
         let category = match status.as_u16() {
             401 | 403 => "authentication",
-            426 => "msc-agent",
-            500..=599 => "msc-agent",
+            426 => "msc-engine",
+            500..=599 => "msc-engine",
             _ => "network",
         };
         let detail = match category {
@@ -767,11 +769,11 @@ async fn desktop_probe_host_route(
                 "Authentication: The saved credential was revoked or expired on this host."
                     .to_string()
             }
-            "msc-agent" if status.as_u16() == 426 => {
-                "MSC agent: This host is below the supported client version floor.".to_string()
+            "msc-engine" if status.as_u16() == 426 => {
+                "MSC engine: This host is below the supported client version floor.".to_string()
             }
-            "msc-agent" => {
-                "MSC agent: The management service is stopped or unavailable.".to_string()
+            "msc-engine" => {
+                "MSC engine: The management service is stopped or unavailable.".to_string()
             }
             _ => format!(
                 "Network: The selected route returned HTTP {}.",
@@ -809,31 +811,31 @@ async fn desktop_probe_host_route(
 /// not start anything: opening or closing the desktop shell is never a server
 /// lifecycle action.
 #[tauri::command]
-async fn agent_service_status() -> Result<AgentServiceStatus, String> {
-    tauri::async_runtime::spawn_blocking(agent_service_status_blocking)
+async fn engine_service_status() -> Result<EngineServiceStatus, String> {
+    tauri::async_runtime::spawn_blocking(engine_service_status_blocking)
         .await
-        .map_err(|error| format!("Could not check the agent service: {error}"))?
+        .map_err(|error| format!("Could not check the engine service: {error}"))?
 }
 
 #[tauri::command]
-fn agent_indicator_enabled() -> Result<bool, String> {
-    agent_indicator::is_running()
+fn engine_indicator_enabled() -> Result<bool, String> {
+    engine_indicator::is_running()
 }
 
 #[tauri::command]
-async fn set_agent_indicator_enabled(enabled: bool) -> Result<(), String> {
+async fn set_engine_indicator_enabled(enabled: bool) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || indicator_startup::set_enabled(enabled))
         .await
         .map_err(|error| error.to_string())?
 }
 
-fn agent_service_status_blocking() -> Result<AgentServiceStatus, String> {
-    let expected_binary = expected_local_agent_binary()?;
+fn engine_service_status_blocking() -> Result<EngineServiceStatus, String> {
+    let expected_binary = expected_local_engine_binary()?;
     service_manager()?
         .execute(ServiceManagerCommand::Status {
-            service_name: ServiceName::new(AGENT_SERVICE_NAME),
+            service_name: ServiceName::new(ENGINE_SERVICE_NAME),
         })
-        .map(|report| report_status_for_packaged_agent(report, &expected_binary))
+        .map(|report| report_status_for_packaged_engine(report, &expected_binary))
         .map_err(|error| error.to_string())
 }
 
@@ -841,7 +843,7 @@ fn agent_service_status_blocking() -> Result<AgentServiceStatus, String> {
 /// fetch is cross-origin and can be blocked by browser policy before
 /// credentials exist; this route must not perform the full health-card scan.
 #[tauri::command]
-async fn agent_health_check() -> bool {
+async fn engine_health_check() -> bool {
     let Ok(client) = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(2))
         .build()
@@ -856,7 +858,7 @@ async fn agent_health_check() -> bool {
 }
 
 /// Ends the desktop process after a reset has removed all local state. The
-/// agent is a separate service and is stopped before this command is called.
+/// engine is a separate service and is stopped before this command is called.
 #[tauri::command]
 fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
@@ -864,40 +866,40 @@ fn quit_app(app: tauri::AppHandle) {
 
 /// The shared setup screen has this narrow native seam for an explicit local
 /// service action. Platform registration may trigger the OS elevation flow;
-/// routine agent operation remains under the installing user's account.
+/// routine engine operation remains under the installing user's account.
 #[tauri::command]
-async fn manage_agent_service(
-    action: AgentServiceAction,
+async fn manage_engine_service(
+    action: EngineServiceAction,
     _window: tauri::WebviewWindow,
-) -> Result<AgentServiceStatus, String> {
+) -> Result<EngineServiceStatus, String> {
     #[cfg(target_os = "windows")]
     let owner_window = _window.hwnd().map_err(|error| error.to_string())?.0 as isize;
     #[cfg(not(target_os = "windows"))]
     let owner_window = 0;
     // Credential dialogs and service commands must not hold the window's event loop.
     tauri::async_runtime::spawn_blocking(move || {
-        manage_agent_service_blocking(action, owner_window)
+        manage_engine_service_blocking(action, owner_window)
     })
     .await
-    .map_err(|error| format!("Could not complete the agent service action: {error}"))?
+    .map_err(|error| format!("Could not complete the engine service action: {error}"))?
 }
 
-fn manage_agent_service_blocking(
-    action: AgentServiceAction,
+fn manage_engine_service_blocking(
+    action: EngineServiceAction,
     _owner_window: isize,
-) -> Result<AgentServiceStatus, String> {
-    let service_name = ServiceName::new(AGENT_SERVICE_NAME);
-    if matches!(&action, AgentServiceAction::Start) {
-        ensure_installed_agent_matches_package()?;
+) -> Result<EngineServiceStatus, String> {
+    let service_name = ServiceName::new(ENGINE_SERVICE_NAME);
+    if matches!(&action, EngineServiceAction::Start) {
+        ensure_installed_engine_matches_package()?;
     }
     #[cfg(target_os = "macos")]
     let report = match action {
-        AgentServiceAction::Install | AgentServiceAction::Repair => {
-            let request = agent_install_request()?;
+        EngineServiceAction::Install | EngineServiceAction::Repair => {
+            let request = engine_install_request()?;
             let expected_binary = request.binary_path.clone();
             let helper = bedrock_helper_install_request()?;
             let _build_guard = msc_infrastructure::managed_builds::guard(
-                &agent_data_directory()?.join("agent/builds"),
+                &engine_data_directory()?.join("agent/builds"),
                 true,
                 true,
             )
@@ -909,15 +911,15 @@ fn manage_agent_service_blocking(
                 .map_err(|error| error.to_string())?;
             report
         }
-        AgentServiceAction::Start => {
+        EngineServiceAction::Start => {
             msc_platform_macos::service::start_elevated(service_name.as_str())
                 .map_err(|error| error.to_string())?
         }
-        AgentServiceAction::Stop => {
+        EngineServiceAction::Stop => {
             msc_platform_macos::service::stop_elevated(service_name.as_str())
                 .map_err(|error| error.to_string())?
         }
-        AgentServiceAction::Uninstall => {
+        EngineServiceAction::Uninstall => {
             let installed = service_manager()?
                 .execute(ServiceManagerCommand::Status {
                     service_name: service_name.clone(),
@@ -936,12 +938,12 @@ fn manage_agent_service_blocking(
     };
     #[cfg(target_os = "linux")]
     let report = match action {
-        AgentServiceAction::Install | AgentServiceAction::Repair => {
-            let request = agent_install_request()?;
-            let expected_binary = expected_local_agent_binary()?;
-            let helper = linux_system_agent_path()?;
+        EngineServiceAction::Install | EngineServiceAction::Repair => {
+            let request = engine_install_request()?;
+            let expected_binary = expected_local_engine_binary()?;
+            let helper = linux_system_engine_path()?;
             let _build_guard = msc_infrastructure::managed_builds::guard(
-                &agent_data_directory()?.join("agent/builds"),
+                &engine_data_directory()?.join("agent/builds"),
                 true,
                 true,
             )
@@ -951,15 +953,15 @@ fn manage_agent_service_blocking(
                     .map_err(|error| error.to_string())?;
             ensure_service_report_uses_binary(report, &expected_binary)?
         }
-        AgentServiceAction::Uninstall => {
-            let helper = linux_system_agent_path()?;
+        EngineServiceAction::Uninstall => {
+            let helper = linux_system_engine_path()?;
             msc_platform_linux::service::uninstall_desktop_service_elevated(&helper)
                 .map_err(|error| error.to_string())?
         }
-        AgentServiceAction::Start => service_manager()?
+        EngineServiceAction::Start => service_manager()?
             .execute(ServiceManagerCommand::Start { service_name })
             .map_err(|error| error.to_string())?,
-        AgentServiceAction::Stop => service_manager()?
+        EngineServiceAction::Stop => service_manager()?
             .execute(ServiceManagerCommand::Stop { service_name })
             .map_err(|error| error.to_string())?,
     };
@@ -967,16 +969,16 @@ fn manage_agent_service_blocking(
     let report = {
         let manager = service_manager()?;
         match action {
-            AgentServiceAction::Install | AgentServiceAction::Repair => {
-                let request = agent_install_request()?;
+            EngineServiceAction::Install | EngineServiceAction::Repair => {
+                let request = engine_install_request()?;
                 let expected_binary = request.binary_path.clone();
                 let _build_guard = msc_infrastructure::managed_builds::guard(
-                    &agent_data_directory()?.join("agent/builds"),
+                    &engine_data_directory()?.join("agent/builds"),
                     true,
                     true,
                 )
                 .map_err(|e| e.to_string())?;
-                if matches!(action, AgentServiceAction::Repair) {
+                if matches!(action, EngineServiceAction::Repair) {
                     windows_service::repair(&request, _owner_window)?;
                 } else {
                     windows_service::install(&request, _owner_window)?;
@@ -984,21 +986,21 @@ fn manage_agent_service_blocking(
                 let report = manager
                     .execute(ServiceManagerCommand::Status { service_name })
                     .map_err(|error| error.to_string())?;
-                let expected_binary = if matches!(action, AgentServiceAction::Repair) {
-                    expected_local_agent_binary()?
+                let expected_binary = if matches!(action, EngineServiceAction::Repair) {
+                    expected_local_engine_binary()?
                 } else {
                     expected_binary
                 };
                 ensure_service_report_uses_binary(report, &expected_binary)?
             }
-            AgentServiceAction::Start => manager
+            EngineServiceAction::Start => manager
                 .execute(ServiceManagerCommand::Start { service_name })
                 .map_err(|error| error.to_string())?,
-            AgentServiceAction::Stop => manager
+            EngineServiceAction::Stop => manager
                 .execute(ServiceManagerCommand::Stop { service_name })
                 .map_err(|error| error.to_string())?,
-            AgentServiceAction::Uninstall => {
-                windows_service::uninstall(&expected_local_agent_binary()?)?;
+            EngineServiceAction::Uninstall => {
+                windows_service::uninstall(&expected_local_engine_binary()?)?;
                 manager
                     .execute(ServiceManagerCommand::Status { service_name })
                     .map_err(|error| error.to_string())?
@@ -1008,7 +1010,7 @@ fn manage_agent_service_blocking(
     if report.state == ServiceState::NotInstalled {
         indicator_startup::remove()?;
     } else if let Err(error) = indicator_startup::install() {
-        eprintln!("MSC 2 agent indicator: {error}");
+        eprintln!("MSC engine indicator: {error}");
     }
     Ok(report_status(report))
 }
@@ -1018,7 +1020,7 @@ fn manage_agent_service_blocking(
 /// the shared client can collect explicit confirmation for the same release.
 #[tauri::command]
 fn check_for_updates() -> Result<msc_infrastructure::release_update::UpdateResult, String> {
-    update::check(&agent_data_directory()?)
+    update::check(&engine_data_directory()?)
 }
 
 /// Re-verifies the exact staged release before handing it to the local OS
@@ -1028,7 +1030,7 @@ fn install_coordinated_update(
     app: tauri::AppHandle,
     request: update::InstallRequest,
 ) -> Result<update::InstallResult, String> {
-    let result = update::install(request, &agent_data_directory()?)?;
+    let result = update::install(request, &engine_data_directory()?)?;
     if result.state == "scheduled" {
         std::thread::spawn(move || {
             std::thread::sleep(std::time::Duration::from_millis(250));
@@ -1061,24 +1063,24 @@ fn service_manager() -> Result<Box<dyn ServiceManager>, String> {
     Err("This desktop platform has no MSC service manager.".to_string())
 }
 
-fn agent_install_request() -> Result<ServiceInstallRequest, String> {
-    // Development builds stage the current agent source; the elevated Linux
+fn engine_install_request() -> Result<ServiceInstallRequest, String> {
+    // Development builds stage the current engine source; the elevated Linux
     // helper copies it into a system-labeled, root-owned build directory.
-    // Packaged Linux builds use the agent shipped beside the desktop app.
+    // Packaged Linux builds use the engine shipped beside the desktop app.
     #[cfg(all(target_os = "linux", debug_assertions))]
-    let binary_path = refresh_staged_packaged_agent_path()?;
+    let binary_path = refresh_staged_packaged_engine_path()?;
     #[cfg(all(target_os = "linux", not(debug_assertions)))]
-    let binary_path = linux_system_agent_path()?;
+    let binary_path = linux_system_engine_path()?;
     #[cfg(not(target_os = "linux"))]
-    let binary_path = refresh_staged_packaged_agent_path()?;
-    let working_directory = agent_data_directory()?;
+    let binary_path = refresh_staged_packaged_engine_path()?;
+    let working_directory = engine_data_directory()?;
     let secret_store_directory = working_directory.join("secrets");
     #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
     let sidecar_directory = packaged_bedrock_sidecar_directory()?;
     std::fs::create_dir_all(working_directory.join("logs"))
-        .map_err(|error| format!("Could not create the agent data directory: {error}"))?;
+        .map_err(|error| format!("Could not create the engine data directory: {error}"))?;
     std::fs::create_dir_all(&secret_store_directory)
-        .map_err(|error| format!("Could not create the agent secret directory: {error}"))?;
+        .map_err(|error| format!("Could not create the engine secret directory: {error}"))?;
     let home = std::env::var("HOME")
         .or_else(|_| std::env::var("USERPROFILE"))
         .map_err(|_| "Could not determine the installing user's home directory.".to_string())?;
@@ -1091,11 +1093,11 @@ fn agent_install_request() -> Result<ServiceInstallRequest, String> {
     #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
     let desktop_requirement = { desktop_code_requirement()? };
     let request = ServiceInstallRequest::new(
-        AGENT_SERVICE_NAME,
+        ENGINE_SERVICE_NAME,
         binary_path,
         &working_directory,
         working_directory.join("logs/agent.log"),
-        AGENT_PORT,
+        ENGINE_PORT,
     )
     .args(["serve", "--bind", "127.0.0.1:48001"])
     .env("HOME", home)
@@ -1130,10 +1132,10 @@ fn bedrock_helper_install_request(
     {
         let sidecar_directory = packaged_bedrock_sidecar_directory()?;
         // The desktop service transaction supplies MSC2_DATA_DIR explicitly
-        // to the agent, so derive the helper root from that same path. Using
-        // the process-default root here would choose macOS's legacy `MSC2`
-        // directory while the installed agent uses `MSC 2`.
-        let approved_root = agent_data_directory()?.join("servers");
+        // to the engine, so derive the helper root from that same path. Using
+        // the process-default root here would choose macOS's legacy `MSC`
+        // directory while the installed engine uses `MSC`.
+        let approved_root = engine_data_directory()?.join("servers");
         std::fs::create_dir_all(&approved_root).map_err(|error| {
             format!(
                 "Could not create the Bedrock helper approved server root {}: {error}",
@@ -1171,7 +1173,7 @@ fn desktop_code_requirement() -> Result<String, String> {
 
 /// A `cargo`/`tauri dev` build is never Developer-ID signed (only `tauri
 /// build`'s bundling step signs for real), so it has no designated
-/// requirement for the agent to check the running app against. Ad-hoc
+/// requirement for the engine to check the running app against. Ad-hoc
 /// signing gives it one without touching an already-signed release build's
 /// real trust chain — this only fires when no requirement exists at all.
 ///
@@ -1179,7 +1181,7 @@ fn desktop_code_requirement() -> Result<String, String> {
 /// exec'd from it invalidates that process's own live code identity in the
 /// kernel's eyes (self-modifying your own mapped executable is exactly what
 /// code-signing enforcement exists to catch) — `verify_process_code_identity`
-/// on the agent side would then refuse this very process with "code identity
+/// on the engine side would then refuse this very process with "code identity
 /// has been invalidated". So instead of signing and continuing, this re-execs
 /// into the freshly-signed file, replacing the process image outright; the
 /// process that continues past this call was loaded fresh from the signed
@@ -1207,7 +1209,7 @@ fn ensure_ad_hoc_signed_or_reexec() {
     let error = std::process::Command::new(&executable)
         .args(std::env::args_os().skip(1))
         .exec();
-    eprintln!("msc2-desktop-web: re-exec after ad-hoc signing failed: {error}");
+    eprintln!("msc-desktop-web: re-exec after ad-hoc signing failed: {error}");
 }
 
 #[cfg(target_os = "macos")]
@@ -1236,7 +1238,7 @@ fn parse_designated_requirement<'a>(stdout: &'a str, stderr: &'a str) -> Option<
 }
 
 #[cfg(not(target_os = "linux"))]
-fn packaged_agent_path() -> Result<PathBuf, String> {
+fn packaged_engine_path() -> Result<PathBuf, String> {
     let desktop_binary = std::env::current_exe()
         .map_err(|error| format!("Could not locate the desktop application: {error}"))?;
     let directory = desktop_binary
@@ -1247,11 +1249,11 @@ fn packaged_agent_path() -> Result<PathBuf, String> {
     #[cfg(target_os = "windows")]
     return Ok(directory.join("agent/msc.exe"));
     #[allow(unreachable_code)]
-    Err("This desktop platform has no agent-package layout.".to_string())
+    Err("This desktop platform has no engine-package layout.".to_string())
 }
 
 #[cfg(target_os = "linux")]
-fn linux_system_agent_path() -> Result<PathBuf, String> {
+fn linux_system_engine_path() -> Result<PathBuf, String> {
     let desktop_binary = std::env::current_exe()
         .map_err(|error| format!("Could not locate the desktop application: {error}"))?;
     let directory = desktop_binary
@@ -1262,83 +1264,83 @@ fn linux_system_agent_path() -> Result<PathBuf, String> {
     // user, while SELinux sees an executable from the system package tree.
     // LinuxSystemdServiceManager rechecks ownership before elevation.
     let candidates = [
-        PathBuf::from("/usr/lib/MSC 2/agent/msc"),
-        PathBuf::from("/usr/lib/msc2-desktop-web/agent/msc"),
-        directory.join("../lib/MSC 2/agent/msc"),
-        directory.join("../lib/msc2-desktop-web/agent/msc"),
+        PathBuf::from("/usr/lib/Minecraft Server Controller/agent/msc"),
+        PathBuf::from("/usr/lib/msc-desktop-web/agent/msc"),
+        directory.join("../lib/Minecraft Server Controller/agent/msc"),
+        directory.join("../lib/msc-desktop-web/agent/msc"),
     ];
     let path = candidates
         .iter()
         .find(|path| path.is_file())
         .cloned()
         .ok_or_else(|| {
-            "Could not find the system-installed MSC agent. Install the MSC 2 desktop package before changing the local agent service.".to_string()
+            "Could not find the system-installed MSC engine. Install the MSC desktop package before changing the local engine service.".to_string()
         })?;
     std::fs::canonicalize(&path).map_err(|error| {
         format!(
-            "Could not resolve the system-installed MSC agent {}: {error}",
+            "Could not resolve the system-installed MSC engine {}: {error}",
             path.display()
         )
     })
 }
 
 #[cfg(all(target_os = "linux", debug_assertions))]
-fn linux_development_agent_path() -> Result<PathBuf, String> {
-    // prepare:agent builds this output before starting the desktop. Tauri's
+fn linux_development_engine_path() -> Result<PathBuf, String> {
+    // prepare:engine builds this output before starting the desktop. Tauri's
     // shared resource directory can contain a different Cargo profile after
     // packaging, so development must resolve the compiler output directly.
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../target/debug/msc");
     if !path.is_file() {
         return Err(format!(
-            "The current development agent was not built at {}. Restart `npx tauri dev` so its build step can compile the latest agent source.",
+            "The current development engine was not built at {}. Restart `npx tauri dev` so its build step can compile the latest engine source.",
             path.display()
         ));
     }
     std::fs::canonicalize(path)
-        .map_err(|error| format!("Could not resolve the current development agent: {error}"))
+        .map_err(|error| format!("Could not resolve the current development engine: {error}"))
 }
 
 #[cfg(target_os = "linux")]
-fn expected_local_agent_binary() -> Result<PathBuf, String> {
+fn expected_local_engine_binary() -> Result<PathBuf, String> {
     #[cfg(debug_assertions)]
     {
-        let staged_agent = staged_packaged_agent_path()?;
-        let digest = staged_agent
+        let staged_engine = staged_packaged_engine_path()?;
+        let digest = staged_engine
             .parent()
             .and_then(Path::file_name)
-            .ok_or_else(|| "The staged agent build has no content digest.".to_string())?;
-        Ok(linux_system_agent_path()?
+            .ok_or_else(|| "The staged engine build has no content digest.".to_string())?;
+        Ok(linux_system_engine_path()?
             .parent()
-            .ok_or_else(|| "The installed agent has no parent directory.".to_string())?
+            .ok_or_else(|| "The installed engine has no parent directory.".to_string())?
             .join("dev-builds")
             .join(digest)
             .join("msc"))
     }
     #[cfg(not(debug_assertions))]
-    linux_system_agent_path()
+    linux_system_engine_path()
 }
 
 #[cfg(target_os = "macos")]
-fn expected_local_agent_binary() -> Result<PathBuf, String> {
-    staged_packaged_agent_path()
+fn expected_local_engine_binary() -> Result<PathBuf, String> {
+    staged_packaged_engine_path()
 }
 
 #[cfg(target_os = "windows")]
-fn expected_local_agent_binary() -> Result<PathBuf, String> {
+fn expected_local_engine_binary() -> Result<PathBuf, String> {
     // Machine builds are immutable and administrator-protected. Verify once
     // per build/session, serializing concurrent API requests during first use.
     static VERIFIED_MACHINE_BUILD: Mutex<Option<PathBuf>> = Mutex::new(None);
-    let staged = staged_packaged_agent_path()?;
+    let staged = staged_packaged_engine_path()?;
     let digest = staged
         .parent()
         .and_then(Path::file_name)
-        .ok_or("The agent build has no digest.")?;
+        .ok_or("The engine build has no digest.")?;
     let machine = PathBuf::from(r"C:\ProgramData\MSC2\Services\DesktopLifecycle\builds")
         .join(digest)
         .join("msc.exe");
     let report = service_manager()?
         .execute(ServiceManagerCommand::Status {
-            service_name: ServiceName::new(AGENT_SERVICE_NAME),
+            service_name: ServiceName::new(ENGINE_SERVICE_NAME),
         })
         .map_err(|error| error.to_string())?;
     if report
@@ -1347,12 +1349,12 @@ fn expected_local_agent_binary() -> Result<PathBuf, String> {
     {
         let mut verified = VERIFIED_MACHINE_BUILD
             .lock()
-            .map_err(|_| "The machine agent verification lock failed.".to_string())?;
+            .map_err(|_| "The machine engine verification lock failed.".to_string())?;
         if verified.as_ref() != Some(&machine) {
             for name in ["msc.exe", "vantage.exe", "bedrock-map.exe"] {
                 let source = staged.with_file_name(name);
                 let bytes = std::fs::read(&source).map_err(|error| error.to_string())?;
-                verify_staged_agent(&machine.with_file_name(name), &bytes)?;
+                verify_staged_engine(&machine.with_file_name(name), &bytes)?;
             }
             *verified = Some(machine.clone());
         }
@@ -1382,19 +1384,19 @@ fn packaged_bedrock_sidecar_directory() -> Result<PathBuf, String> {
 }
 
 #[cfg(any(not(target_os = "linux"), debug_assertions))]
-fn staged_packaged_agent_path() -> Result<PathBuf, String> {
-    STAGED_PACKAGED_AGENT_PATH.resolve(stage_packaged_agent_once)
+fn staged_packaged_engine_path() -> Result<PathBuf, String> {
+    STAGED_PACKAGED_ENGINE_PATH.resolve(stage_packaged_engine_once)
 }
 
 #[cfg(any(not(target_os = "linux"), debug_assertions))]
-fn stage_packaged_agent_once() -> Result<PathBuf, String> {
+fn stage_packaged_engine_once() -> Result<PathBuf, String> {
     #[cfg(target_os = "linux")]
-    let source = linux_development_agent_path()?;
+    let source = linux_development_engine_path()?;
     #[cfg(not(target_os = "linux"))]
-    let source = packaged_agent_path()?;
+    let source = packaged_engine_path()?;
     if !source.is_file() {
         return Err(format!(
-            "The compatible agent package is missing at {}. Reinstall this desktop app before registering the service.",
+            "The compatible engine package is missing at {}. Reinstall this desktop app before registering the service.",
             source.display()
         ));
     }
@@ -1412,7 +1414,7 @@ fn stage_packaged_agent_once() -> Result<PathBuf, String> {
     });
     if !renderer.is_file() {
         return Err(format!(
-            "The terrain renderer is missing from the desktop package at {}. Reinstall this desktop app before repairing the agent.",
+            "The terrain renderer is missing from the desktop package at {}. Reinstall this desktop app before repairing the engine.",
             renderer.display()
         ));
     }
@@ -1426,27 +1428,27 @@ fn stage_packaged_agent_once() -> Result<PathBuf, String> {
     });
     if !bedrock_map.is_file() {
         return Err(format!(
-            "The Bedrock terrain exporter is missing from the desktop package at {}. Reinstall this desktop app before repairing the agent.",
+            "The Bedrock terrain exporter is missing from the desktop package at {}. Reinstall this desktop app before repairing the engine.",
             bedrock_map.display()
         ));
     }
-    stage_packaged_agent(&source, &renderer, &bedrock_map, &agent_data_directory()?)
+    stage_packaged_engine(&source, &renderer, &bedrock_map, &engine_data_directory()?)
 }
 
 #[cfg(any(not(target_os = "linux"), debug_assertions))]
-fn refresh_staged_packaged_agent_path() -> Result<PathBuf, String> {
-    STAGED_PACKAGED_AGENT_PATH.refresh(stage_packaged_agent_once)
+fn refresh_staged_packaged_engine_path() -> Result<PathBuf, String> {
+    STAGED_PACKAGED_ENGINE_PATH.refresh(stage_packaged_engine_once)
 }
 
 #[cfg(any(not(target_os = "linux"), debug_assertions))]
-fn stage_packaged_agent(
+fn stage_packaged_engine(
     source: &Path,
     renderer: &Path,
     bedrock_map: &Path,
     data_directory: &Path,
 ) -> Result<PathBuf, String> {
     let source_bytes = std::fs::read(source)
-        .map_err(|error| format!("Could not read the packaged agent: {error}"))?;
+        .map_err(|error| format!("Could not read the packaged engine: {error}"))?;
     let renderer_bytes = std::fs::read(renderer)
         .map_err(|error| format!("Could not read the packaged terrain renderer: {error}"))?;
     let bedrock_map_bytes = std::fs::read(bedrock_map).map_err(|error| {
@@ -1459,7 +1461,7 @@ fn stage_packaged_agent(
     let digest = hex_lower(&hasher.finalize());
     let file_name = source
         .file_name()
-        .ok_or_else(|| "The packaged agent path has no file name.".to_string())?;
+        .ok_or_else(|| "The packaged engine path has no file name.".to_string())?;
     let build_root = data_directory.join("agent/builds");
     let _build_guard = msc_infrastructure::managed_builds::guard(&build_root, true, true)
         .map_err(|e| e.to_string())?;
@@ -1476,7 +1478,7 @@ fn stage_packaged_agent(
         })?);
 
     std::fs::create_dir_all(&build_directory)
-        .map_err(|error| format!("Could not create the packaged agent directory: {error}"))?;
+        .map_err(|error| format!("Could not create the packaged engine directory: {error}"))?;
     stage_packaged_executable(source, &destination, &source_bytes)?;
     stage_packaged_executable(renderer, &renderer_destination, &renderer_bytes)?;
     stage_packaged_executable(bedrock_map, &bedrock_map_destination, &bedrock_map_bytes)?;
@@ -1492,7 +1494,7 @@ fn stage_packaged_executable(
     source_bytes: &[u8],
 ) -> Result<(), String> {
     if destination.is_file() {
-        return verify_staged_agent(destination, source_bytes);
+        return verify_staged_engine(destination, source_bytes);
     }
     let file_name = destination
         .file_name()
@@ -1511,7 +1513,7 @@ fn stage_packaged_executable(
         Ok(()) => {}
         Err(_) if destination.is_file() => {
             let _ = std::fs::remove_file(&temporary);
-            verify_staged_agent(destination, source_bytes)?;
+            verify_staged_engine(destination, source_bytes)?;
         }
         Err(error) => {
             return Err(format!(
@@ -1520,24 +1522,24 @@ fn stage_packaged_executable(
             ));
         }
     }
-    verify_staged_agent(destination, source_bytes)?;
+    verify_staged_engine(destination, source_bytes)?;
     Ok(())
 }
 
 #[cfg(any(not(target_os = "linux"), debug_assertions))]
-fn verify_staged_agent(destination: &Path, source_bytes: &[u8]) -> Result<(), String> {
+fn verify_staged_engine(destination: &Path, source_bytes: &[u8]) -> Result<(), String> {
     let staged_bytes = std::fs::read(destination)
-        .map_err(|error| format!("Could not verify the staged agent: {error}"))?;
+        .map_err(|error| format!("Could not verify the staged engine: {error}"))?;
     if Sha256::digest(&staged_bytes) != Sha256::digest(source_bytes) {
         return Err(format!(
-            "The immutable staged agent at {} does not match its package digest.",
+            "The immutable staged engine at {} does not match its package digest.",
             destination.display()
         ));
     }
     Ok(())
 }
 
-fn agent_data_directory() -> Result<PathBuf, String> {
+fn engine_data_directory() -> Result<PathBuf, String> {
     let home = std::env::var_os("HOME")
         .or_else(|| std::env::var_os("USERPROFILE"))
         .map(PathBuf::from)
@@ -1549,7 +1551,7 @@ fn agent_data_directory() -> Result<PathBuf, String> {
     #[cfg(target_os = "linux")]
     return Ok(home.join(".local/share/msc2"));
     #[allow(unreachable_code)]
-    Err("This desktop platform has no agent data directory.".to_string())
+    Err("This desktop platform has no engine data directory.".to_string())
 }
 
 fn installing_user() -> Result<String, String> {
@@ -1573,24 +1575,25 @@ fn installing_user() -> Result<String, String> {
     Ok(user)
 }
 
-fn report_status(report: ServiceStatusReport) -> AgentServiceStatus {
+fn report_status(report: ServiceStatusReport) -> EngineServiceStatus {
     let (state, detail) = match report.state {
-        ServiceState::NotInstalled => {
-            ("not-installed", "The local agent service is not installed.")
-        }
+        ServiceState::NotInstalled => (
+            "not-installed",
+            "The local engine service is not installed.",
+        ),
         ServiceState::Stopped => (
             "stopped",
-            "The local agent service is installed but stopped.",
+            "The local engine service is installed but stopped.",
         ),
         ServiceState::Running => (
             "running",
-            "The local agent service is running independently of this window.",
+            "The local engine service is running independently of this window.",
         ),
     };
-    AgentServiceStatus {
+    EngineServiceStatus {
         available: true,
         platform: std::env::consts::OS,
-        service_name: AGENT_SERVICE_NAME,
+        service_name: ENGINE_SERVICE_NAME,
         state,
         pid: report.pid,
         detail: detail.to_string(),
@@ -1617,20 +1620,20 @@ fn bedrock_helper_status() -> Option<BedrockHelperServiceStatus> {
     None
 }
 
-fn report_status_for_packaged_agent(
+fn report_status_for_packaged_engine(
     report: ServiceStatusReport,
     expected_binary: &Path,
-) -> AgentServiceStatus {
+) -> EngineServiceStatus {
     if report.state != ServiceState::NotInstalled
         && !service_report_uses_binary(&report, expected_binary)
     {
-        return AgentServiceStatus {
+        return EngineServiceStatus {
             available: true,
             platform: std::env::consts::OS,
-            service_name: AGENT_SERVICE_NAME,
+            service_name: ENGINE_SERVICE_NAME,
             state: "unavailable",
             pid: report.pid,
-            detail: "The installed agent belongs to a different desktop build. Repair service before connecting."
+            detail: "The installed engine belongs to a different desktop build. Repair service before connecting."
                 .to_string(),
             helper: bedrock_helper_status(),
         };
@@ -1653,41 +1656,41 @@ fn ensure_service_report_uses_binary(
         return Ok(report);
     }
     Err(format!(
-        "Repair completed, but the installed agent does not use the refreshed binary at {}.",
+        "Repair completed, but the installed engine does not use the refreshed binary at {}.",
         expected_binary.display()
     ))
 }
 
-fn current_local_agent_report() -> Result<(ServiceStatusReport, PathBuf), String> {
-    let expected_binary = expected_local_agent_binary()?;
+fn current_local_engine_report() -> Result<(ServiceStatusReport, PathBuf), String> {
+    let expected_binary = expected_local_engine_binary()?;
     let report = service_manager()?
         .execute(ServiceManagerCommand::Status {
-            service_name: ServiceName::new(AGENT_SERVICE_NAME),
+            service_name: ServiceName::new(ENGINE_SERVICE_NAME),
         })
         .map_err(|error| error.to_string())?;
     Ok((report, expected_binary))
 }
 
-fn ensure_installed_agent_matches_package() -> Result<(), String> {
-    let (report, expected_binary) = current_local_agent_report()?;
+fn ensure_installed_engine_matches_package() -> Result<(), String> {
+    let (report, expected_binary) = current_local_engine_report()?;
     if service_report_uses_binary(&report, &expected_binary) {
         return Ok(());
     }
     Err(
-        "The installed agent belongs to a different desktop build. Repair service before starting it."
+        "The installed engine belongs to a different desktop build. Repair service before starting it."
             .to_string(),
     )
 }
 
-fn ensure_current_local_agent_service() -> Result<(), String> {
-    let (report, expected_binary) = current_local_agent_report()?;
+fn ensure_current_local_engine_service() -> Result<(), String> {
+    let (report, expected_binary) = current_local_engine_report()?;
     if report.state == ServiceState::Running
         && service_report_uses_binary(&report, &expected_binary)
     {
         return Ok(());
     }
     Err(
-        "The agent built by this desktop session is not the running service. Open Agent and choose Repair service before connecting."
+        "The engine built by this desktop session is not the running service. Open Engine and choose Repair service before connecting."
             .to_string(),
     )
 }
@@ -1698,13 +1701,15 @@ fn credential_key(agent_host_id: &str) -> String {
 
 fn canonical_base_url(value: &str) -> Result<String, String> {
     let mut url =
-        Url::parse(value).map_err(|_| "The agent address is not a valid URL.".to_string())?;
+        Url::parse(value).map_err(|_| "The engine address is not a valid URL.".to_string())?;
     if !matches!(url.scheme(), "http" | "https")
         || url.host_str().is_none()
         || !url.username().is_empty()
         || url.password().is_some()
     {
-        return Err("The agent address must be an HTTP(S) origin without credentials.".to_string());
+        return Err(
+            "The engine address must be an HTTP(S) origin without credentials.".to_string(),
+        );
     }
     url.set_path("");
     url.set_query(None);
@@ -1723,16 +1728,16 @@ fn relative_request_url(base_url: &str, path: &str) -> Result<Url, String> {
 fn desktop_secret_store() -> Result<Box<dyn SecretStore>, String> {
     #[cfg(target_os = "macos")]
     {
-        // Same file-rooted store the agent itself uses (msc-platform-macos's
-        // secret_store module doc) -- the desktop app and the agent always
+        // Same file-rooted store the engine itself uses (msc-platform-macos's
+        // secret_store module doc) -- the desktop app and the engine always
         // run as the same regular user, so there is no reason for this,
-        // unlike the agent's install-time secrets, to be the one remaining
+        // unlike the engine's install-time secrets, to be the one remaining
         // thing in this feature still hitting the login keychain's ACL/
         // session prompt. `system()` self-provisions its root key and shares
-        // `agent_data_directory()`'s secrets/ directory with the plain
+        // `engine_data_directory()`'s secrets/ directory with the plain
         // `local-bootstrap.key` file this same process already writes.
         return msc_platform_macos::secret_store::MacosSecretStore::at_directory(
-            agent_data_directory()?.join("secrets"),
+            engine_data_directory()?.join("secrets"),
         )
         .map(|store| Box::new(store) as Box<dyn SecretStore>)
         .map_err(|error| error.to_string());
@@ -1755,7 +1760,7 @@ fn desktop_secret_store() -> Result<Box<dyn SecretStore>, String> {
 
 /// Opens a user-approved external link in the host operating system's default
 /// browser. HTTPS links are permitted generally; HTTP is restricted to the
-/// loopback-only local agent UI, which has no public network hop to protect.
+/// loopback-only local engine UI, which has no public network hop to protect.
 #[tauri::command]
 fn open_external_url(url: String) -> Result<(), String> {
     approved_external_url(&url)?;
@@ -1798,7 +1803,7 @@ fn approved_external_url(url: &str) -> Result<(), String> {
 /// the desktop Linux file manager `xdg-open` hands off to). Mirrors
 /// `open_external_url`'s shape -- one platform-dispatched shell-out -- but
 /// for a local filesystem path instead of an HTTPS URL. Only meaningful for
-/// a locally-connected agent: `path` names something on this same machine,
+/// a locally-connected engine: `path` names something on this same machine,
 /// so the client must never call this for a remote host's server files.
 #[tauri::command]
 fn reveal_in_file_manager(path: String) -> Result<(), String> {
@@ -1845,20 +1850,20 @@ fn reveal_command(path: &Path) -> std::process::Command {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    if std::env::args().any(|arg| arg == "--unregister-agent-indicator") {
+    if std::env::args().any(|arg| arg == "--unregister-engine-indicator") {
         if let Err(error) = indicator_startup::remove() {
             eprintln!("{error}");
         }
         return;
     }
-    if std::env::args().any(|arg| arg == "--stop-agent-indicator") {
-        if let Err(error) = agent_indicator::stop() {
+    if std::env::args().any(|arg| arg == "--stop-engine-indicator") {
+        if let Err(error) = engine_indicator::stop() {
             eprintln!("{error}");
         }
         return;
     }
     if std::env::args().any(|arg| arg == "--agent-indicator") {
-        agent_indicator::run(desktop_context());
+        engine_indicator::run(desktop_context());
         return;
     }
     if ssh::run_ssh_askpass_helper() {
@@ -1876,7 +1881,7 @@ pub fn run() {
     tauri::Builder::default()
         .setup(|_| {
             if let Err(error) = indicator_startup::install() {
-                eprintln!("MSC 2 agent indicator: {error}");
+                eprintln!("MSC engine indicator: {error}");
             }
             Ok(())
         })
@@ -1936,12 +1941,12 @@ pub fn run() {
             desktop_probe_host_route,
             open_external_url,
             reveal_in_file_manager,
-            agent_service_status,
-            agent_indicator_enabled,
-            set_agent_indicator_enabled,
-            agent_health_check,
+            engine_service_status,
+            engine_indicator_enabled,
+            set_engine_indicator_enabled,
+            engine_health_check,
             quit_app,
-            manage_agent_service,
+            manage_engine_service,
             uninstall::preview_local_uninstall,
             uninstall::uninstall_local,
             check_for_updates,
@@ -1952,7 +1957,7 @@ pub fn run() {
             ssh::ssh_tunnel_stop
         ])
         .run(desktop_context())
-        .expect("error while running the MSC 2 desktop shell");
+        .expect("error while running the MSC desktop shell");
 }
 
 fn desktop_context() -> tauri::Context<tauri::Wry> {
@@ -1966,14 +1971,14 @@ mod tests {
     use msc_infrastructure::service::FakeServiceManager;
 
     #[test]
-    fn agent_service_report_never_claims_window_ownership() {
+    fn engine_service_report_never_claims_window_ownership() {
         let manager = FakeServiceManager::new();
         let request = ServiceInstallRequest::new(
-            AGENT_SERVICE_NAME,
+            ENGINE_SERVICE_NAME,
             "/opt/msc/msc",
             "/tmp/msc",
             "/tmp/msc/agent.log",
-            AGENT_PORT,
+            ENGINE_PORT,
         )
         .run_user("owner");
         manager
@@ -1981,7 +1986,7 @@ mod tests {
             .expect("synthetic service installs");
         let report = manager
             .execute(ServiceManagerCommand::Start {
-                service_name: ServiceName::new(AGENT_SERVICE_NAME),
+                service_name: ServiceName::new(ENGINE_SERVICE_NAME),
             })
             .expect("synthetic service starts");
 
@@ -1991,15 +1996,15 @@ mod tests {
     }
 
     #[test]
-    fn packaged_agent_mismatch_is_repair_required() {
+    fn packaged_engine_mismatch_is_repair_required() {
         let request = ServiceInstallRequest::new(
-            AGENT_SERVICE_NAME,
+            ENGINE_SERVICE_NAME,
             "/old-build/msc",
             "/tmp/msc",
             "/tmp/msc/agent.log",
-            AGENT_PORT,
+            ENGINE_PORT,
         );
-        let status = report_status_for_packaged_agent(
+        let status = report_status_for_packaged_engine(
             ServiceStatusReport::running(request, 42),
             Path::new("/current-build/msc"),
         );
@@ -2010,15 +2015,15 @@ mod tests {
     }
 
     #[test]
-    fn packaged_agent_match_remains_running() {
+    fn packaged_engine_match_remains_running() {
         let request = ServiceInstallRequest::new(
-            AGENT_SERVICE_NAME,
+            ENGINE_SERVICE_NAME,
             "/current-build/msc",
             "/tmp/msc",
             "/tmp/msc/agent.log",
-            AGENT_PORT,
+            ENGINE_PORT,
         );
-        let status = report_status_for_packaged_agent(
+        let status = report_status_for_packaged_engine(
             ServiceStatusReport::running(request, 42),
             Path::new("/current-build/msc"),
         );
@@ -2028,10 +2033,10 @@ mod tests {
     }
 
     #[test]
-    fn packaged_agent_path_is_staged_once_per_process() {
+    fn packaged_engine_path_is_staged_once_per_process() {
         use std::sync::atomic::{AtomicUsize, Ordering};
 
-        let cache = PackagedAgentPathCache::new();
+        let cache = PackagedEnginePathCache::new();
         let stage_count = AtomicUsize::new(0);
         let stage = || {
             stage_count.fetch_add(1, Ordering::Relaxed);
@@ -2053,7 +2058,7 @@ mod tests {
     fn repair_refreshes_a_path_cached_before_a_rebuild() {
         use std::sync::atomic::{AtomicUsize, Ordering};
 
-        let cache = PackagedAgentPathCache::new();
+        let cache = PackagedEnginePathCache::new();
         let stage_count = AtomicUsize::new(0);
         let old_stage = || {
             stage_count.fetch_add(1, Ordering::Relaxed);
@@ -2087,14 +2092,14 @@ mod tests {
         assert_eq!(
             parse_designated_requirement(
                 "# designated => cdhash H\"abc123\"\n",
-                "Executable=/Applications/MSC 2.app/Contents/MacOS/msc2-desktop-web\n",
+                "Executable=/Applications/Minecraft Server Controller.app/Contents/MacOS/msc-desktop-web\n",
             ),
             Some("cdhash H\"abc123\"")
         );
     }
 
     #[test]
-    fn external_url_policy_allows_https_and_local_agent_loopback_only() {
+    fn external_url_policy_allows_https_and_local_engine_loopback_only() {
         assert!(approved_external_url("https://docs.example.test/guide").is_ok());
         assert!(approved_external_url("http://127.0.0.1:48001").is_ok());
         assert!(approved_external_url("http://localhost:48001").is_ok());

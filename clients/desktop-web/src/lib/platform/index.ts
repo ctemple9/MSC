@@ -9,17 +9,17 @@ import {
 } from '../auth/desktop';
 import { loadTauriPlatform } from './tauri';
 import type {
-  AgentReadiness,
-  AgentServiceAction,
-  AgentServiceStatus,
+  EngineReadiness,
+  EngineServiceAction,
+  EngineServiceStatus,
   PlatformAdapter,
   NativeFileUploader,
   NativeFileDownloader,
 } from './types';
 
-export const LOCAL_AGENT_ORIGIN = 'http://127.0.0.1:48001';
+export const LOCAL_ENGINE_ORIGIN = 'http://127.0.0.1:48001';
 
-export interface AgentTransport {
+export interface EngineTransport {
   readonly baseUrl: string;
   readonly hostId: string;
   readonly fetchImpl?: FetchLike;
@@ -28,31 +28,31 @@ export interface AgentTransport {
   readonly credentialAdapter: TransportCredentialAdapter;
 }
 
-export interface AgentPreparationPlatform {
+export interface EnginePreparationPlatform {
   readonly kind: PlatformAdapter['kind'];
-  agentHealthCheck(): Promise<boolean>;
-  agentServiceStatus(): Promise<AgentServiceStatus>;
-  agentIndicatorEnabled?(): Promise<boolean>;
-  setAgentIndicatorEnabled?(enabled: boolean): Promise<void>;
-  manageAgentService(action: AgentServiceAction): Promise<AgentServiceStatus>;
+  engineHealthCheck(): Promise<boolean>;
+  engineServiceStatus(): Promise<EngineServiceStatus>;
+  engineIndicatorEnabled?(): Promise<boolean>;
+  setEngineIndicatorEnabled?(enabled: boolean): Promise<void>;
+  manageEngineService(action: EngineServiceAction): Promise<EngineServiceStatus>;
 }
 
-export interface AgentHealthCheckOptions {
+export interface EngineHealthCheckOptions {
   readonly attempts?: number;
   readonly delayMs?: number;
 }
 
-export class AgentHealthTimeoutError extends Error {
+export class EngineHealthTimeoutError extends Error {
   constructor() {
-    super('The local agent service is running but its health endpoint did not respond.');
-    this.name = 'AgentHealthTimeoutError';
+    super('The local engine service is running but its health endpoint did not respond.');
+    this.name = 'EngineHealthTimeoutError';
   }
 }
 
 export type {
-  AgentReadiness,
-  AgentServiceAction,
-  AgentServiceStatus,
+  EngineReadiness,
+  EngineServiceAction,
+  EngineServiceStatus,
   DesktopNotification,
   FilePickerRequest,
   MenuEntry,
@@ -65,12 +65,12 @@ export type {
 export { createTauriPlatform } from './tauri';
 
 /** Reports an installed service without changing an explicit stopped state. */
-export async function prepareInstalledAgent(
-  platform: AgentPreparationPlatform,
-  healthCheck: () => Promise<boolean> = localAgentHealthCheck,
-  options: AgentHealthCheckOptions = {},
-): Promise<AgentServiceStatus> {
-  const status = await platform.agentServiceStatus();
+export async function prepareInstalledEngine(
+  platform: EnginePreparationPlatform,
+  healthCheck: () => Promise<boolean> = localEngineHealthCheck,
+  options: EngineHealthCheckOptions = {},
+): Promise<EngineServiceStatus> {
+  const status = await platform.engineServiceStatus();
   if (status.state !== 'running') return status;
 
   const attempts = options.attempts ?? 20;
@@ -79,23 +79,23 @@ export async function prepareInstalledAgent(
     if (await healthCheck()) return status;
     if (attempt + 1 < attempts) await delay(delayMs);
   }
-  throw new AgentHealthTimeoutError();
+  throw new EngineHealthTimeoutError();
 }
 
 /** Reports the locally installed service without changing its stopped state. */
-export async function prepareLocalAgent(): Promise<AgentServiceStatus> {
+export async function prepareLocalEngine(): Promise<EngineServiceStatus> {
   const platform = await getPlatform();
-  return prepareInstalledAgent(platform, () => platform.agentHealthCheck());
+  return prepareInstalledEngine(platform, () => platform.engineHealthCheck());
 }
 
 /** Selects authentication at the shell boundary, before ApiClient is built. */
-export async function createAgentTransport(hostId: string): Promise<AgentTransport> {
+export async function createEngineTransport(hostId: string): Promise<EngineTransport> {
   const configuredBaseUrl = import.meta.env.VITE_MSC_API_BASE_URL;
   const auth = new DesktopSessionAuth(await loadTauriDesktopCredentialBridge());
   const authenticatedHostId =
     hostId === 'local-agent' ? (await auth.bootstrapLocal()).agentHostId : hostId;
   return {
-    baseUrl: configuredBaseUrl ?? LOCAL_AGENT_ORIGIN,
+    baseUrl: configuredBaseUrl ?? LOCAL_ENGINE_ORIGIN,
     hostId: authenticatedHostId,
     fetchImpl: auth.fetchForHost(authenticatedHostId),
     nativeFileUploader: await loadTauriNativeFileUploader(),
@@ -119,9 +119,9 @@ export async function openExternal(url: string): Promise<void> {
   await (await getPlatform()).openExternal(url);
 }
 
-async function localAgentHealthCheck(): Promise<boolean> {
+async function localEngineHealthCheck(): Promise<boolean> {
   try {
-    const response = await fetch(`${LOCAL_AGENT_ORIGIN}/v1/healthz`, {
+    const response = await fetch(`${LOCAL_ENGINE_ORIGIN}/v1/healthz`, {
       credentials: 'omit',
     });
     return response.ok;

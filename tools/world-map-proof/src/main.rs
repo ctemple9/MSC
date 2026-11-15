@@ -39,7 +39,7 @@ fn raise_open_file_limit(report_effective: bool) {
             );
         }
     }
-    // Catalog is the expensive scan; record its actual limit in the agent log
+    // Catalog is the expensive scan; record its actual limit in the engine log
     // so a launchd limit can be distinguished from a reader failure.
     if report_effective {
         if unsafe { libc::getrlimit(libc::RLIMIT_NOFILE, &mut limit) } != 0 {

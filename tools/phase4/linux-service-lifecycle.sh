@@ -3,15 +3,15 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RUN_ID="$(date +%Y%m%d%H%M%S)-$$"
-RUN_DIR="/tmp/msc2-linux-service-lifecycle.${RUN_ID}"
+RUN_DIR="/tmp/msc-linux-service-lifecycle.${RUN_ID}"
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 TARGET_GROUP=""
 SERVER_DIR=""
 KEEP_ARTIFACTS=0
-LABEL="msc2-phase4-agent-${RUN_ID}"
+LABEL="msc-phase4-engine-${RUN_ID}"
 HELPER_SOCKET_UNIT="msc2-credential-helper.socket"
 HELPER_SERVICE_UNIT="msc2-credential-helper.service"
-AGENT_UNIT_PATH="/etc/systemd/system/${LABEL}.service"
+ENGINE_UNIT_PATH="/etc/systemd/system/${LABEL}.service"
 HELPER_SOCKET_PATH="/etc/systemd/system/${HELPER_SOCKET_UNIT}"
 HELPER_SERVICE_PATH="/etc/systemd/system/${HELPER_SERVICE_UNIT}"
 HELPER_RUNTIME_SOCKET="/run/msc2/credential-helper.sock"
@@ -30,16 +30,16 @@ HELPER_BIN_DIR="/var/lib/msc2/bin"
 HELPER_BIN="${HELPER_BIN_DIR}/msc"
 SERVER_NAME="Phase4 Paper"
 SERVER_PORT=""
-EVIDENCE_DIR="${ROOT}/docs/msc2/lifecycle/credential-evidence"
+EVIDENCE_DIR="${ROOT}/docs/msc/lifecycle/credential-evidence"
 EVIDENCE_FILE="${EVIDENCE_DIR}/linux-${RUN_ID}.json"
 
 usage() {
   cat <<USAGE
 Usage: $0 --server-dir <path> [--user <installing-user>] [--keep-artifacts]
 
-Builds the Phase 4 agent, installs it as a systemd service running as the
+Builds the Phase 4 engine, installs it as a systemd service running as the
 installing user, imports the given Paper server through the public CLI/API
-path, starts it, proves the agent and Java server survive with no clients
+path, starts it, proves the engine and Java server survive with no clients
 connected, installs the Phase 4 credential-helper socket/service definitions,
 checks their ownership and permissions, then stops the server and uninstalls
 everything cleanly.
@@ -169,7 +169,7 @@ cleanup() {
   fi
   systemctl stop "${LABEL}.service" >/dev/null 2>&1 || true
   systemctl disable "${LABEL}.service" >/dev/null 2>&1 || true
-  rm -f "${AGENT_UNIT_PATH}"
+  rm -f "${ENGINE_UNIT_PATH}"
   systemctl stop "${HELPER_SOCKET_UNIT}" >/dev/null 2>&1 || true
   systemctl disable "${HELPER_SOCKET_UNIT}" >/dev/null 2>&1 || true
   rm -f "${HELPER_SOCKET_PATH}" "${HELPER_SERVICE_PATH}"
@@ -189,7 +189,7 @@ chmod -R 700 "${RUN_DIR}"
 
 # On SELinux-enforcing hosts, a directory created here under an interactive
 # sudo shell is type-transitioned to user_tmp_t, but the systemd-spawned
-# agent process runs in init_t regardless of its configured User=. init_t
+# engine process runs in init_t regardless of its configured User=. init_t
 # cannot write user_tmp_t, so relabel to the generic tmp_t the unit needs.
 if command -v selinuxenabled >/dev/null 2>&1 && selinuxenabled; then
   chcon -R -t tmp_t "${RUN_DIR}"
@@ -197,7 +197,7 @@ fi
 
 (
   cd "${ROOT}"
-  cargo build -p msc-agent >/dev/null
+  cargo build -p msc-engine >/dev/null
 )
 
 # systemd's ad hoc unit here runs in the init_t SELinux domain regardless of
@@ -224,9 +224,9 @@ if command -v selinuxenabled >/dev/null 2>&1 && selinuxenabled; then
   chcon -t bin_t "${HELPER_BIN}"
 fi
 
-cat > "${AGENT_UNIT_PATH}" <<UNIT
+cat > "${ENGINE_UNIT_PATH}" <<UNIT
 [Unit]
-Description=MSC 2 Phase 4 agent (${LABEL})
+Description=MSC Phase 4 engine (${LABEL})
 After=network.target
 
 [Service]
@@ -246,7 +246,7 @@ Restart=no
 WantedBy=multi-user.target
 UNIT
 
-chmod 644 "${AGENT_UNIT_PATH}"
+chmod 644 "${ENGINE_UNIT_PATH}"
 
 mkdir -p /run/msc2 "${HELPER_STORE_DIR}"
 chown root:root /run/msc2 "${HELPER_STORE_DIR}"
@@ -255,7 +255,7 @@ chmod 700 "${HELPER_STORE_DIR}"
 
 cat > "${HELPER_SOCKET_PATH}" <<UNIT
 [Unit]
-Description=MSC 2 credential helper socket
+Description=MSC credential helper socket
 
 [Socket]
 ListenStream=${HELPER_RUNTIME_SOCKET}
@@ -270,7 +270,7 @@ UNIT
 
 cat > "${HELPER_SERVICE_PATH}" <<UNIT
 [Unit]
-Description=MSC 2 credential helper
+Description=MSC credential helper
 Requires=${HELPER_SOCKET_UNIT}
 After=network.target
 
@@ -284,7 +284,7 @@ PrivateTmp=yes
 ProtectSystem=strict
 ProtectHome=yes
 ReadWritePaths=${HELPER_STORE_DIR}
-RuntimeDirectory=msc2
+RuntimeDirectory=msc
 UNIT
 
 chmod 644 "${HELPER_SOCKET_PATH}" "${HELPER_SERVICE_PATH}"
@@ -310,17 +310,17 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy through systemd")
+raise SystemExit("engine did not become healthy through systemd")
 PY
 
 curl --fail --silent --show-error -H "Authorization: Bearer ${TOKEN}" "${BASE_URL}/v1/status" >/dev/null
-AGENT_PID_BEFORE_RESTART="$(systemctl show "${LABEL}.service" --property MainPID --value)"
-if [ -z "${AGENT_PID_BEFORE_RESTART}" ] || [ "${AGENT_PID_BEFORE_RESTART}" = "0" ]; then
-  echo "could not determine systemd agent pid before credential restart proof" >&2
+ENGINE_PID_BEFORE_RESTART="$(systemctl show "${LABEL}.service" --property MainPID --value)"
+if [ -z "${ENGINE_PID_BEFORE_RESTART}" ] || [ "${ENGINE_PID_BEFORE_RESTART}" = "0" ]; then
+  echo "could not determine systemd engine pid before credential restart proof" >&2
   exit 1
 fi
 
-python3 - "${AGENT_UNIT_PATH}" <<'PY'
+python3 - "${ENGINE_UNIT_PATH}" <<'PY'
 import pathlib
 import sys
 
@@ -331,7 +331,7 @@ lines = [
 ]
 path.write_text("\n".join(lines) + "\n")
 PY
-chmod 644 "${AGENT_UNIT_PATH}"
+chmod 644 "${ENGINE_UNIT_PATH}"
 systemctl daemon-reload
 systemctl restart "${LABEL}.service"
 
@@ -350,17 +350,17 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy after systemd credential restart")
+raise SystemExit("engine did not become healthy after systemd credential restart")
 PY
 curl --fail --silent --show-error -H "Authorization: Bearer ${TOKEN}" "${BASE_URL}/v1/status" >/dev/null
-AGENT_PID_AFTER_RESTART="$(systemctl show "${LABEL}.service" --property MainPID --value)"
-if [ -z "${AGENT_PID_AFTER_RESTART}" ] || [ "${AGENT_PID_AFTER_RESTART}" = "0" ] || [ "${AGENT_PID_AFTER_RESTART}" = "${AGENT_PID_BEFORE_RESTART}" ]; then
-  echo "systemd restart did not produce a new agent pid" >&2
+ENGINE_PID_AFTER_RESTART="$(systemctl show "${LABEL}.service" --property MainPID --value)"
+if [ -z "${ENGINE_PID_AFTER_RESTART}" ] || [ "${ENGINE_PID_AFTER_RESTART}" = "0" ] || [ "${ENGINE_PID_AFTER_RESTART}" = "${ENGINE_PID_BEFORE_RESTART}" ]; then
+  echo "systemd restart did not produce a new engine pid" >&2
   exit 1
 fi
 
 mkdir -p "${EVIDENCE_DIR}"
-python3 - "${EVIDENCE_FILE}" "${RUN_DIR}" "${RUN_ID}" "${LABEL}" "${AGENT_PID_BEFORE_RESTART}" "${AGENT_PID_AFTER_RESTART}" <<'PY'
+python3 - "${EVIDENCE_FILE}" "${RUN_DIR}" "${RUN_ID}" "${LABEL}" "${ENGINE_PID_BEFORE_RESTART}" "${ENGINE_PID_AFTER_RESTART}" <<'PY'
 import datetime
 import json
 import sys
@@ -382,7 +382,7 @@ record = {
     "restartedActualServiceProcess": True,
     "result": "passed",
     "runId": run_id,
-    "schema": "msc2.phase4.credential-evidence.v1",
+    "schema": "msc.phase4.credential-evidence.v1",
     "script": "tools/phase4/linux-service-lifecycle.sh",
     "serviceManager": "systemd",
     "serviceName": f"{label}.service",
@@ -484,10 +484,10 @@ while time.time() < deadline:
 raise SystemExit("console tail never observed the sent command")
 PY
 
-AGENT_PID="$(systemctl show "${LABEL}.service" --property MainPID --value)"
+ENGINE_PID="$(systemctl show "${LABEL}.service" --property MainPID --value)"
 SERVER_PID="$(ss -ltnp "sport = :${SERVER_PORT}" 2>/dev/null | awk -F'pid=' 'NR>1 {split($2,a,","); print a[1]; exit}' || true)"
-if [ -z "${AGENT_PID}" ] || [ "${AGENT_PID}" = "0" ]; then
-  echo "could not determine systemd agent pid" >&2
+if [ -z "${ENGINE_PID}" ] || [ "${ENGINE_PID}" = "0" ]; then
+  echo "could not determine systemd engine pid" >&2
   exit 1
 fi
 if [ -z "${SERVER_PID}" ]; then
@@ -496,7 +496,7 @@ if [ -z "${SERVER_PID}" ]; then
 fi
 
 sleep 2
-kill -0 "${AGENT_PID}"
+kill -0 "${ENGINE_PID}"
 kill -0 "${SERVER_PID}"
 
 curl --fail --silent --show-error -H "Authorization: Bearer ${TOKEN}" "${BASE_URL}/v1/status" >/dev/null
@@ -599,7 +599,7 @@ PY
 
 systemctl stop "${LABEL}.service"
 systemctl disable "${LABEL}.service" >/dev/null
-rm -f "${AGENT_UNIT_PATH}"
+rm -f "${ENGINE_UNIT_PATH}"
 systemctl stop "${HELPER_SOCKET_UNIT}"
 systemctl disable "${HELPER_SOCKET_UNIT}" >/dev/null
 rm -f "${HELPER_SOCKET_PATH}" "${HELPER_SERVICE_PATH}"
@@ -619,7 +619,7 @@ while time.time() < deadline:
     except (urllib.error.URLError, TimeoutError):
         raise SystemExit(0)
     time.sleep(0.25)
-raise SystemExit("agent still answered health after systemd uninstall")
+raise SystemExit("engine still answered health after systemd uninstall")
 PY
 
 echo "Linux systemd lifecycle check passed"

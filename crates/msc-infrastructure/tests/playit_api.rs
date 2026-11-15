@@ -54,15 +54,15 @@ fn account_calls_use_the_expected_claim_shapes_and_authentication_boundary() {
             200,
             json!({"status":"success","data":{"session_key":"session-secret"}}),
         ),
-        (200, json!({"status":"success","data":"WaitingForAgent"})),
+        (200, json!({"status":"success","data":"WaitingForEngine"})),
         (200, json!({"status":"success","data":"ok"})),
         (
             200,
-            json!({"status":"success","data":{"agent_id":"agent-123"}}),
+            json!({"status":"success","data":{"agent_id":"engine-123"}}),
         ),
         (
             200,
-            json!({"status":"success","data":{"secret_key":"agent-secret"}}),
+            json!({"status":"success","data":{"secret_key":"engine-secret"}}),
         ),
     ]);
     let api = PlayitApi::new(&transport);
@@ -70,16 +70,16 @@ fn account_calls_use_the_expected_claim_shapes_and_authentication_boundary() {
     api.claim_setup("0123456789").unwrap();
     api.claim_details("0123456789", &session).unwrap();
     assert_eq!(
-        api.claim_accept("0123456789", "MSC Agent", &session)
+        api.claim_accept("0123456789", "MSC Engine", &session)
             .unwrap(),
-        "agent-123"
+        "engine-123"
     );
     let secret = match api.claim_exchange("0123456789") {
         Ok(Some(secret)) => secret,
         Ok(None) => panic!("claim exchange was unexpectedly pending"),
         Err(error) => panic!("claim exchange failed: {error}"),
     };
-    assert_eq!(secret.as_str(), "agent-secret");
+    assert_eq!(secret.as_str(), "engine-secret");
 
     let requests = transport.requests.lock().unwrap();
     assert_eq!(requests[0].0, "/login/signin");
@@ -87,10 +87,10 @@ fn account_calls_use_the_expected_claim_shapes_and_authentication_boundary() {
     assert_eq!(requests[0].1["password"], "password");
     assert_eq!(requests[0].2, None);
     assert_eq!(requests[1].0, "/claim/setup");
-    assert_eq!(requests[1].1["agent_type"], "assignable");
+    assert_eq!(requests[1].1["engine_type"], "assignable");
     assert_eq!(requests[1].1["version"], "playit 1.0.10");
     assert_eq!(requests[2].2.as_deref(), Some("session session-secret"));
-    assert_eq!(requests[3].1["name"], "MSC Agent");
+    assert_eq!(requests[3].1["name"], "MSC Engine");
     assert_eq!(requests[4].0, "/claim/exchange");
     assert_eq!(requests[4].2, None);
 }
@@ -114,7 +114,7 @@ fn session_auth_falls_back_without_leaking_the_session_in_errors() {
 
     let requests = transport.requests.lock().unwrap();
     assert_eq!(requests[1].2.as_deref(), Some("session session-secret"));
-    assert_eq!(requests[2].2.as_deref(), Some("agent-key session-secret"));
+    assert_eq!(requests[2].2.as_deref(), Some("engine-key session-secret"));
 }
 
 #[test]
@@ -142,8 +142,8 @@ fn provider_failures_map_to_stable_safe_categories() {
         ),
         (
             404,
-            json!({"status":"fail","data":"AgentNotFound"}),
-            PlayitApiError::AgentNotFound,
+            json!({"status":"fail","data":"EngineNotFound"}),
+            PlayitApiError::EngineNotFound,
         ),
         (
             500,

@@ -22,7 +22,7 @@
   //
   // Not ported: the oracle's live Geyser/Floodgate and Xbox-broadcast-helper
   // download status shown while this sheet is still open. That's MSC 1
-  // pre-fetching local jars before the server exists; here the agent
+  // pre-fetching local jars before the server exists; here the engine
   // installs whatever `enableCrossPlay`/`enableXboxBroadcast` need as part
   // of the real create operation (P12.18g), so there is nothing to poll yet
   // -- a deliberate omission, not a silent drop.
@@ -151,7 +151,7 @@
 
 <div class="configure">
   <section class="block" use:onboardingAnchor={'ob_server_type'}>
-    <p class="msc2-type-overline">Server Type</p>
+    <p class="msc-type-overline">Server Type</p>
     <div class="cards two-up">
       <button
         type="button"
@@ -175,7 +175,7 @@
   </section>
 
   <section class="block">
-    <p class="msc2-type-overline">Server Name</p>
+    <p class="msc-type-overline">Server Name</p>
     <Field
       bind:value={draft.serverName}
       placeholder="Enter server name"
@@ -185,7 +185,7 @@
 
   {#if draft.serverType === 'java'}
     <section class="block" use:onboardingAnchor={'ob_server_category'}>
-      <p class="msc2-type-overline">Server Software</p>
+      <p class="msc-type-overline">Server Software</p>
       <div class="cards two-up">
         {#each categories as category (category)}
           <button
@@ -226,7 +226,7 @@
     </section>
 
     <section class="block" use:onboardingAnchor={'ob_server_source'}>
-      <p class="msc2-type-overline">Source</p>
+      <p class="msc-type-overline">Source</p>
       <SegmentedControl
         options={[
           { value: 'latest', label: 'Download latest' },
@@ -266,7 +266,7 @@
     </section>
 
     <section class="block" use:onboardingAnchor={'ob_server_crossplay'}>
-      <p class="msc2-type-overline">Crossplay</p>
+      <p class="msc-type-overline">Crossplay</p>
       <div class="toggle-card">
         <div class="toggle-row">
           <Toggle
@@ -296,13 +296,13 @@
     </section>
   {:else}
     <section class="block">
-      <p class="msc2-type-overline">Bedrock Version</p>
+      <p class="msc-type-overline">Bedrock Version</p>
       <Field bind:value={draft.bedrockVersion} placeholder="LATEST" width="200px" />
       <p class="hint">{BEDROCK_VERSION_NOTE}</p>
     </section>
 
     <section class="block">
-      <p class="msc2-type-overline">Max Players</p>
+      <p class="msc-type-overline">Max Players</p>
       <NumberField
         value={draft.bedrockMaxPlayers}
         min={1}
@@ -316,7 +316,7 @@
 
   {#if showXboxBroadcast}
     <section class="block" use:onboardingAnchor={'ob_server_xbox_broadcast'}>
-      <p class="msc2-type-overline">Xbox Broadcast</p>
+      <p class="msc-type-overline">Xbox Broadcast</p>
       <div class="toggle-card">
         <div class="toggle-row">
           <Toggle
@@ -365,8 +365,8 @@
     gap: 4px;
     text-align: left;
     padding: 12px 14px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
     font: inherit;
     cursor: pointer;
@@ -378,11 +378,11 @@
   .card-title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .card-subtitle {
     font-size: 11.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .flavor-list {
@@ -395,8 +395,8 @@
     align-items: flex-start;
     text-align: left;
     padding: 10px 12px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
     font: inherit;
     cursor: pointer;
@@ -422,20 +422,20 @@
   .flavor-name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .flavor-description {
     font-size: 11.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .hint {
     margin: 0;
     font-size: 11.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
 
   .version-list {
@@ -445,8 +445,8 @@
     max-height: 220px;
     overflow-y: auto;
     padding: 4px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
   }
   .version-row {
@@ -458,7 +458,7 @@
     background: transparent;
     border: 1px solid transparent;
     border-radius: 7px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     font-size: 12.5px;
     text-align: left;
@@ -475,8 +475,8 @@
   }
 
   .toggle-card {
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
     padding: 12px 14px;
   }
@@ -493,11 +493,11 @@
   .toggle-name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .toggle-hint {
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

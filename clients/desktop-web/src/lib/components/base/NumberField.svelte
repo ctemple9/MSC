@@ -1,8 +1,8 @@
 <script lang="ts">
-  // Same field language as Field, narrower by default. docs/msc2/renderings/primitives.html
+  // Same field language as Field, narrower by default. docs/msc/renderings/primitives.html
   //
   // The native <input type="number"> spin buttons render as the OS/browser's
-  // own light widget with no CSS hook to recolor -- on MSC 2's dark field
+  // own light widget with no CSS hook to recolor -- on MSC's dark field
   // they read as a stray white toggle stuck to the side (caught live during
   // P12.8 review). Hidden here and replaced with a dark two-button stepper
   // that drives the same native stepUp()/stepDown() (so min/max/step clamping
@@ -98,8 +98,8 @@
     font-family: inherit;
     font-size: 13px;
     color: #fff;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-field);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
     padding: 7px 26px 7px 10px;
     outline: none;
@@ -114,7 +114,7 @@
   }
 
   .field:focus-visible {
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
 
   .field:disabled {
@@ -132,7 +132,7 @@
     flex-direction: column;
     border-radius: 5px;
     overflow: hidden;
-    background: var(--msc2-neutral-elevated);
+    background: var(--msc-neutral-elevated);
   }
 
   .step {

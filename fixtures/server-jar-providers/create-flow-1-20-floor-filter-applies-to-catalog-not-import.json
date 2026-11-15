@@ -2,7 +2,7 @@
   "domain": "server-jar-providers",
   "case": "create-flow-1-20-floor-filter-applies-to-catalog-not-import",
   "source": {
-    "file": "docs/msc2/msc2-decisions.md",
+    "file": "docs/msc/msc-decisions.md",
     "test": "D-014, applied as a Phase 7 addition on top of each provider's raw listVersions() output",
     "line": 1
   },

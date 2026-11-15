@@ -1,6 +1,6 @@
 <script lang="ts">
   // Same field language as Field/NumberField, with a neutral chevron.
-  // docs/msc2/renderings/primitives.html
+  // docs/msc/renderings/primitives.html
   export let options: readonly { value: string; label: string }[] = [];
   export let value = '';
   export let disabled = false;
@@ -50,8 +50,8 @@
     font-family: inherit;
     font-size: 13px;
     color: #fff;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-field);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
     padding: 7px 32px 7px 10px;
     outline: none;
@@ -59,7 +59,7 @@
   }
 
   .select:focus-visible {
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
 
   .select:disabled {

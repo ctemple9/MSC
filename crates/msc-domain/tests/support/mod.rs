@@ -1,7 +1,7 @@
 //! Fixture-loading support shared by msc-domain's integration tests.
 //!
 //! Native counterpart to `tools/fixture-runner/run.py`: deserializes a
-//! fixture file into the shape defined by `docs/msc2/fixture-format.md`
+//! fixture file into the shape defined by `docs/msc/fixture-format.md`
 //! and compares a domain's computed `actual` against its `expected`.
 //! Real domains register a `compute_actual` arm as their Rust port lands
 //! (mirrors `run.py`'s `ACTUAL_COMPUTERS` table) — `_selftest` is the only

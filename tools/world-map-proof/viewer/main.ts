@@ -249,7 +249,7 @@ viewer.controls.addEventListener('start', () => {
 async function refreshPlayers() {
   try {
     const response = await fetch('/live-players.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error('agent unavailable');
+    if (!response.ok) throw new Error('engine unavailable');
     const feed = await response.json() as Feed;
     if (!feed.fresh) {
       players.setSnapshot({ source: 'host', updated: 0, players: [] }, performance.now());
@@ -287,7 +287,7 @@ async function refreshPlayers() {
     renderRoster(localPlayers);
   } catch {
     players.setSnapshot({ source: 'host', updated: 0, players: [] }, performance.now());
-    playerStatus.value = 'Player feed unavailable · agent connection lost';
+    playerStatus.value = 'Player feed unavailable · engine connection lost';
     lastSequence = '';
     stopFollowing();
     renderRoster([]);

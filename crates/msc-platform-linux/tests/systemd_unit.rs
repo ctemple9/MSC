@@ -8,7 +8,7 @@ use msc_platform_linux::credential_helper::{
     serialize_response,
 };
 use msc_platform_linux::service::{
-    DESKTOP_AGENT_SERVICE_NAME, LinuxSystemdServiceManager, Systemctl,
+    DESKTOP_ENGINE_SERVICE_NAME, LinuxSystemdServiceManager, Systemctl,
 };
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -109,7 +109,7 @@ struct TempDir {
 impl TempDir {
     fn new(name: &str) -> Self {
         let path =
-            std::env::temp_dir().join(format!("msc2-systemd-unit-{name}-{}", std::process::id()));
+            std::env::temp_dir().join(format!("msc-systemd-unit-{name}-{}", std::process::id()));
         std::fs::create_dir_all(&path).unwrap();
         Self { path }
     }
@@ -123,10 +123,10 @@ impl Drop for TempDir {
 
 fn request() -> ServiceInstallRequest {
     ServiceInstallRequest::new(
-        "msc2-agent",
+        "msc-engine",
         "/usr/local/bin/msc",
-        "/tmp/msc2-service-tests/agent",
-        "/tmp/msc2-service-tests/agent.log",
+        "/tmp/msc-service-tests/agent",
+        "/tmp/msc-service-tests/agent.log",
         48001,
     )
     .args(["serve", "--bind", "127.0.0.1:48001"])
@@ -146,7 +146,7 @@ fn install_writes_systemd_unit_with_user_group_and_expected_port_metadata() {
         .expect("install succeeds");
 
     assert_eq!(report.state, ServiceState::Stopped);
-    let unit_path = temp.path.join("msc2-agent.service");
+    let unit_path = temp.path.join("msc-engine.service");
     let unit = std::fs::read_to_string(&unit_path).expect("unit exists");
     assert!(unit.contains("User=example"));
     assert!(unit.contains("Group=example"));
@@ -155,7 +155,7 @@ fn install_writes_systemd_unit_with_user_group_and_expected_port_metadata() {
         systemctl.calls(),
         vec![
             "daemon-reload".to_string(),
-            "enable msc2-agent.service".to_string()
+            "enable msc-engine.service".to_string()
         ]
     );
 }
@@ -170,7 +170,7 @@ fn status_reconstructs_definition_and_running_pid_from_installed_unit() {
     manager
         .execute(ServiceManagerCommand::Install(request.clone()))
         .expect("install succeeds");
-    systemctl.set_show_output("msc2-agent.service", "ActiveState=active\nMainPID=4242\n");
+    systemctl.set_show_output("msc-engine.service", "ActiveState=active\nMainPID=4242\n");
 
     let report = manager
         .execute(ServiceManagerCommand::Status {
@@ -193,11 +193,11 @@ fn archive_unit_update_lifecycle_works_without_private_metadata() {
     let temp = TempDir::new("archive-update");
     let systemctl = FakeSystemctl::default();
     let manager = LinuxSystemdServiceManager::with_systemctl(&temp.path, systemctl.clone());
-    let service_name = msc_infrastructure::service::ServiceName::new(DESKTOP_AGENT_SERVICE_NAME);
-    let unit_name = format!("{DESKTOP_AGENT_SERVICE_NAME}.service");
+    let service_name = msc_infrastructure::service::ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME);
+    let unit_name = format!("{DESKTOP_ENGINE_SERVICE_NAME}.service");
     let unit_path = temp.path.join(&unit_name);
     let archive_unit =
-        include_str!("../../../packaging/linux/systemd/com.ctemple.msc2.agent.service.in");
+        include_str!("../../../packaging/linux/systemd/com.ctemple.msc.engine.service.in");
 
     assert!(!archive_unit.contains("# MSC2-ServiceName="));
     std::fs::write(&unit_path, archive_unit).expect("archive unit exists");
@@ -231,11 +231,11 @@ fn archive_status_and_control_preserve_custom_data_directory_without_metadata() 
     let temp = TempDir::new("archive-status");
     let systemctl = FakeSystemctl::default();
     let manager = LinuxSystemdServiceManager::with_systemctl(&temp.path, systemctl.clone());
-    let service_name = msc_infrastructure::service::ServiceName::new(DESKTOP_AGENT_SERVICE_NAME);
-    let unit_name = format!("{DESKTOP_AGENT_SERVICE_NAME}.service");
+    let service_name = msc_infrastructure::service::ServiceName::new(DESKTOP_ENGINE_SERVICE_NAME);
+    let unit_name = format!("{DESKTOP_ENGINE_SERVICE_NAME}.service");
     let unit_path = temp.path.join(&unit_name);
     let data_dir = "/srv/minecraft data";
-    let unit = include_str!("../../../packaging/linux/systemd/com.ctemple.msc2.agent.service.in")
+    let unit = include_str!("../../../packaging/linux/systemd/com.ctemple.msc.engine.service.in")
         .replace("@MSC2_USER@", "example")
         .replace("@MSC2_GROUP@", "games")
         .replace("@MSC2_DATA_DIR@", data_dir);
@@ -295,7 +295,7 @@ fn start_stop_and_uninstall_issue_expected_systemctl_calls() {
     manager
         .execute(ServiceManagerCommand::Install(request.clone()))
         .expect("install succeeds");
-    systemctl.set_show_output("msc2-agent.service", "ActiveState=active\nMainPID=777\n");
+    systemctl.set_show_output("msc-engine.service", "ActiveState=active\nMainPID=777\n");
 
     let started = manager
         .execute(ServiceManagerCommand::Start {
@@ -305,7 +305,7 @@ fn start_stop_and_uninstall_issue_expected_systemctl_calls() {
     assert_eq!(started.state, ServiceState::Running);
     assert_eq!(started.pid, Some(777));
 
-    systemctl.set_show_output("msc2-agent.service", "ActiveState=inactive\nMainPID=0\n");
+    systemctl.set_show_output("msc-engine.service", "ActiveState=inactive\nMainPID=0\n");
     let stopped = manager
         .execute(ServiceManagerCommand::Stop {
             service_name: request.service_name.clone(),
@@ -320,18 +320,18 @@ fn start_stop_and_uninstall_issue_expected_systemctl_calls() {
         .expect("uninstall succeeds");
     assert_eq!(removed.state, ServiceState::NotInstalled);
 
-    let unit_path = temp.path.join("msc2-agent.service");
+    let unit_path = temp.path.join("msc-engine.service");
     assert_eq!(
         systemctl.calls(),
         vec![
             "daemon-reload".to_string(),
-            "enable msc2-agent.service".to_string(),
-            "start msc2-agent.service".to_string(),
-            "show msc2-agent.service".to_string(),
-            "stop msc2-agent.service".to_string(),
-            "show msc2-agent.service".to_string(),
-            "stop msc2-agent.service".to_string(),
-            "disable msc2-agent.service".to_string(),
+            "enable msc-engine.service".to_string(),
+            "start msc-engine.service".to_string(),
+            "show msc-engine.service".to_string(),
+            "stop msc-engine.service".to_string(),
+            "show msc-engine.service".to_string(),
+            "stop msc-engine.service".to_string(),
+            "disable msc-engine.service".to_string(),
             "daemon-reload".to_string(),
         ]
     );
@@ -344,7 +344,7 @@ fn install_rejects_missing_run_user_for_installing_user_service_scope() {
     let systemctl = FakeSystemctl::default();
     let manager = LinuxSystemdServiceManager::with_systemctl(&temp.path, systemctl);
     let request = ServiceInstallRequest::new(
-        "msc2-agent",
+        "msc-engine",
         "/usr/local/bin/msc",
         "/tmp",
         "/tmp/msc.log",
@@ -384,8 +384,8 @@ fn credential_helper_units_render_expected_socket_permissions_and_execstart() {
 #[test]
 fn credential_helper_rejects_binary_path_hidden_by_its_own_hardening() {
     for hidden_path in [
-        "/tmp/msc2-run/bin/msc",
-        "/var/tmp/msc2-run/bin/msc",
+        "/tmp/msc-run/bin/msc",
+        "/var/tmp/msc-run/bin/msc",
         "/home/example/.cargo/bin/msc",
         "/root/.cargo/bin/msc",
         "/run/user/1000/msc",

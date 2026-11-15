@@ -25,7 +25,7 @@ pub const TOTAL_DOWNLOAD_MAX_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 
 /// Selects the release artifact family for a local updater.
 ///
-/// A headless agent must not accidentally select a desktop installer. Linux
+/// A headless engine must not accidentally select a desktop installer. Linux
 /// package installs are the one deliberate exception: the package manager
 /// owns the files, so the CLI stages the matching package and reports the
 /// command the operator must run.
@@ -49,7 +49,7 @@ const MANIFEST_FILE: &str = "msc2-update-manifest.json";
 const SIGNATURE_FILE: &str = "msc2-update-manifest.sig";
 const RELEASE_NOTES_FILE: &str = "RELEASE-NOTES.md";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
-const USER_AGENT: &str = "msc2-update-client/1";
+const USER_AGENT: &str = "msc-update-client/1";
 
 #[derive(Debug, Clone)]
 pub struct UpdateClientConfig {
@@ -137,8 +137,8 @@ pub fn check_and_stage(
     data_directory: &Path,
 ) -> Result<UpdateResult, String> {
     validate_repository(&config.repository)?;
-    let agent = http_agent();
-    let latest = latest_release(&agent, &config.repository)?;
+    let engine = http_engine();
+    let latest = latest_release(&engine, &config.repository)?;
     let latest_id = release_id_from_tag(&latest.tag_name)?;
 
     if compare_versions(&latest_id, &config.current_version)? != std::cmp::Ordering::Greater {
@@ -150,7 +150,7 @@ pub fn check_and_stage(
             target: None,
             artifact_filename: None,
             staged_directory: None,
-            detail: "MSC 2 is already up to date.".to_string(),
+            detail: "MSC is already up to date.".to_string(),
         });
     }
 
@@ -204,24 +204,24 @@ fn stage_exact_release(
             detail: "Previously staged release verified and ready to install.".into(),
         });
     }
-    let agent = http_agent();
+    let engine = http_engine();
     let base = release_base_url(&config.repository, latest_id);
     let manifest_bytes = download_bytes(
-        &agent,
+        &engine,
         &format!("{base}/{MANIFEST_FILE}"),
         MANIFEST_MAX_BYTES,
         &github_hosts(true),
         MANIFEST_FILE,
     )?;
     let signature_bytes = download_bytes(
-        &agent,
+        &engine,
         &format!("{base}/{SIGNATURE_FILE}"),
         SIGNATURE_MAX_BYTES,
         &github_hosts(true),
         SIGNATURE_FILE,
     )?;
     let release_notes = download_bytes(
-        &agent,
+        &engine,
         &format!("{base}/{RELEASE_NOTES_FILE}"),
         RELEASE_NOTES_MAX_BYTES,
         &github_hosts(true),
@@ -275,7 +275,7 @@ fn stage_exact_release(
         .map_err(|error| format!("Could not create the temporary staging directory: {error}"))?;
 
     let result = stage_release(
-        &agent,
+        &engine,
         &base,
         &temporary_directory,
         asset,
@@ -362,7 +362,7 @@ pub fn verify_staged(
 }
 
 fn stage_release(
-    agent: &ureq::Agent,
+    engine: &ureq::Agent,
     base: &str,
     temporary_directory: &Path,
     asset: &ReleaseAsset,
@@ -372,7 +372,7 @@ fn stage_release(
 ) -> Result<(), String> {
     let artifact_path = temporary_directory.join(&asset.filename);
     download_to_file(
-        agent,
+        engine,
         &format!("{base}/{}", asset.filename),
         &artifact_path,
         asset.bytes,
@@ -481,10 +481,10 @@ fn decode_manifest_signature(signature_bytes: &[u8]) -> Result<Signature, String
     Signature::from_slice(&decoded).map_err(|_| "Update manifest signature is invalid.".to_string())
 }
 
-fn latest_release(agent: &ureq::Agent, repository: &str) -> Result<GithubRelease, String> {
+fn latest_release(engine: &ureq::Agent, repository: &str) -> Result<GithubRelease, String> {
     let url = format!("https://api.github.com/repos/{repository}/releases?per_page=100");
     let bytes = download_bytes_with_accept(
-        agent,
+        engine,
         &url,
         MANIFEST_MAX_BYTES,
         &github_hosts(false),
@@ -508,7 +508,7 @@ fn latest_release(agent: &ureq::Agent, repository: &str) -> Result<GithubRelease
         .ok_or_else(|| "GitHub has no published MSC release with a supported v tag.".to_string())
 }
 
-fn http_agent() -> ureq::Agent {
+fn http_engine() -> ureq::Agent {
     ureq::Agent::config_builder()
         .timeout_global(Some(REQUEST_TIMEOUT))
         .max_redirects(3)
@@ -521,14 +521,14 @@ fn http_agent() -> ureq::Agent {
 }
 
 fn download_bytes(
-    agent: &ureq::Agent,
+    engine: &ureq::Agent,
     url: &str,
     max_bytes: u64,
     allowed_hosts: &[&str],
     what: &str,
 ) -> Result<Vec<u8>, String> {
     download_bytes_with_accept(
-        agent,
+        engine,
         url,
         max_bytes,
         allowed_hosts,
@@ -538,14 +538,14 @@ fn download_bytes(
 }
 
 fn download_bytes_with_accept(
-    agent: &ureq::Agent,
+    engine: &ureq::Agent,
     url: &str,
     max_bytes: u64,
     allowed_hosts: &[&str],
     what: &str,
     accept: &str,
 ) -> Result<Vec<u8>, String> {
-    let mut response = agent
+    let mut response = engine
         .get(url)
         .header("User-Agent", USER_AGENT)
         .header("Accept", accept)
@@ -567,7 +567,7 @@ fn download_bytes_with_accept(
 }
 
 fn download_to_file(
-    agent: &ureq::Agent,
+    engine: &ureq::Agent,
     url: &str,
     destination: &Path,
     expected_bytes: u64,
@@ -575,7 +575,7 @@ fn download_to_file(
     allowed_hosts: &[&str],
     what: &str,
 ) -> Result<(), String> {
-    let mut response = agent
+    let mut response = engine
         .get(url)
         .header("User-Agent", USER_AGENT)
         .header("Accept", "application/octet-stream")
@@ -933,7 +933,7 @@ mod tests {
             }
         }
         let scratch = Scratch(std::env::temp_dir().join(
-            format!("msc2-staged-retry-{}-{}", std::process::id(),
+            format!("msc-staged-retry-{}-{}", std::process::id(),
             std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()),
         ));
         fs::create_dir(&scratch.0).unwrap();

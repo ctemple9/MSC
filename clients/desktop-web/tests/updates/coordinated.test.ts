@@ -14,7 +14,7 @@ const macRelease: CoordinatedRelease = {
   agentApiMinorCeiling: 5,
   artifacts: [
     { kind: 'desktop', fileName: 'MSC-2.pkg', sha256: 'a'.repeat(64) },
-    { kind: 'agent', fileName: 'msc-agent.tar.zst', sha256: 'b'.repeat(64) },
+    { kind: 'agent', fileName: 'msc-engine.tar.zst', sha256: 'b'.repeat(64) },
     { kind: 'sidecar', fileName: 'msc-sidecar.zip', sha256: 'c'.repeat(64) },
   ],
 };

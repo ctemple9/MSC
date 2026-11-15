@@ -29,7 +29,7 @@ pub fn launch_uninstall_worker(worker: &Path, job: &Path) -> Result<(), String> 
     let application: Vec<u16> = worker.as_os_str().encode_wide().chain([0]).collect();
     let mut arguments = std::ffi::OsString::from("\"");
     arguments.push(worker);
-    arguments.push("\" uninstall --danger --confirm \"UNINSTALL MSC 2\" --apply \"");
+    arguments.push("\" uninstall --danger --confirm \"UNINSTALL MSC\" --apply \"");
     arguments.push(job);
     arguments.push("\"");
     let mut arguments: Vec<u16> = arguments.encode_wide().chain([0]).collect();
@@ -134,10 +134,10 @@ impl LocalServices for WindowsUninstall {
                 }
                 let program_files = std::env::var_os("ProgramFiles")
                     .map(std::path::PathBuf::from)
-                    .map(|root| root.join("MSC2/bin"));
+                    .map(|root| root.join("MSC/bin"));
                 let local = std::env::var_os("LOCALAPPDATA")
                     .map(std::path::PathBuf::from)
-                    .map(|root| root.join("MSC2/bin"));
+                    .map(|root| root.join("MSC/bin"));
                 let machine = program_files.as_ref() == Some(path);
                 if !machine && local.as_ref() != Some(path) {
                     return Err("Refusing an unknown archive path.".into());

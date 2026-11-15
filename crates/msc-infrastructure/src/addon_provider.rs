@@ -18,7 +18,7 @@
 //! it, not have it pre-judged by the transport.
 //!
 //! The CurseForge API key is read through [`crate::secret_store::SecretStore`]
-//! at [`CURSEFORGE_API_KEY_SECRET`] (`docs/msc2/substrate/secret-storage.md`
+//! at [`CURSEFORGE_API_KEY_SECRET`] (`docs/msc/substrate/secret-storage.md`
 //! §9's `curseforge.api-key`), matching `CurseForgeAPI.swift`'s own
 //! `KeychainManager.shared.readCurseForgeAPIKey()` call site.
 
@@ -35,7 +35,7 @@ use serde::Deserialize;
 
 use crate::secret_store::SecretStore;
 
-const USER_AGENT: &str = "MinecraftServerController/2.0 (msc2 agent)";
+const USER_AGENT: &str = "MinecraftServerController/2.0 (msc engine)";
 
 /// Metadata responses (search pages, batch identify/update results,
 /// project/version detail) are small JSON -- bounded generously but well
@@ -55,7 +55,7 @@ const CURSEFORGE_BEDROCK_GAME_ID: u32 = 78022;
 /// remain bounded before their entries are inspected or copied.
 pub const DATAPACK_MAX_BYTES: u64 = 512 * 1024 * 1024;
 
-/// `docs/msc2/substrate/secret-storage.md` §9.
+/// `docs/msc/substrate/secret-storage.md` §9.
 pub const CURSEFORGE_API_KEY_SECRET: &str = "curseforge.api-key";
 
 fn provider_base(env_var: &str, default: &str) -> String {
@@ -168,7 +168,7 @@ pub trait AddonTransport: Send + Sync {
 /// turn a Modrinth 404 or a CurseForge 401 into a transport-level `Err`
 /// before the domain layer ever gets to apply its own per-status meaning.
 pub struct HttpTransport {
-    agent: ureq::Agent,
+    engine: ureq::Agent,
 }
 
 impl Default for HttpTransport {
@@ -184,7 +184,7 @@ impl HttpTransport {
             .http_status_as_error(false)
             .build();
         Self {
-            agent: ureq::Agent::new_with_config(config),
+            engine: ureq::Agent::new_with_config(config),
         }
     }
 
@@ -220,7 +220,7 @@ impl AddonTransport for HttpTransport {
         max_bytes: u64,
     ) -> Result<RawResponse, TransportError> {
         let mut req = self
-            .agent
+            .engine
             .get(url)
             .header("User-Agent", USER_AGENT)
             .header("Accept", "*/*");
@@ -251,7 +251,7 @@ impl AddonTransport for HttpTransport {
         let payload = serde_json::to_vec(body)
             .map_err(|e| TransportError::Network(format!("{what}: could not encode body: {e}")))?;
         let mut req = self
-            .agent
+            .engine
             .post(url)
             .header("User-Agent", USER_AGENT)
             .header("Content-Type", "application/json")
@@ -802,7 +802,7 @@ struct CurseForgeSearchEnvelope {
 
 /// Search CurseForge's Minecraft Bedrock catalog (game 1303). Bedrock
 /// content is not a Java Modrinth project, so it uses the already configured
-/// CurseForge credential and stays behind the host agent.
+/// CurseForge credential and stays behind the host engine.
 pub fn curseforge_search_bedrock_addons(
     transport: &dyn AddonTransport,
     secrets: &dyn SecretStore,

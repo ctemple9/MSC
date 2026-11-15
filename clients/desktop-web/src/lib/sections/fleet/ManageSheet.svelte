@@ -2,7 +2,7 @@
   // Ports MSC 1 ManageServersView.swift: a flat, card-per-server list with a
   // header count, per-card context menu (Set as Active / Edit... / Remove),
   // and a footer for Transfer.../Add Server... -- adapted for D-013 multi-host
-  // (docs/msc2/msc2-decisions.md#D-013, 2026-08-27 design discussion).
+  // (docs/msc/msc-decisions.md#D-013, 2026-08-27 design discussion).
   // "Edit..." (P12.12) opens ServerEditorSheet, the port of
   // ServerEditorView.swift's General/Broadcast tabs -- renaming now lives
   // there rather than as its own menu item, matching the oracle (MSC 1 has
@@ -16,7 +16,7 @@
   // - MSC 1's delete alert offers "Delete from Disk" vs "Remove Only";
   //   ServerDeleteRequestDTO (openapi.json) carries only `serverId`, no
   //   disk-delete flag, so only "Remove from Controller" is offered here.
-  // - MSC 1's footer has Export.../Import.../Add Server...; MSC 2 presents
+  // - MSC 1's footer has Export.../Import.../Add Server...; MSC presents
   //   those two transfer actions behind one Transfer... button.
   // - "Add Server..." opens AddServerWizard.svelte (P12.18a-i), a real port
   //   of MSC 1's multi-step AddServerWizardView. The Fresh path (shell,
@@ -59,7 +59,7 @@
    *  header, section routing) -- `App.svelte`'s own `selectServer` already
    *  does this for the sidebar's server picker, but this sheet posted the
    *  same mutation directly and never told the parent, so "Set Active" here
-   *  changed the agent's active server without the client ever finding out.
+   *  changed the engine's active server without the client ever finding out.
    *  Real bug the owner hit verifying P12.18g: a just-created server's own
    *  "Set Active" button did nothing visible until picked again from the
    *  sidebar dropdown, which goes through `selectServer` instead. */
@@ -90,8 +90,10 @@
 
   function openMenu(serverId: string, event: MouseEvent): void {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    menuPos = { x: event.detail === 0 ? rect.left : event.clientX,
-      y: event.detail === 0 ? rect.bottom : event.clientY };
+    menuPos = {
+      x: event.detail === 0 ? rect.left : event.clientX,
+      y: event.detail === 0 ? rect.bottom : event.clientY,
+    };
     openMenuFor = serverId;
   }
 
@@ -142,7 +144,7 @@
     {#if confirmingRemoveId === server.id}
       <div class="confirm-row">
         <span
-          >Remove "{server.name}" from this controller? The agent refuses this while running.</span
+          >Remove "{server.name}" from this controller? The engine refuses this while running.</span
         >
         <div class="confirm-actions">
           <Button variant="secondary" size="sm" onclick={() => (confirmingRemoveId = undefined)}
@@ -161,7 +163,11 @@
       y={menuPos.y}
       onClose={() => (openMenuFor = undefined)}
       items={[
-        { label: 'Set Active', disabled: isActive || !canControl, onSelect: () => setActive(server.id) },
+        {
+          label: 'Set Active',
+          disabled: isActive || !canControl,
+          onSelect: () => setActive(server.id),
+        },
         { label: 'Edit', onSelect: () => (editingServer = server) },
         {
           label: 'Remove',
@@ -281,12 +287,12 @@
   .count {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .notice {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .server-list {
     display: flex;
@@ -308,11 +314,13 @@
   }
   .server-row:hover { background: rgba(255, 255, 255, 0.04); }
   .server-row.selected {
-    border-radius: var(--msc2-radius-2);
+    border-radius: var(--msc-radius-2);
     background: rgba(59, 130, 246, 0.06);
-    box-shadow: inset 0 0 0 1.5px var(--msc2-selection);
+    box-shadow: inset 0 0 0 1.5px var(--msc-selection);
   }
-  .row-affordance { color: var(--msc2-text-tertiary); }
+  .row-affordance {
+    color: var(--msc-text-tertiary);
+  }
   .server-info {
     flex: 1;
     min-width: 0;
@@ -328,13 +336,13 @@
   .server-name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .server-dir {
     margin: 0;
     font-size: 11px;
-    font-family: var(--msc2-font-mono, monospace);
-    color: var(--msc2-text-tertiary);
+    font-family: var(--msc-font-mono, monospace);
+    color: var(--msc-text-tertiary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -345,9 +353,9 @@
     justify-content: space-between;
     gap: 10px;
     padding: 10px 14px 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .confirm-actions {
     display: flex;
@@ -367,19 +375,19 @@
   }
   .host-count {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     flex: 1;
   }
   .host-inactive {
     margin: 0 0 4px;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .footer {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
     padding-top: 8px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
 </style>

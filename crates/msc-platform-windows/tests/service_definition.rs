@@ -101,10 +101,8 @@ struct TempDir {
 
 impl TempDir {
     fn new(name: &str) -> Self {
-        let path = std::env::temp_dir().join(format!(
-            "msc2-windows-service-{name}-{}",
-            std::process::id()
-        ));
+        let path =
+            std::env::temp_dir().join(format!("msc-windows-service-{name}-{}", std::process::id()));
         std::fs::create_dir_all(&path).unwrap();
         Self { path }
     }
@@ -118,7 +116,7 @@ impl Drop for TempDir {
 
 fn request() -> ServiceInstallRequest {
     ServiceInstallRequest::new(
-        "msc2-agent",
+        "msc-engine",
         r"C:\MSC2\service-host.ps1",
         r"C:\MSC2\state",
         r"C:\MSC2\logs\agent.log",
@@ -148,16 +146,16 @@ fn install_writes_service_metadata_and_sc_definition() {
         .expect("install succeeds");
 
     assert_eq!(report.state, ServiceState::Stopped);
-    let metadata_path = temp.path.join("msc2-agent.metadata");
+    let metadata_path = temp.path.join("msc-engine.metadata");
     let metadata = std::fs::read_to_string(&metadata_path).expect("metadata exists");
     assert!(metadata.contains("run_user=.\\example"));
     assert!(metadata.contains("expected_port=48001"));
     assert_eq!(
         sc.calls(),
         vec![
-            "stop msc2-agent".to_string(),
-            "delete msc2-agent".to_string(),
-        "create msc2-agent [C:\\MSC2\\service-host.ps1 -ExecutionPolicy Bypass -File C:\\MSC2\\service-host.ps1 -Port 48001] as .\\example".to_string()
+            "stop msc-engine".to_string(),
+            "delete msc-engine".to_string(),
+        "create msc-engine [C:\\MSC2\\service-host.ps1 -ExecutionPolicy Bypass -File C:\\MSC2\\service-host.ps1 -Port 48001] as .\\example".to_string()
         ]
     );
 }
@@ -173,7 +171,7 @@ fn status_reconstructs_definition_and_running_pid_from_metadata() {
         .execute(ServiceManagerCommand::Install(request.clone()))
         .expect("install succeeds");
     sc.set_query_output(
-        "msc2-agent",
+        "msc-engine",
         "STATE              : 4  RUNNING\nWIN32_EXIT_CODE    : 0  (0x0)\nPID                : 4242\n",
     );
 
@@ -204,7 +202,7 @@ fn start_stop_and_uninstall_issue_expected_sc_calls() {
         .execute(ServiceManagerCommand::Install(request.clone()))
         .expect("install succeeds");
     sc.set_query_output(
-        "msc2-agent",
+        "msc-engine",
         "STATE              : 4  RUNNING\nWIN32_EXIT_CODE    : 0  (0x0)\nPID                : 777\n",
     );
 
@@ -233,17 +231,17 @@ fn start_stop_and_uninstall_issue_expected_sc_calls() {
     assert_eq!(
         sc.calls(),
         vec![
-            "stop msc2-agent".to_string(),
-            "delete msc2-agent".to_string(),
-        "create msc2-agent [C:\\MSC2\\service-host.ps1 -ExecutionPolicy Bypass -File C:\\MSC2\\service-host.ps1 -Port 48001] as .\\example".to_string(),
-            "start msc2-agent".to_string(),
-            "query msc2-agent".to_string(),
-            "stop msc2-agent".to_string(),
-            "stop msc2-agent".to_string(),
-            "delete msc2-agent".to_string(),
+            "stop msc-engine".to_string(),
+            "delete msc-engine".to_string(),
+        "create msc-engine [C:\\MSC2\\service-host.ps1 -ExecutionPolicy Bypass -File C:\\MSC2\\service-host.ps1 -Port 48001] as .\\example".to_string(),
+            "start msc-engine".to_string(),
+            "query msc-engine".to_string(),
+            "stop msc-engine".to_string(),
+            "stop msc-engine".to_string(),
+            "delete msc-engine".to_string(),
         ]
     );
-    assert!(!temp.path.join("msc2-agent.metadata").exists());
+    assert!(!temp.path.join("msc-engine.metadata").exists());
 }
 
 #[test]
@@ -252,8 +250,8 @@ fn install_rejects_missing_run_user_for_installing_user_service_scope() {
     let sc = FakeSc::default();
     let manager = WindowsServiceManager::with_sc(&temp.path, sc);
     let request = ServiceInstallRequest::new(
-        "msc2-agent",
-        r"C:\MSC2\agent.exe",
+        "msc-engine",
+        r"C:\MSC2\engine.exe",
         r"C:\MSC2\state",
         r"C:\MSC2\logs\agent.log",
         48001,

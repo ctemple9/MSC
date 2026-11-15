@@ -30,7 +30,7 @@ echo "== exercising the Bedrock application boundary =="
 cargo nextest run -p msc-application --test bedrock_service
 
 echo "== exercising the synthetic Linux HTTP and CLI contract =="
-cargo nextest run -p msc-agent \
+cargo nextest run -p msc-engine \
   --test bedrock_linux_routes \
   --test bedrock_linux_cli
 

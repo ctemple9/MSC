@@ -24,9 +24,9 @@ pub struct Scheduled {
 
 fn local_command(installers: &[PathBuf]) -> Result<std::process::Command, String> {
     #[cfg(target_os = "linux")]
-    let binary = super::linux_system_agent_path()?;
+    let binary = super::linux_system_engine_path()?;
     #[cfg(not(target_os = "linux"))]
-    let binary = super::packaged_agent_path()?;
+    let binary = super::packaged_engine_path()?;
     if !binary.is_file() {
         return Err("The packaged uninstall command is missing. Rebuild or reinstall MSC before using this action.".into());
     }
@@ -34,10 +34,10 @@ fn local_command(installers: &[PathBuf]) -> Result<std::process::Command, String
     command
         .args(["uninstall", "--json", "--desktop-origin"])
         .arg(std::env::current_exe().map_err(|error| error.to_string())?);
-    // Windows discovers the agent's data path from its service metadata. The
+    // Windows discovers the engine's data path from its service metadata. The
     // desktop's staging directory is not an override for that configuration.
     #[cfg(not(target_os = "windows"))]
-    command.env("MSC2_DATA_DIR", super::agent_data_directory()?);
+    command.env("MSC2_DATA_DIR", super::engine_data_directory()?);
     for installer in installers {
         command.arg("--installer").arg(installer);
     }
@@ -73,7 +73,7 @@ pub async fn preview_local_uninstall(installers: Vec<PathBuf>) -> Result<Invento
 #[tauri::command]
 pub async fn uninstall_local(request: UninstallRequest) -> Result<Scheduled, String> {
     if request.confirmation != CONFIRMATION {
-        return Err("Type exactly UNINSTALL MSC 2 before proceeding.".into());
+        return Err("Type exactly UNINSTALL MSC before proceeding.".into());
     }
     if request.fingerprint.is_empty() {
         return Err("Review the local deletion preview first.".into());
@@ -103,7 +103,7 @@ pub async fn uninstall_local(request: UninstallRequest) -> Result<Scheduled, Str
                 .ok_or("Cannot determine your home directory for the result report.")?;
             command
                 .arg("--report")
-                .arg(PathBuf::from(home).join(format!("msc2-uninstall-result-{timestamp}.json")));
+                .arg(PathBuf::from(home).join(format!("msc-uninstall-result-{timestamp}.json")));
         }
         let scheduled: Scheduled = output(command)?;
         if scheduled.state != "scheduled" {

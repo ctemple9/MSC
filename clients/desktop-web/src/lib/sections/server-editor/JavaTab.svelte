@@ -159,7 +159,7 @@
   {#if notice}<p class="notice" role="status">{notice}</p>{/if}
 
   <section class="zone">
-    <p class="msc2-type-overline">Java Executable</p>
+    <p class="msc-type-overline">Java Executable</p>
     <Card padding="0">
       <div class="row">
         <span class="name">Executable Path</span>
@@ -203,7 +203,7 @@
   </section>
 
   <section class="zone">
-    <p class="msc2-type-overline">Java Arguments</p>
+    <p class="msc-type-overline">Java Arguments</p>
     <Card padding="0">
       <div class="row">
         <span class="name">Extra JVM Flags</span>
@@ -288,7 +288,7 @@
   .notice {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .zone {
     display: flex;
@@ -305,7 +305,7 @@
   .name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .control {
     display: flex;
@@ -326,10 +326,10 @@
   .runtime-row {
     width: 100%;
     padding: 11px 14px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border: 1px solid transparent;
     border-radius: 8px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     text-align: left;
     cursor: pointer;
@@ -360,7 +360,7 @@
   .runtime-name,
   .runtime-path {
     overflow: hidden;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -368,12 +368,12 @@
     font-size: 11px;
   }
   .runtime-path {
-    font-family: var(--msc2-font-mono, monospace);
+    font-family: var(--msc-font-mono, monospace);
     font-size: 10.5px;
   }
   .tag {
     flex-shrink: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 10px;
   }
   .footer {
@@ -384,16 +384,16 @@
   }
   .explain {
     margin: 0 0 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.5;
   }
   .explain.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .hint {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

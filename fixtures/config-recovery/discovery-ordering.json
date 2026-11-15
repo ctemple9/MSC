@@ -7,7 +7,7 @@
     "line": 19
   },
   "input": {
-    "configPath": "/srv/msc2/server_config_swift.json",
+    "configPath": "/srv/msc/server_config_swift.json",
     "dirEntries": [
       "server_config_swift.json.corrupt-200",
       "server_config_swift.json.corrupt-500",

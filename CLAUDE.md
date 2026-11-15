@@ -1,10 +1,10 @@
-# MSC 2 — Agent Instructions
+# Minecraft Server Controller (MSC) — Contributor Instructions
 
 > **This file is duplicated as `CLAUDE.md` for Claude Code. If you change one, change both.**
 
 ## What this repo is
 
-MSC 2 is a cross-platform Minecraft server manager: a **Rust agent** that runs as a background service, plus a Tauri desktop app, headless CLI, and host-local full-screen TUI that talk to it over an API. The agent does not serve a browser UI (D-038). MSC 2 is a behavior-preserving port of MSC 1 (a macOS SwiftUI app), not a blank-slate rewrite.
+MSC is a cross-platform Minecraft server manager: a **Rust engine** that runs as a background service, plus a Tauri desktop app, headless CLI, and host-local full-screen TUI that talk to it over an API. The engine does not serve a browser UI (D-038). MSC is a behavior-preserving port of MSC 1 (a macOS SwiftUI app), not a blank-slate rewrite.
 
 **Owner:** Cameron Temple. He is not a Rust developer yet and is learning as this is built. Explain what you're doing in plain language. He runs every verification himself.
 
@@ -12,20 +12,20 @@ MSC 2 is a cross-platform Minecraft server manager: a **Rust agent** that runs a
 
 | File | What it is |
 |---|---|
-| `docs/msc2/MSC2-VISION.md` | **Start here.** Index, precedence rules, what's owner-approved vs merely proposed |
-| `docs/msc2/msc2-decisions.md` | Numbered decisions with reasoning. **The authority.** |
-| `docs/msc2/msc2-engineering.md` | Architecture, API contract, platform matrices |
-| `docs/msc2/msc2-product.md` | What MSC 2 is, in plain language |
-| `docs/msc2/msc2-port-plan.md` | The phases and their **exit gates** |
-| `docs/msc2/rolling-plan.md` | **Current state.** Which phase, which step, what's done |
-| `docs/msc2/testing-and-release-workflow-policy.md` | **Required for every repo task.** Owner policy on essential tests, workflow cost, and beta publication |
-| `docs/msc2/antiAIslop.md` | **Design law.** Anti-AI-slop guiding principle — **required reading before any design, styling, or frontend work** |
+| `docs/msc/MSC-VISION.md` | **Start here.** Index, precedence rules, what's owner-approved vs merely proposed |
+| `docs/msc/msc-decisions.md` | Numbered decisions with reasoning. **The authority.** |
+| `docs/msc/msc-engineering.md` | Architecture, API contract, platform matrices |
+| `docs/msc/msc-product.md` | What MSC is, in plain language |
+| `docs/msc/msc-port-plan.md` | The phases and their **exit gates** |
+| `docs/msc/rolling-plan.md` | **Current state.** Which phase, which step, what's done |
+| `docs/msc/testing-and-release-workflow-policy.md` | **Required for every repo task.** Owner policy on essential tests, workflow cost, and beta publication |
+| `docs/msc/antiAIslop.md` | **Design law.** Anti-AI-slop guiding principle — **required reading before any design, styling, or frontend work** |
 
-Read `docs/msc2/testing-and-release-workflow-policy.md` at the start of **every**
+Read `docs/msc/testing-and-release-workflow-policy.md` at the start of **every**
 task in this repository, including planning, review, documentation, code,
 workflow, and release work. A read from an earlier task does not count.
 
-`docs/msc2/audit/` holds the MSC 1 analysis — including two per-file inventory CSVs used during extraction.
+`docs/msc/audit/` holds the MSC 1 analysis — including two per-file inventory CSVs used during extraction.
 
 ## The loop
 
@@ -33,27 +33,27 @@ Work proceeds one phase at a time. Each phase runs through six moves, and **each
 
 | # | Move | Who | What happens |
 |---|---|---|---|
-| 1 | **Plan** | An agent | Reads vision + port plan + rolling plan. Writes the step list for this phase into `rolling-plan.md`. **Writes no code.** |
+| 1 | **Plan** | A contributor | Reads vision + port plan + rolling plan. Writes the step list for this phase into `rolling-plan.md`. **Writes no code.** |
 | 2 | **Read** | Cameron | Reviews the plan before anything is built |
-| 3 | **Execute** | An agent | One step (or small batch) per conversation. Does the work, commits. |
+| 3 | **Execute** | A contributor | One step (or small batch) per conversation. Does the work, commits. |
 | 4 | **Verify** | Cameron | Runs each step's `Verify:` command himself |
-| 5 | **Review** | **The other agent** | Checks the phase **gate**, not whether steps were followed. May amend earlier phases. |
+| 5 | **Review** | **The other contributor** | Checks the phase **gate**, not whether steps were followed. May amend earlier phases. |
 | 6 | **Advance** | — | Status line updated, next phase begins |
 
-Two agents work on this repo: **Claude Code** and **Codex**. Whoever implements a phase does not review it.
+Two coding assistants work on this repo: **Claude Code** and **Codex**. Whoever implements a phase does not review it.
 
 **Phase 22 exception (owner-approved 2026-10-26):** The restored TUI has no
 separate Plan/Read stage or prewritten step list. Cameron requests one screen
 or bounded behavior at a time. Treat that request as a single EXECUTE step
 even without an explicit mode label: implement only that slice, record the P22
 step in `rolling-plan.md`, make one commit, and stop for Cameron's verification.
-The other agent reviews the phase when Cameron requests it. The test and
+The other contributor reviews the phase when Cameron requests it. The test and
 release-workflow restrictions below still apply.
 
 **Phase 24 execution exception (owner-approved 2026-11-05):** Cameron
 requested autonomous continuation instead of one prompt per step. After a
 Phase 24 execution request, follow the explicit order and review stops in
-`docs/msc2/addons/phase24-execution.md`. Continue through routine steps after
+`docs/msc/addons/phase24-execution.md`. Continue through routine steps after
 permitted checks, keeping one commit per step and owner verification pending.
 Stop with a runnable candidate for each new sheet/view (desktop or TUI), and
 wait for Cameron's explicit review before proceeding. Record approval and
@@ -77,7 +77,7 @@ Outside the Phase 22 and Phase 24 exceptions above, every prompt names one of th
 | **EXECUTE** | One step. Work, verify, commit, stop. |
 | **BATCH EXECUTE** | A named range of steps. Same rules per step, run in order. Run each permitted non-test `Verify:` before moving on. If a step requires a test command Cameron has not specifically authorized, stop and hand that verification to him. If verification fails, STOP. Never batch past the range given. |
 | **REVIEW** | Check the phase gate. Report only, fix nothing. |
-| **CROSS-CHECK** | Audit another agent's work against MSC 1 source. Report only. |
+| **CROSS-CHECK** | Audit another contributor's work against MSC 1 source. Report only. |
 
 ## Asking Cameron a question
 
@@ -111,12 +111,12 @@ Rules:
 3. **Every step has a `Verify:` line** — one command Cameron can run to confirm it worked. If you can't write one, the step is too vague; split it.
 4. **Never mark a step done yourself.** Report the verify command and stop. Cameron closes it.
 5. **Don't skip ahead.** Don't start the next step, don't fix unrelated things you notice. Note them at the end of your response instead.
-6. **Approved beats Proposed.** Never change something marked **Approved** in `msc2-decisions.md` without asking. If you disagree with a **Proposed** item, say so and record it — don't silently override.
-7. **A phase ends when its gate holds**, not when its steps are ticked. Gates are in `msc2-port-plan.md`.
+6. **Approved beats Proposed.** Never change something marked **Approved** in `msc-decisions.md` without asking. If you disagree with a **Proposed** item, say so and record it — don't silently override.
+7. **A phase ends when its gate holds**, not when its steps are ticked. Gates are in `msc-port-plan.md`.
 8. **MSC 1 is the oracle.** It lives at `~/Documents/Swift Projects/minecraft-server-controller` and must never be modified. Read it freely; write to it never.
 9. **If something contradicts the vision, stop and say so.** Don't build around it quietly.
 10. **No AI names in repo-visible identifiers.** Do not create filenames, directory names, branch names, tags, artifact names, or other repo-visible identifiers containing assistant/vendor/product names such as Codex, Claude, ChatGPT, or OpenAI. The required instruction filename `CLAUDE.md` is the only filename exception unless Cameron explicitly approves another one.
-11. **No signs of AI slop.** The MSC 2 redesign must not look vibe-coded, generic, or like any other app — every visual decision is deliberate and specific to MSC. Before any design, styling, or frontend work, read `docs/msc2/antiAIslop.md` and hold every screen to its checklist. Owner-approved guiding principle; as binding as the rest of this list.
+11. **No signs of AI slop.** The MSC redesign must not look vibe-coded, generic, or like any other app — every visual decision is deliberate and specific to MSC. Before any design, styling, or frontend work, read `docs/msc/antiAIslop.md` and hold every screen to its checklist. Owner-approved guiding principle; as binding as the rest of this list.
 12. **Never run tests without a specific owner instruction.** Do not run `cargo nextest`, `cargo test`, Vitest, Playwright, Xcode tests, smoke suites, or equivalents unless Cameron explicitly requests that specific command. A `Verify:` line is not permission.
 13. **Create only essential tests.** You may add a test without prior approval when it protects a concrete behavior or risk that existing coverage misses. Record why it is essential, how it avoids brittle timing/environment assumptions, and its expected runtime. Do not add tests for coverage counts, incidental structure, formatting, or speculative cases.
 14. **Keep beta publication build-only.** Do not add CI, test, lint, smoke, formatting, or static-check gates to the release workflow without Cameron's explicit approval. Do not recreate an active CI workflow without that approval. Preserve the complete artifact set, checksums, and signed update metadata.
@@ -125,13 +125,25 @@ Rules:
 ## Conventions
 
 - Rust: `cargo fmt` and `cargo clippy` clean before any commit
-- Tests are run only when Cameron explicitly requests a specific test command. Test design must follow `docs/msc2/testing-and-release-workflow-policy.md`: essential behavior, controlled inputs, clear failure, low runtime, and no redundant coverage. Creating an essential test does not authorize running it.
+- Tests are run only when Cameron explicitly requests a specific test command. Test design must follow `docs/msc/testing-and-release-workflow-policy.md`: essential behavior, controlled inputs, clear failure, low runtime, and no redundant coverage. Creating an essential test does not authorize running it.
 - **No test verification by default.** Use inspection, a relevant type-check or build, or Cameron's own manual verification. Do not turn a non-test check into a mandatory release gate without approval.
 - Commit messages: `P<phase>.<step>: <what changed>` — imperative, lowercase
 - **One commit per step. Never two.** That single commit contains the work *and* the `rolling-plan.md` status update. Do not add a follow-up commit to record the hash — you cannot know a hash before committing, and the step number in the message is already the link (`git log --grep="P0.1"`). Leave the `Commit:` field as the message subject, not a hash.
 - No `Co-Authored-By` or other AI attribution trailers. Enforced locally by `.githooks/commit-msg`. Enable the hook once per clone: `git config core.hooksPath .githooks`
 - Comments explain **why**, not what
 
+## Product naming migration (owner-approved 2026-11-15)
+
+The product is **Minecraft Server Controller (MSC)**. The always-on component is
+**MSC Background Service** in user-facing text and **engine** in source code.
+D-046 and `docs/msc/naming-migration.md` define the naming contract and the
+explicit compatibility exceptions. Do not rename stored service identities,
+credentials, data paths, protocol fields or private updater flags by text replacement.
+Use `python tools/naming-audit.py` to inspect remaining legacy references.
+Cameron authorized P26.1 as one autonomous repository-wide step and **one commit**,
+including documentation, without intermediate approval stops. Tests and release
+publication still require his specific instruction.
+
 ## Current state
 
-See the status line at the top of `docs/msc2/rolling-plan.md`.
+See the status line at the top of `docs/msc/rolling-plan.md`.

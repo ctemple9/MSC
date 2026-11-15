@@ -1,12 +1,12 @@
 <script lang="ts">
   // Ports DetailsSettingsTabView.swift + ServerSettingsView.swift's Java form
-  // to the S0 disciplined system (docs/msc2/antiAIslop.md): a schema-driven
+  // to the S0 disciplined system (docs/msc/antiAIslop.md): a schema-driven
   // World/Server (/Network) section list, edited as a local draft that stays
   // unsaved until Save Changes, matching MSC 1's "changes stay local until
   // you click Save Changes" model exactly. Same shared-component pattern
   // ComponentsSection/HomeSection/WorldsSection use (D-003).
   //
-  // The backend (crates/msc-agent/src/routes/settings.rs) sends sections/
+  // The backend (crates/msc-engine/src/routes/settings.rs) sends sections/
   // fields generically rather than a closed Java/Bedrock field list, so this
   // component renders whatever it's given rather than hardcoding property
   // names -- only `segmentedKeys` below reaches for a key by name, to match
@@ -162,7 +162,7 @@
       draft = { ...original };
       rejected = result.rejected ?? [];
       notice = summarize(result);
-      window.dispatchEvent(new Event('msc2:server-settings-changed'));
+      window.dispatchEvent(new Event('msc:server-settings-changed'));
     } catch (error) {
       confirmation = safetyPrompt(error);
       if (!confirmation) notice = errorMessage(error);
@@ -182,7 +182,7 @@
 <div class="settings">
   <div class="section-header">
     <div class="overline">
-      <span class="msc2-type-overline">Server Properties</span>
+      <span class="msc-type-overline">Server Properties</span>
     </div>
     <div class="header-actions">
       {#if dirty}<span class="status-label">Unsaved changes</span>{/if}
@@ -217,7 +217,7 @@
   {:else}
     {#each settings.sections as section (section.id)}
       <section class="zone">
-        <p class="msc2-type-overline">{section.title}</p>
+        <p class="msc-type-overline">{section.title}</p>
         <Card padding="0">
           {#each section.fields as field, index (field.key)}
             <div class="row" class:bordered={index > 0}>
@@ -310,7 +310,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .header-actions {
     display: flex;
@@ -318,25 +318,25 @@
     gap: 8px;
   }
   .status-label {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
     font-size: 12px;
     font-weight: 500;
   }
   .hint {
     margin: -10px 0 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .notice {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .rejected {
     margin: 0;
     padding-left: 18px;
     font-size: 12px;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .zone {
     display: flex;
@@ -351,12 +351,12 @@
     padding: 11px 14px;
   }
   .row.bordered {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .control {
     display: flex;
@@ -365,7 +365,7 @@
   }
   .unit {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .footer-actions {
     display: flex;
@@ -377,9 +377,9 @@
     flex-direction: column;
     gap: 8px;
     padding: 10px 12px;
-    border: 1px solid var(--msc2-hairline-strong);
+    border: 1px solid var(--msc-hairline-strong);
     border-radius: 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.45;
   }
@@ -387,7 +387,7 @@
     margin: 0;
   }
   .confirmation-title {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 600;
   }
   .confirmation-actions {
@@ -401,7 +401,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .force-confirmation-copy {
     display: flex;

@@ -10,7 +10,7 @@
   // place) has no route in the contract at all, not even a reserved one --
   // out of scope here, left for a future contract-amendment step.
   //
-  // "Reveal in Finder" only means something for a locally-connected agent
+  // "Reveal in Finder" only means something for a locally-connected engine
   // (the path names a file on *this* machine); a remote host's files have
   // nothing local to reveal, so that action is gated on hostId === the
   // client's own local-agent constant, same string App.svelte's host
@@ -47,7 +47,7 @@
   $: notice = browseNoticeFor(listing?.note);
   $: revealTitle = isLocalHost
     ? undefined
-    : 'Show in Finder only works for a locally-connected agent.';
+    : 'Show in Finder only works for a locally-connected engine.';
 
   async function loadServers(): Promise<void> {
     servers = await call(api, servers, '/v1/servers');
@@ -141,7 +141,7 @@
 
     {#if loading}
       <div class="state">
-        <p class="msc2-type-overline">Loading…</p>
+        <p class="msc-type-overline">Loading…</p>
       </div>
     {:else if error}
       <div class="state">
@@ -157,7 +157,7 @@
       </EmptyState>
     {:else}
       {#if folders.length > 0}
-        <p class="msc2-type-overline group-label">Folders</p>
+        <p class="msc-type-overline group-label">Folders</p>
         {#each folders as entry, index (entry.path)}
           <ListRow
             title={entry.name}
@@ -171,7 +171,7 @@
         {/each}
       {/if}
       {#if files.length > 0}
-        <p class="msc2-type-overline group-label">Files</p>
+        <p class="msc-type-overline group-label">Files</p>
         {#each files as entry, index (entry.path)}
           <ListRow
             title={entry.name}
@@ -205,7 +205,7 @@
     justify-content: space-between;
     gap: 10px;
     padding: 12px 14px;
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    border-bottom: 1px solid var(--msc-hairline-faint);
   }
   .crumbs {
     display: flex;
@@ -220,19 +220,19 @@
     font: inherit;
     font-size: 12px;
     padding: 2px 2px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     cursor: pointer;
   }
   .crumb:hover:not(:disabled) {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .crumb.current {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
     cursor: default;
   }
   .sep {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
   }
   .group-label {
@@ -245,12 +245,12 @@
   .state-error {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .notice {
     margin: 0;
     padding: 0 2px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
 </style>

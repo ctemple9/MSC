@@ -26,7 +26,7 @@ public static class MscServiceNative
     {
         var info = new CredUiInfo {
             Size = (uint)Marshal.SizeOf(typeof(CredUiInfo)), Owner = owner,
-            Caption = "MSC 2 agent service",
+            Caption = "MSC engine service",
             Message = "Enter the Windows password for " + account +
                 ". Windows Hello PINs cannot register a service."
         };
@@ -35,7 +35,7 @@ public static class MscServiceNative
         bool save = false;
         try {
             // Always display a dialog and never persist its password; validate the account below.
-            uint error = Prompt(ref info, "MSC 2 agent service", IntPtr.Zero, 0,
+            uint error = Prompt(ref info, "MSC engine service", IntPtr.Zero, 0,
                 user, 513, password, 257, ref save, 0x40000 | 0x80 | 0x2);
             if (error == 1223) throw new OperationCanceledException("Windows service installation was cancelled.");
             if (error != 0) throw new Win32Exception((int)error);

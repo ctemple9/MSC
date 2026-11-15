@@ -57,7 +57,9 @@
   let expandedGroups = new Set<string>();
   $: items = contentItems(snapshot);
   $: attention = items.filter((item) => primary(item) && needsAttention(item));
-  $: supportingAttention = items.filter((item) => !primary(item) && needsAttention(item) && itemMatches(item, query, filter)).length;
+  $: supportingAttention = items.filter(
+    (item) => !primary(item) && needsAttention(item) && itemMatches(item, query, filter),
+  ).length;
   $: categories = primaryFolders
     .map((name) => ({
       name,
@@ -132,7 +134,7 @@
     try {
       const caps = await connection.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
       if (!caps.contentCatalog?.playerContentManagement)
-        throw new Error('Update this agent to manage player content.');
+        throw new Error('Update this engine to manage player content.');
       await refresh();
     } catch (cause) {
       if (current()) error = errorMessage(cause);
@@ -203,7 +205,7 @@
     try {
       const caps = await connection.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
       if (!caps.contentCatalog?.playerFilePreparation)
-        throw new Error('Update this agent to prepare player files.');
+        throw new Error('Update this engine to prepare player files.');
       const source = await pickUploadSource(
         connection,
         'addon-local-file',
@@ -553,12 +555,12 @@
     align-items: center;
     gap: 8px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
     font-size: 12px;
   }
   .selection-note {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .loading {
     padding: 32px 0;
@@ -568,19 +570,19 @@
     gap: 8px;
   }
   .attention-summary h3 {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .supporting,
   .folder-group,
   .add-content {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     padding-top: 12px;
   }
   summary {
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow-wrap: anywhere;
   }
   details > p,
@@ -609,7 +611,7 @@
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   h3 {
     margin: 8px 0 0;
@@ -633,13 +635,13 @@
   }
   input:not([type='checkbox']),
   select {
-    background: var(--msc2-tier-content);
-    color: var(--msc2-text-primary);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-content);
+    color: var(--msc-text-primary);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 6px;
     padding: 7px 9px;
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
 </style>

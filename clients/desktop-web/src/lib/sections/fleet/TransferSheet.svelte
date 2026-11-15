@@ -96,7 +96,7 @@
     try {
       const caps = await scoped.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
       if (!caps.nativeTransfers?.serverArchive)
-        throw new Error('Update the agent to export a verified native transfer file.');
+        throw new Error('Update the engine to export a verified native transfer file.');
       if (controller.signal.aborted) throw new Error('Export cancelled before preparing.');
       const task = (async () => {
         const result =
@@ -140,7 +140,7 @@
           await scoped.delete(`/v1/staged-downloads/${exportId}`);
         } catch {
           cleanupBlocked = true;
-          notice += ' Agent export cleanup could not be confirmed.';
+          notice += ' Engine export cleanup could not be confirmed.';
           reportTransferFailure(scoped, notice);
         }
       }
@@ -311,7 +311,7 @@
         <div class="field-row">
           <Field
             bind:value={sourcePath}
-            placeholder="Choose a transfer file, or enter a path on the agent"
+            placeholder="Choose a transfer file, or enter a path on the engine"
             disabled={isWorking}
           />
           <Button variant="secondary" onclick={() => void chooseTransferFile()} disabled={isWorking}
@@ -392,19 +392,19 @@
   h2 {
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   h3 {
     font-size: 13.5px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p,
   .action-copy p,
   .notice {
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .actions {
     display: grid;
@@ -426,14 +426,14 @@
   .overline {
     font-size: 10px !important;
     letter-spacing: 0.08em;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   code {
-    font-family: var(--msc2-font-mono, monospace);
-    color: var(--msc2-text-secondary);
+    font-family: var(--msc-font-mono, monospace);
+    color: var(--msc-text-secondary);
   }
   .notice.error {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .form {
     display: flex;
@@ -452,11 +452,11 @@
     gap: 9px;
     align-items: flex-start;
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .radio-row input {
     margin-top: 2px;
-    accent-color: var(--msc2-status-ok);
+    accent-color: var(--msc-status-ok);
   }
   .radio-row span {
     display: flex;
@@ -464,7 +464,7 @@
     gap: 2px;
   }
   .radio-row small {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     line-height: 1.4;
   }
   .footer {
@@ -472,7 +472,7 @@
     align-items: center;
     gap: 8px;
     padding-top: 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .spacer {
     flex: 1;

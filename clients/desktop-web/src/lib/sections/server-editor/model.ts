@@ -1,7 +1,7 @@
 import type { Schema, ScreenApi } from '../shared/types';
 
 // Real, frozen routes this sheet is built against. `rename`/`delete`/`eula`
-// take an explicit serverId (docs/msc2/api-contract/openapi.json), so they
+// take an explicit serverId (docs/msc/api-contract/openapi.json), so they
 // work on any server card regardless of which one is currently active.
 // Active-server-only routes below are gated by their callers. Java runtime
 // discovery/install remains host-owned; JavaTab adds an explicit serverId to
@@ -50,8 +50,8 @@ export type PlayitSetupContext = 'settings' | 'initiation';
 
 export type PlayitSetupProgressKey =
   | 'signing_in'
-  | 'claiming_or_reusing_agent'
-  | 'waiting_for_agent'
+  | 'claiming_or_reusing_engine'
+  | 'waiting_for_engine'
   | 'creating_or_reusing_java_tunnel'
   | 'creating_or_reusing_bedrock_tunnel'
   | 'creating_or_reusing_voice_tunnel'
@@ -64,11 +64,11 @@ export type PlayitSetupStep = {
 
 /** The progress vocabulary is frozen in P12.20a. Keeping its display copy in
  * one place means the settings sheet and first-start sheet will describe the
- * same agent-owned operation when the latter is wired in by P12.20f. */
+ * same engine-owned operation when the latter is wired in by P12.20f. */
 export const PLAYIT_SETUP_STEPS: readonly PlayitSetupStep[] = [
   { key: 'signing_in', label: 'Signing in to playit.gg' },
-  { key: 'claiming_or_reusing_agent', label: 'Claiming or reusing the Playit agent' },
-  { key: 'waiting_for_agent', label: 'Waiting for the agent to come online' },
+  { key: 'claiming_or_reusing_engine', label: 'Claiming or reusing the Playit engine' },
+  { key: 'waiting_for_engine', label: 'Waiting for the engine to come online' },
   { key: 'creating_or_reusing_java_tunnel', label: 'Creating or reusing the Java tunnel' },
   { key: 'creating_or_reusing_bedrock_tunnel', label: 'Creating or reusing the Bedrock tunnel' },
   { key: 'creating_or_reusing_voice_tunnel', label: 'Creating or reusing the voice tunnel' },
@@ -80,15 +80,15 @@ export function playitSetupStepsForMode(voiceOnly: boolean): readonly PlayitSetu
   return PLAYIT_SETUP_STEPS.filter(
     ({ key }) =>
       key === 'signing_in' ||
-      key === 'claiming_or_reusing_agent' ||
-      key === 'waiting_for_agent' ||
+      key === 'claiming_or_reusing_engine' ||
+      key === 'waiting_for_engine' ||
       key === 'creating_or_reusing_voice_tunnel' ||
       key === 'receiving_public_addresses',
   );
 }
 
-/** The agent sends human-readable status lines, while the contract also
- * freezes the state vocabulary. This tolerant matcher lets older/newer agent
+/** The engine sends human-readable status lines, while the contract also
+ * freezes the state vocabulary. This tolerant matcher lets older/newer engine
  * wording update the right visible step without making the client a second
  * Playit implementation. */
 export function playitSetupProgressForStatus(
@@ -97,9 +97,10 @@ export function playitSetupProgressForStatus(
 ): PlayitSetupProgressKey {
   const text = (statusLine ?? '').toLowerCase().replace(/[-_]/g, ' ');
   if (text.includes('sign') || text.includes('log in')) return 'signing_in';
-  if (text.includes('claim') || (text.includes('reus') && text.includes('agent')))
-    return 'claiming_or_reusing_agent';
-  if (text.includes('wait') && text.includes('agent')) return 'waiting_for_agent';
+  const mentionsService = text.includes('engine') || text.includes('agent');
+  if (text.includes('claim') || (text.includes('reus') && mentionsService))
+    return 'claiming_or_reusing_engine';
+  if (text.includes('wait') && mentionsService) return 'waiting_for_engine';
   if (text.includes('java') && text.includes('tunnel')) return 'creating_or_reusing_java_tunnel';
   if (text.includes('bedrock') && text.includes('tunnel'))
     return 'creating_or_reusing_bedrock_tunnel';
@@ -110,7 +111,7 @@ export function playitSetupProgressForStatus(
 }
 
 /** Stable provider codes are the useful part of an API error. Convert them to
- * direct next steps while preserving an already-human agent message. */
+ * direct next steps while preserving an already-human engine message. */
 export function playitSetupError(error: unknown): string {
   const raw = error instanceof Error ? error.message : String(error);
   const text = raw.toLowerCase().replace(/[-_]/g, ' ');
@@ -126,16 +127,16 @@ export function playitSetupError(error: unknown): string {
   if (text.includes('rate limit') || text.includes('too many')) {
     return 'Playit is temporarily rate-limiting sign-in. Wait a moment, then try again.';
   }
-  if (text.includes('agent not found')) {
-    return 'The saved Playit agent was not found. Reset local Playit setup, then sign in again.';
+  if (text.includes('engine not found')) {
+    return 'The saved Playit engine was not found. Reset local Playit setup, then sign in again.';
   }
   if (text.includes('setup unavailable')) {
-    return 'Native Playit setup is not available on this agent yet. Update the agent and try again.';
+    return 'Native Playit setup is not available on this engine yet. Update the engine and try again.';
   }
   if (text.includes('setup in progress')) {
     return 'Another Playit setup is already running on this host. Wait for it to finish or cancel it.';
   }
-  return raw || 'Playit setup did not complete. Check the agent and try again.';
+  return raw || 'Playit setup did not complete. Check the engine and try again.';
 }
 
 /** Generic provider failures can follow a successful claim even when polling
@@ -150,11 +151,11 @@ export function playitSetupNeedsCleanup(
     progress !== 'signing_in' ||
     [
       'playit_api_error',
-      'agent_not_found',
+      'engine_not_found',
       'playit_helper_start_failed',
       'tunnel_missing',
       'tunnel_mismatch',
-      'existing_agent_credential_required',
+      'existing_engine_credential_required',
       'credential_store_failed',
       'public_addresses_unavailable',
     ].includes(code ?? '')

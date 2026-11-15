@@ -1,7 +1,7 @@
 <script lang="ts">
   // Selected-server identity row: name, type/flavor badges, and directory path.
   // Wash = one of the four sanctioned bannerColor spots.
-  // docs/msc2/renderings/shell.html, MSC 1 DetailsHeaderSectionView.swift.
+  // docs/msc/renderings/shell.html, MSC 1 DetailsHeaderSectionView.swift.
   import Badge from '../base/Badge.svelte';
   import { bannerColorAccent } from '../../styles/bannerColor';
 
@@ -37,8 +37,8 @@
     position: relative;
     flex-shrink: 0;
     padding: 12px 16px;
-    background: var(--msc2-tier-chrome);
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    background: var(--msc-tier-chrome);
+    border-bottom: 1px solid var(--msc-hairline-faint);
   }
   .wash {
     position: absolute;
@@ -55,7 +55,7 @@
   .name {
     font-size: 19px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .name-button {
     padding: 0;
@@ -66,7 +66,7 @@
     cursor: pointer;
   }
   .name-button:hover {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .fill {
     flex: 1;
@@ -75,6 +75,6 @@
     position: relative;
     margin: 2px 0 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

@@ -190,7 +190,7 @@ it('keeps consumer requests on their captured context and rejects late results',
 });
 
 // Essential: cleanup failure must remain a failure, while an accepted importer
-// keeps ownership. Controlled promises avoid sleeps and live agents.
+// keeps ownership. Controlled promises avoid sleeps and live engines.
 it('awaits actual staging cleanup and distinguishes importer ownership from failure', async () => {
   const { discardUpload } = await import('../../src/lib/sections/shared/upload-source');
   const deletion = deferred<void>();

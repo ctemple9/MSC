@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 function Fail([string]$Message) {
-    Write-Error "msc 2 Windows headless installer: $Message"
+    Write-Error "MSC Windows headless installer: $Message"
     exit 1
 }
 
@@ -27,10 +27,10 @@ if ($Scope -eq 'Machine') {
     if (-not $env:ProgramFiles) {
         Fail 'ProgramFiles is not set'
     }
-    $installDirectory = Join-Path $env:ProgramFiles 'MSC2\bin'
+    $installDirectory = Join-Path $env:ProgramFiles 'MSC\bin'
     $environmentTarget = [EnvironmentVariableTarget]::Machine
 } else {
-    $installDirectory = Join-Path $env:LOCALAPPDATA 'MSC2\bin'
+    $installDirectory = Join-Path $env:LOCALAPPDATA 'MSC\bin'
     $environmentTarget = [EnvironmentVariableTarget]::User
 }
 
@@ -59,7 +59,7 @@ $serviceName = 'com.ctemple.msc2.agent'
 $existingService = & sc.exe qc $serviceName 2>$null
 $servicePresent = $LASTEXITCODE -eq 0
 if ($servicePresent -and ($existingService -join "`n") -notlike "*$installedBinary*") {
-    Fail 'the installed agent service belongs to another MSC installation'
+    Fail 'the installed engine service belongs to another MSC installation'
 }
 
 if (Test-Path -LiteralPath $ownershipMarker -PathType Leaf) {
@@ -73,7 +73,7 @@ if (Test-Path -LiteralPath $ownershipMarker -PathType Leaf) {
 
 $credential = $ServiceCredential
 if (-not $credential) {
-    $credential = Get-Credential -Message 'Enter the Windows account and password that will own MSC 2 servers'
+    $credential = Get-Credential -Message 'Enter the Windows account and password that will own MSC servers'
 }
 if (-not $credential) {
     Fail 'a service account credential is required'
@@ -82,7 +82,7 @@ $account = $credential.UserName
 if ($servicePresent -and (Test-Path -LiteralPath $installedBinary -PathType Leaf)) {
     & $installedBinary service stop --service-name $serviceName
     if ($LASTEXITCODE -ne 0) {
-        Fail 'could not stop the existing agent before upgrade'
+        Fail 'could not stop the existing engine before upgrade'
     }
 }
 
@@ -134,7 +134,7 @@ if (-not $alreadyPresent) {
 }
 
 Write-Output @"
-MSC 2 Windows headless command installed for the $Scope PATH.
+MSC Windows headless command installed for the $Scope PATH.
 
 The executable is installed as $installedBinary and is available as msc.exe.
 $pathChange
@@ -142,5 +142,5 @@ Refresh PATH or open a new PowerShell or Command Prompt window before using
 msc.exe from a shell that was already open.
 
 The Windows Service is enabled at boot and running as $account.
-Use msc.exe status agent, msc.exe stop agent, and msc.exe start agent for local control.
+Use msc.exe status engine, msc.exe stop engine, and msc.exe start engine for local control.
 "@

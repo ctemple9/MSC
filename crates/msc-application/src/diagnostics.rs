@@ -38,7 +38,7 @@
 //! operation and returns [`RepairError::VerificationFailed`] if the
 //! expected end state doesn't hold — the "re-checked after the fact"
 //! language this phase's own plan text uses for exactly this reason:
-//! `msc2-product.md`'s promise that MSC never reports success it hasn't
+//! `msc-product.md`'s promise that MSC never reports success it hasn't
 //! confirmed.
 //!
 //! **What stays out of this module, and why:**
@@ -48,7 +48,7 @@
 //!   `Vec<StartupProblem>` as a parameter, matching every
 //!   `scan-paper-soft-failures-*` fixture's own `analyzerReturns` shape.
 //! - The generic "Server Stopped Unexpectedly" alert `diagnoseUnexpectedStop`
-//!   shows when analysis finds nothing is UI presentation with no agent
+//!   shows when analysis finds nothing is UI presentation with no engine
 //!   equivalent; not built here.
 //! - `update`/`install` repairs are real as of P8.23, but not built in
 //!   *this* module: both need real Modrinth network access
@@ -77,7 +77,7 @@
 //! `MissingDependency` counts ("version"/"dependency" findings), which
 //! `crash_analysis::analyze` already computes on every real server exit
 //! (P7.32/P7.36). Deliberately NOT a live Modrinth resolve: `GET /v1/health`
-//! is this agent's one route that runs outside the bearer-auth gate and is
+//! is this engine's one route that runs outside the bearer-auth gate and is
 //! expected to answer fast and offline — giving it an outbound network
 //! dependency (`addon_updates::resolve_addon_updates`) would be a real,
 //! undiscussed behavior change to an unauthenticated endpoint, not a
@@ -166,7 +166,7 @@ pub fn read_last_startup_result(
 /// does `startupProblems.removeAll { $0.id == problem.id }` there
 /// (`AppViewModel+APIWiringBackupsHealth.swift`'s repair dispatcher),
 /// never touching the persisted JSON at all; the disk file is only ever a
-/// fallback for a fresh launch. MSC 2's agent is headless and keeps no
+/// fallback for a fresh launch. MSC's engine is headless and keeps no
 /// such session cache — `health_repair` (`routes/health.rs`) reads
 /// `last_startup_result.json` fresh on every call, so *this* is the only
 /// place "remove only the repaired problem after verification; preserve
@@ -320,7 +320,7 @@ fn generic_startup_problem(requirement: &str, console_excerpt: &[String]) -> Sta
 /// Persists a failure that happened before the supervised process could write
 /// a useful exit record, such as an unusable Java runtime or Bedrock
 /// provisioning failure. The same `StartupProblem` shape lets every client
-/// render it beside console-attributed failures after an app/agent restart.
+/// render it beside console-attributed failures after an app/engine restart.
 pub fn record_startup_failure(
     fs: &dyn FileSystem,
     server_dir: &Path,

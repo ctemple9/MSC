@@ -85,7 +85,7 @@ fn app_config_schema_app_config_full_round_trip() {
     config.playit_java_address = str_opt(overrides, "playitJavaAddress");
     config.playit_bedrock_address = str_opt(overrides, "playitBedrockAddress");
     config.playit_voice_address = str_opt(overrides, "playitVoiceAddress");
-    config.playit_agent_id = str_opt(overrides, "playitAgentId");
+    config.playit_agent_id = str_opt(overrides, "playitEngineId");
     config.has_shown_handbook = overrides["hasShownHandbook"].as_bool().unwrap();
     config.has_shown_concept_guide = overrides["hasShownConceptGuide"].as_bool().unwrap();
     config.xbox_broadcast_jar_path = str_opt(overrides, "xboxBroadcastJarPath");
@@ -175,7 +175,7 @@ fn app_config_schema_app_config_full_round_trip() {
     );
     assert_eq!(
         decoded.playit_agent_id.as_deref(),
-        expected["playitAgentId"].as_str()
+        expected["playitEngineId"].as_str()
     );
     assert_eq!(
         decoded.has_shown_handbook,

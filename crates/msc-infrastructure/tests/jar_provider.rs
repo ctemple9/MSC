@@ -90,7 +90,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "msc2-jar-provider-test-{label}-{}",
+            "msc-jar-provider-test-{label}-{}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&dir);

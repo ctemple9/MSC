@@ -105,7 +105,7 @@ impl SidecarTransport for SidecarProcessTransport<'_> {
     }
 }
 
-/// The installed macOS agent uses this transport to reach the root-owned
+/// The installed macOS engine uses this transport to reach the root-owned
 /// helper. It deliberately exposes the same line-based surface as the
 /// development child-process transport above, so lifecycle ordering remains
 /// owned by [`SidecarRuntime`] rather than duplicated per transport.

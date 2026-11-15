@@ -35,19 +35,19 @@ describe('settings reset flows', () => {
 
   it('requires the exact reset phrase and keeps native controls out of the reset sheet', () => {
     expect(resetSource).toContain('/v1/host/reset');
-    expect(resetSource).toContain("'RESET AGENT'");
+    expect(resetSource).toContain("'RESET ENGINE'");
     expect(resetSource).not.toContain('RESET ${agentHostId}');
     expect(resetSource).toContain('serversRootPath');
     expect(resetSource).toContain('configuration');
     expect(resetSource).toContain('everything');
     expect(resetSource).toContain('onHostResetComplete');
-    expect(resetSource).not.toContain('manageAgentService');
+    expect(resetSource).not.toContain('manageEngineService');
   });
 
   it('keeps the destructive confirmation in the shared MSC visual language', () => {
     expect(confirmDialogSource).toContain('<Button variant="secondary"');
     expect(confirmDialogSource).toContain('<Button variant="destructive"');
-    expect(confirmDialogSource).toContain('var(--msc2-tier-chrome)');
+    expect(confirmDialogSource).toContain('var(--msc-tier-chrome)');
     expect(confirmDialogSource).toContain('position: relative');
     expect(confirmDialogSource).not.toContain('<dialog');
     expect(confirmDialogSource).not.toContain('font-weight: 750');
@@ -56,12 +56,12 @@ describe('settings reset flows', () => {
 
   it('keeps local service and credential cleanup in the desktop app boundary', () => {
     expect(appSource).toContain('forgetCredentials');
-    expect(appSource).toContain("manageAgentService('stop')");
-    expect(appSource).toContain("manageAgentService('uninstall')");
+    expect(appSource).toContain("manageEngineService('stop')");
+    expect(appSource).toContain("manageEngineService('uninstall')");
     expect(appSource).toContain('quitApplication()');
     expect(appSource).toContain('hostStore.reset()');
     expect(appSource).toContain('clearClientPreferences()');
-    expect(appSource).toContain('hostId === localAgentHostId');
+    expect(appSource).toContain('hostId === localEngineHostId');
   });
 
   it('offers a local fresh-install path that combines the existing resets', () => {

@@ -1,6 +1,6 @@
 //! Phase 6 backup and staged-transfer route DTOs, frozen in
-//! `docs/msc2/api-contract/openapi.json` (P6.8) and ported here verbatim
-//! (`docs/msc2/worlds/phase6-api.md`).
+//! `docs/msc/api-contract/openapi.json` (P6.8) and ported here verbatim
+//! (`docs/msc/worlds/phase6-api.md`).
 
 use serde::{Deserialize, Serialize};
 
@@ -146,7 +146,7 @@ pub struct StagedUploadBeginResultDto {
     pub expires_at: String,
     pub max_bytes: i64,
     /// Maximum request body accepted by the chunk endpoint. Optional so a
-    /// newer client can still identify the 2 MiB ceiling on older agents.
+    /// newer client can still identify the 2 MiB ceiling on older engines.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_chunk_bytes: Option<i64>,
 }

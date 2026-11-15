@@ -48,7 +48,7 @@ export interface NativeFileSource extends NativeFileDescriptor {
   close(): Promise<void>;
 }
 export type NativeUploadTransportKind =
-  'stream' | 'local-copy' | 'legacy-chunks' | 'legacy-buffered-agent';
+  'stream' | 'local-copy' | 'legacy-chunks' | 'legacy-buffered-engine';
 export interface NativeUploadProgress {
   readonly operationId: string;
   readonly agentHostId: string;
@@ -124,11 +124,11 @@ export interface MenuEntry {
   readonly onSelect: () => void;
 }
 
-export type AgentServiceAction = 'install' | 'start' | 'stop' | 'repair' | 'uninstall';
-export type AgentReadiness =
+export type EngineServiceAction = 'install' | 'start' | 'stop' | 'repair' | 'uninstall';
+export type EngineReadiness =
   'missing' | 'stopped' | 'starting' | 'ready' | 'incompatible' | 'unavailable';
 
-export interface AgentServiceStatus {
+export interface EngineServiceStatus {
   readonly available: boolean;
   readonly platform: string;
   readonly serviceName: string;
@@ -213,7 +213,7 @@ export interface PlatformAdapter {
   quitApplication(): Promise<void>;
   openExternal(url: string): Promise<void>;
   /** Reveals `path` (an absolute local filesystem path) in the OS file
-   *  manager. Only meaningful for a locally-connected agent -- callers must
+   *  manager. Only meaningful for a locally-connected engine -- callers must
    *  not invoke this for a remote host's path, since nothing local exists
    *  there to reveal. */
   revealInFileManager(path: string): Promise<void>;
@@ -226,11 +226,11 @@ export interface PlatformAdapter {
   onFileDrop(handler: (paths: readonly string[]) => void): Promise<() => void>;
   onCloseRequested(handler: () => void): Promise<() => void>;
   credentialFor(hostId: string): Promise<string | null>;
-  agentHealthCheck(): Promise<boolean>;
-  agentServiceStatus(): Promise<AgentServiceStatus>;
-  agentIndicatorEnabled?(): Promise<boolean>;
-  setAgentIndicatorEnabled?(enabled: boolean): Promise<void>;
-  manageAgentService(action: AgentServiceAction): Promise<AgentServiceStatus>;
+  engineHealthCheck(): Promise<boolean>;
+  engineServiceStatus(): Promise<EngineServiceStatus>;
+  engineIndicatorEnabled?(): Promise<boolean>;
+  setEngineIndicatorEnabled?(enabled: boolean): Promise<void>;
+  manageEngineService(action: EngineServiceAction): Promise<EngineServiceStatus>;
   previewLocalUninstall(installers: readonly string[]): Promise<UninstallInventory>;
   uninstallLocal(request: LocalUninstallRequest): Promise<UninstallScheduled>;
   checkForUpdates(): Promise<UpdateCheckResult>;
@@ -256,11 +256,11 @@ export interface TauriPlatformDependencies {
   ): Promise<() => void>;
   onFileDrop(handler: (paths: readonly string[]) => void): Promise<() => void>;
   onCloseRequested(handler: () => void): Promise<() => void>;
-  agentHealthCheck(): Promise<boolean>;
-  agentServiceStatus(): Promise<AgentServiceStatus>;
-  agentIndicatorEnabled?(): Promise<boolean>;
-  setAgentIndicatorEnabled?(enabled: boolean): Promise<void>;
-  manageAgentService(action: AgentServiceAction): Promise<AgentServiceStatus>;
+  engineHealthCheck(): Promise<boolean>;
+  engineServiceStatus(): Promise<EngineServiceStatus>;
+  engineIndicatorEnabled?(): Promise<boolean>;
+  setEngineIndicatorEnabled?(enabled: boolean): Promise<void>;
+  manageEngineService(action: EngineServiceAction): Promise<EngineServiceStatus>;
   previewLocalUninstall?(installers: readonly string[]): Promise<UninstallInventory>;
   uninstallLocal?(request: LocalUninstallRequest): Promise<UninstallScheduled>;
   checkForUpdates?(): Promise<UpdateCheckResult>;

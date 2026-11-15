@@ -18,5 +18,5 @@
     "resolved": null,
     "error": "path_escape"
   },
-  "notes": "MSC 1 follows this directory symlink; MSC 2 must reject it under Phase 3's approved path-safety boundary rather than treating an outside live world as an import."
+  "notes": "MSC 1 follows this directory symlink; MSC must reject it under Phase 3's approved path-safety boundary rather than treating an outside live world as an import."
 }

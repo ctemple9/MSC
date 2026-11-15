@@ -3,11 +3,11 @@ id: handbook.first-bedrock-server
 kind: handbook
 title: Your First Bedrock Server
 category: getting-started
-subtitle: "Create and start a Bedrock Dedicated Server in MSC 2."
+subtitle: "Create and start a Bedrock Dedicated Server in MSC."
 relatedIds: [handbook.bedrock, handbook.how-bedrock-runs, handbook.playit, handbook.xbox-broadcast, handbook.worlds-backups]
 ---
 
-Start here after installing MSC 2 and completing First-time Setup, whether you skipped the tour or need a reminder. Bedrock availability depends on the selected host; MSC shows Bedrock in the creator only when that host supports it. [How Bedrock Runs](help:handbook.how-bedrock-runs) explains the host-specific runtime.
+Start here after installing MSC and completing First-time Setup, whether you skipped the tour or need a reminder. Bedrock availability depends on the selected host; MSC shows Bedrock in the creator only when that host supports it. [How Bedrock Runs](help:handbook.how-bedrock-runs) explains the host-specific runtime.
 
 ### Checklist: Phase 1 — Create a Bedrock server
 

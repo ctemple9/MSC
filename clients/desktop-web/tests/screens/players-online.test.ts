@@ -110,7 +110,7 @@ describe('player data (profiles)', () => {
   });
 });
 
-describe('session log (derived from console tail, /v1/session-log has no agent handler yet)', () => {
+describe('session log (derived from console tail, /v1/session-log has no engine handler yet)', () => {
   const lines: Schema['ConsoleLineDTO'][] = [
     {
       text: '[12:00:00] [Server thread/INFO]: Alice joined the game',

@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTRACT_PATH = ROOT / "docs/msc2/api-contract/openapi.json"
+CONTRACT_PATH = ROOT / "docs/msc/api-contract/openapi.json"
 GENERATED_PATH = ROOT / "clients/desktop-web/src/lib/api/generated.ts"
 SCHEMA_START = re.compile(r"^    ([A-Za-z_$][A-Za-z0-9_$]*): ", re.MULTILINE)
 PROPERTY = re.compile(r"^      ([A-Za-z_$][A-Za-z0-9_$]*)(\?)?:", re.MULTILINE)

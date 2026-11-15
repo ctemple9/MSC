@@ -1,5 +1,5 @@
-//! Phase 6 world-slot route DTOs, frozen in `docs/msc2/api-contract/openapi.json`
-//! (P6.8) and ported here verbatim (`docs/msc2/worlds/phase6-api.md`).
+//! Phase 6 world-slot route DTOs, frozen in `docs/msc/api-contract/openapi.json`
+//! (P6.8) and ported here verbatim (`docs/msc/worlds/phase6-api.md`).
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -256,7 +256,7 @@ pub struct WorldGameplayDto {
 #[serde(rename_all = "camelCase")]
 pub struct WorldSafetyDto {
     /// Known values are `safe`, `achievement_disabled`, `unknown`, and
-    /// `unsupported`; this remains a string so a newer agent can add a
+    /// `unsupported`; this remains a string so a newer engine can add a
     /// safety state without making an older client reject the whole profile.
     pub state: String,
     #[serde(default)]

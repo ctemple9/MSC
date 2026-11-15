@@ -6,7 +6,7 @@
 //! Ported from `CurseForgeManualDownloadSheet.swift`'s own three-tier
 //! folder-watch filename matcher (P8.8's characterization,
 //! `fixtures/curseforge-manual-download/`), translated to the staged-
-//! upload contract `msc2-decisions.md`'s D-027 entry records: the same
+//! upload contract `msc-decisions.md`'s D-027 entry records: the same
 //! tolerance (exact match, a macOS duplicate-download suffix, or a
 //! single-remaining-candidate fallback) decides whether an uploaded file
 //! is accepted as the completion for one specific pending operation —

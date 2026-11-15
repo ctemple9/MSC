@@ -2,7 +2,7 @@
   "domain": "curseforge-manual-download",
   "case": "staged-upload-accepts-macos-duplicate-suffix-variant-of-expected-filename",
   "source": {
-    "file": "docs/msc2/addons/phase8-scope.md",
+    "file": "docs/msc/addons/phase8-scope.md",
     "test": "D-027 section -- staged-upload translation of Tier 2",
     "line": 17
   },

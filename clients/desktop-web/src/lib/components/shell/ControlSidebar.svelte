@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Server-control rail: host-aware picker, Initiate/Start/Stop, Manage, Agent, and MSC 1's
+  // Server-control rail: host-aware picker, Initiate/Start/Stop, Manage, Engine, and MSC 1's
   // four collapsible sections, all real now (P12.21, P12.22).
-  // docs/msc2/renderings/shell.html, MSC 1 SidebarView.swift.
+  // docs/msc/renderings/shell.html, MSC 1 SidebarView.swift.
   import Button from '../base/Button.svelte';
   import Menu from '../base/Menu.svelte';
   import Icon from '../base/Icon.svelte';
@@ -39,7 +39,7 @@
   export let hosts: readonly HostRecord[] = [];
   export let activeHostId: HostId = '';
   export let isDesktopShell = false;
-  // Threaded through for the sections that call the agent directly
+  // Threaded through for the sections that call the engine directly
   // (How to Connect, Services, and Quick Commands) — the same `api` every
   // section and ConsoleDock (P12.10) already receive.
   export let api: ScreenApi | undefined = undefined;
@@ -62,7 +62,7 @@
   export let onResumeInitiation: () => void = () => undefined;
   export let onDiscardInitiation: () => void = () => undefined;
   export let discardingInitiation = false;
-  export let onOpenAgentSetup: () => void;
+  export let onOpenEngineSetup: () => void;
   export let onManage: () => void;
   export let addressesVisible = false;
   export let onToggleAddresses: () => void = () => undefined;
@@ -142,7 +142,7 @@
   $: startLabel = activeServer?.firstStartRequired ? 'Initiate' : 'Start';
   $: canResumeInitiation = initiationHidden && initiationServerId === activeServerId;
 
-  // Services is MSC2's own external-services panel (playit.gg + Xbox
+  // Services is MSC's own external-services panel (playit.gg + Xbox
   // Broadcast, not an oracle 1:1 port; MSC 1 calls its Xbox-Broadcast-only
   // equivalent "Console Access"), so it shows whenever a server is
   // selected -- playit applies to any server type/flavor. Xbox Broadcast's
@@ -242,7 +242,8 @@
           <ShellIcon name={running ? 'stop' : 'play'} size={13} />
           {stopping ? 'Stopping…' : running ? 'Stop' : startLabel}
         </Button>
-        <Button variant="secondary" size="sm" onclick={onOpenAgentSetup}>Agent</Button>
+        <Button variant="secondary" size="sm" onclick={onOpenEngineSetup}>Background Service</Button
+        >
       </div>
       {#if statusNotice}
         <p class="status-notice" role="status">{statusNotice}</p>
@@ -382,7 +383,7 @@
   .status-notice {
     margin: 8px 0 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
 
   .sidebar {
@@ -390,8 +391,8 @@
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    background: var(--msc2-tier-chrome);
-    border-right: 1px solid var(--msc2-hairline-faint);
+    background: var(--msc-tier-chrome);
+    border-right: 1px solid var(--msc-hairline-faint);
     min-height: 0;
   }
   .scroll {
@@ -413,7 +414,7 @@
     font-weight: 600;
     letter-spacing: 0.8px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .block {
     margin-bottom: 14px;
@@ -428,14 +429,14 @@
     padding: 7px 9px;
     font: inherit;
     text-align: left;
-    border: 1px solid var(--msc2-hairline-field);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     cursor: pointer;
     box-sizing: border-box;
   }
   .picker:focus-visible {
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
   .sr-only {
     position: absolute;
@@ -448,7 +449,7 @@
     flex: 1;
     min-width: 0;
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -469,8 +470,8 @@
     gap: 8px;
     margin-top: 8px;
     padding: 9px;
-    color: var(--msc2-text-secondary);
-    background: var(--msc2-tier-surface);
+    color: var(--msc-text-secondary);
+    background: var(--msc-tier-surface);
     font-size: 11px;
     line-height: 1.4;
   }
@@ -479,7 +480,7 @@
     gap: 8px;
   }
   .disclosure {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .disclosure-header {
     display: flex;
@@ -512,13 +513,13 @@
     align-items: center;
     justify-content: center;
     padding: 2px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: transparent;
     border: none;
     cursor: pointer;
   }
   .visibility-toggle:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .visibility-toggle:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.4);
@@ -540,14 +541,14 @@
     gap: 4px;
     padding: 8px 4px;
     font: inherit;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     cursor: pointer;
   }
   .maintenance-button:hover:not(:disabled) {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     background: rgba(255, 255, 255, 0.07);
   }
   .maintenance-button:disabled {
@@ -561,14 +562,14 @@
   .maintenance-notice {
     margin: 6px 0 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .actions-block {
     flex-shrink: 0;
     padding-top: 12px;
     margin-top: auto;
     margin-bottom: 4px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .avatar-title {
     display: block;
@@ -579,16 +580,16 @@
     font-size: 12px;
     font-weight: 500;
     text-align: left;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     background: transparent;
     border: none;
     cursor: pointer;
   }
   .avatar-title:hover {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .avatar-title:focus-visible {
-    outline: 2px solid var(--msc2-hairline-field-focus);
+    outline: 2px solid var(--msc-hairline-field-focus);
     outline-offset: 2px;
     border-radius: 3px;
   }

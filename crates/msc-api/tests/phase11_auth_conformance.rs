@@ -5,7 +5,7 @@ use std::path::Path;
 
 fn contract() -> Value {
     let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc2/api-contract/openapi.json");
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc/api-contract/openapi.json");
     serde_json::from_str(&std::fs::read_to_string(path).expect("read openapi.json"))
         .expect("openapi.json is valid JSON")
 }
@@ -82,8 +82,7 @@ fn phase11_auth_conformance_desktop_pairing_keeps_secrets_in_the_native_boundary
 
 #[test]
 fn phase11_auth_conformance_design_records_the_unavailable_lan_shortcut() {
-    let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc2/clients/phase11-auth.md");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc/clients/phase11-auth.md");
     let design = std::fs::read_to_string(path)
         .expect("read phase11-auth.md")
         .replace("\r\n", "\n");

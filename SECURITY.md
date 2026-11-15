@@ -18,7 +18,7 @@ open a public issue or discussion containing exploit details. GitHub sends
 private reports to the repository maintainers; they are not visible to the
 public.
 
-Include the affected MSC 2 version, platform, impact, and steps to reproduce
+Include the affected MSC version, platform, impact, and steps to reproduce
 when safe to do so. Avoid including real server credentials, player data, or
 other private host information. The maintainer will coordinate a fix and
 disclosure through the private advisory where possible.

@@ -736,7 +736,7 @@ fn java_datapack_install_uses_outer_metadata_and_preserves_overlays() {
         zip.finish().unwrap().into_inner()
     }
     let scratch = Scratch(
-        std::env::temp_dir().join(format!("msc2-datapack-overlay-{}", uuid::Uuid::new_v4())),
+        std::env::temp_dir().join(format!("msc-datapack-overlay-{}", uuid::Uuid::new_v4())),
     );
     std::fs::create_dir_all(&scratch.0).unwrap();
     let world_path = scratch.0.join("world.zip");
@@ -922,7 +922,7 @@ fn provider_datapack_update_preserves_unowned_files_and_rejects_stale_world() {
         }
         writer.finish().unwrap().into_inner()
     }
-    let dir = std::env::temp_dir().join(format!("msc2-datapack-update-{}", uuid::Uuid::new_v4()));
+    let dir = std::env::temp_dir().join(format!("msc-datapack-update-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir(&dir).unwrap();
     let world = dir.join("world.zip");
     std::fs::write(

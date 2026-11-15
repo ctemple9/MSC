@@ -1,7 +1,7 @@
 <script lang="ts">
   // Ports WorldConversionWizardView.swift's shape (preflight -> target
   // server -> target version -> summary -> converting -> done), with the
-  // agent-owned Chunker acquisition and output-validation gates kept visible.
+  // engine-owned Chunker acquisition and output-validation gates kept visible.
   //
   // One placement option is intentionally missing, not overlooked: MSC 1's
   // wizard also lets a conversion replace an existing slot on the target
@@ -68,7 +68,7 @@
   async function loadFormats(): Promise<void> {
     formatsState = { kind: 'loading' };
     if (!api) {
-      formatsState = { kind: 'unavailable', message: 'Not connected to an agent.' };
+      formatsState = { kind: 'unavailable', message: 'Not connected to an engine.' };
       return;
     }
     try {
@@ -78,7 +78,8 @@
       if (!response.javaAvailable) {
         formatsState = {
           kind: 'unavailable',
-          message: 'Java 17 or newer is required on the agent to run Chunker. Install or repair Java in MSC’s Java settings, then try again.',
+          message:
+            'Java 17 or newer is required on the engine to run Chunker. Install or repair Java in MSC’s Java settings, then try again.',
         };
       } else if (response.downloading) {
         formatsState = { kind: 'downloading', statusLine: 'Chunker is downloading…' };
@@ -97,7 +98,7 @@
         message:
           error instanceof ApiError
             ? error.error.message
-            : 'Could not reach Chunker on this agent.',
+            : 'Could not reach Chunker on this engine.',
       };
     }
   }
@@ -147,7 +148,10 @@
           formatsState = previous;
           updateError = operation?.error?.message ?? 'Chunker update did not complete.';
         } else {
-          formatsState = { kind: 'unavailable', message: operation?.error?.message ?? 'Chunker download did not complete.' };
+          formatsState = {
+            kind: 'unavailable',
+            message: operation?.error?.message ?? 'Chunker download did not complete.',
+          };
         }
       }
     } catch (error) {
@@ -155,7 +159,10 @@
         formatsState = previous;
         updateError = error instanceof Error ? error.message : 'Failed to update Chunker.';
       } else {
-        formatsState = { kind: 'needs-download', message: error instanceof Error ? error.message : 'Failed to download Chunker.' };
+        formatsState = {
+          kind: 'needs-download',
+          message: error instanceof Error ? error.message : 'Failed to download Chunker.',
+        };
       }
     }
   }
@@ -217,13 +224,13 @@
 
 <Sheet title="Convert World" size="md" onClose={step === 'converting' ? undefined : onClose}>
   <div class="source">
-    <span class="msc2-type-overline">Source</span>
+    <span class="msc-type-overline">Source</span>
     <span class="source-line">{sourceServer?.name ?? '—'} · "{sourceSlot.name}"</span>
   </div>
 
   {#if step === 'preflight'}
     <div class="body">
-      <p class="msc2-type-overline">Checking requirements</p>
+      <p class="msc-type-overline">Checking requirements</p>
       <ul class="checklist">
         <li class:bad={sourceServerRunning}>
           {sourceServerRunning
@@ -236,9 +243,9 @@
             : `${candidates.length} ${targetEdition} server(s) available.`}
         </li>
         {#if formatsState.kind === 'loading'}
-          <li>Checking Chunker on this agent…</li>
+          <li>Checking Chunker on this engine…</li>
         {:else if formatsState.kind === 'needs-download'}
-          <li class="bad">Chunker is not installed on this agent.</li>
+          <li class="bad">Chunker is not installed on this engine.</li>
         {:else if formatsState.kind === 'downloading'}
           <li>Chunker is downloading…</li>
         {:else if formatsState.kind === 'unavailable'}
@@ -252,7 +259,7 @@
       </ul>
       {#if formatsState.kind === 'needs-download'}
         <div class="chunker-panel">
-          <p class="msc2-type-overline">Chunker required</p>
+          <p class="msc-type-overline">Chunker required</p>
           {#if formatsState.message}<p class="error">{formatsState.message}</p>{/if}
           <p class="explain">
             Chunker is the free, open-source converter used for this operation. MSC will download
@@ -264,7 +271,7 @@
         </div>
       {:else if formatsState.kind === 'downloading'}
         <div class="chunker-panel">
-          <p class="msc2-type-overline">Installing Chunker</p>
+          <p class="msc-type-overline">Installing Chunker</p>
           <p class="status-line">{formatsState.statusLine}</p>
           <p class="explain">Keep this window open while the official CLI is downloaded.</p>
         </div>
@@ -299,7 +306,7 @@
     </div>
   {:else if step === 'target'}
     <div class="body">
-      <p class="msc2-type-overline">Target {targetEdition} server</p>
+      <p class="msc-type-overline">Target {targetEdition} server</p>
       <div class="target-list">
         {#each candidates as server (server.id)}
           <button
@@ -322,7 +329,7 @@
     </div>
   {:else if step === 'version'}
     <div class="body">
-      <p class="msc2-type-overline">Target {targetEdition} version</p>
+      <p class="msc-type-overline">Target {targetEdition} version</p>
       {#if availableFormats.length === 0}
         <p class="explain">
           No {targetEdition} versions were reported by the installed Chunker jar.
@@ -349,7 +356,7 @@
     </div>
   {:else if step === 'summary'}
     <div class="body">
-      <p class="msc2-type-overline">Ready to convert</p>
+      <p class="msc-type-overline">Ready to convert</p>
       <div class="summary">
         <div class="summary-row">
           <span class="label">From</span>
@@ -387,7 +394,7 @@
     </div>
   {:else if step === 'converting'}
     <div class="body">
-      <p class="msc2-type-overline">Converting…</p>
+      <p class="msc-type-overline">Converting…</p>
       <p class="status-line">{statusLine}</p>
       <p class="explain">Do not stop either server while conversion runs.</p>
       <div class="footer">
@@ -430,14 +437,14 @@
     gap: 2px;
     margin-bottom: 16px;
     padding-bottom: 14px;
-    border-bottom: 1px solid var(--msc2-hairline-faint);
+    border-bottom: 1px solid var(--msc-hairline-faint);
   }
   .source span:first-child {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .source-line {
     font-size: 13px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .body {
     display: flex;
@@ -454,16 +461,16 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 8px;
     padding: 12px;
   }
   .checklist li {
     font-size: 12px;
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .checklist li.bad {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .target-list {
     display: flex;
@@ -475,10 +482,10 @@
     align-items: center;
     justify-content: space-between;
     padding: 0;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border: 1px solid transparent;
     border-radius: 8px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     font-size: 13px;
     cursor: pointer;
@@ -487,13 +494,13 @@
     border-color: rgba(255, 255, 255, 0.28);
   }
   .check {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .summary {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 8px;
     padding: 12px;
   }
@@ -510,19 +517,19 @@
   }
   .summary-row .label {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .summary-row .value {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .status-line {
     margin: 0;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 12px;
-    color: var(--msc2-text-secondary);
-    background: var(--msc2-tier-chrome);
+    color: var(--msc-text-secondary);
+    background: var(--msc-tier-chrome);
     border-radius: 8px;
     padding: 10px 12px;
   }
@@ -530,16 +537,16 @@
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .error-text {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .explain {
     margin: 0;
     font-size: 12px;
     line-height: 1.6;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .footer {
     display: flex;
@@ -552,11 +559,11 @@
     align-items: flex-start;
     gap: 8px;
     padding: 12px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 8px;
   }
-  .chunker-panel .msc2-type-overline,
+  .chunker-panel .msc-type-overline,
   .chunker-panel .explain {
     margin: 0;
   }
@@ -567,7 +574,6 @@
     padding: 10px 12px;
     font-size: 11px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
-
+    color: var(--msc-text-secondary);
   }
 </style>

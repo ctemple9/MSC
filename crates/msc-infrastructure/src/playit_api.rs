@@ -12,8 +12,8 @@ use serde_json::{Value, json};
 use std::fmt;
 
 pub const PLAYIT_API_BASE_URL: &str = "https://api.playit.gg";
-pub const PLAYIT_AGENT_VERSION: &str = "playit 1.0.10";
-pub const PLAYIT_AGENT_NAME: &str = "MSC Agent";
+pub const PLAYIT_ENGINE_VERSION: &str = "playit 1.0.10";
+pub const PLAYIT_ENGINE_NAME: &str = "MSC Engine";
 pub const PLAYIT_API_MAX_RESPONSE_BYTES: u64 = 1024 * 1024;
 
 /// The only provider transport behavior the account workflow needs.  The
@@ -98,7 +98,7 @@ pub enum PlayitApiError {
     AccountBanned,
     TwoFactorRequired,
     RateLimited,
-    AgentNotFound,
+    EngineNotFound,
     ApiFailure,
     TransportFailure,
     InvalidResponse,
@@ -111,7 +111,7 @@ impl PlayitApiError {
             Self::AccountBanned => "account_banned",
             Self::TwoFactorRequired => "two_factor_required",
             Self::RateLimited => "rate_limited",
-            Self::AgentNotFound => "agent_not_found",
+            Self::EngineNotFound => "agent_not_found",
             Self::ApiFailure | Self::TransportFailure | Self::InvalidResponse => "playit_api_error",
         }
     }
@@ -126,10 +126,10 @@ impl fmt::Display for PlayitApiError {
                 "This Playit account requires two-factor authentication, which MSC cannot complete yet."
             }
             Self::RateLimited => "Playit temporarily rate-limited this request.",
-            Self::AgentNotFound => "Playit could not find the tunnel agent.",
-            Self::ApiFailure => "Playit returned an error while setting up the tunnel agent.",
+            Self::EngineNotFound => "Playit could not find the tunnel engine.",
+            Self::ApiFailure => "Playit returned an error while setting up the tunnel engine.",
             Self::TransportFailure => {
-                "MSC could not reach Playit while setting up the tunnel agent."
+                "MSC could not reach Playit while setting up the tunnel engine."
             }
             Self::InvalidResponse => "Playit returned an unexpected response.",
         };
@@ -177,7 +177,7 @@ impl Drop for PlayitSession {
     }
 }
 
-/// The permanent host-scoped agent key is returned only to the application
+/// The permanent host-scoped engine key is returned only to the application
 /// service so that it can be written to `SecretStore`; it is never placed in
 /// an operation result or response DTO.
 pub struct PlayitSecret(String);
@@ -232,7 +232,7 @@ impl<'transport> PlayitApi<'transport> {
             json!({
                 "code": code,
                 "agent_type": "assignable",
-                "version": PLAYIT_AGENT_VERSION,
+                "version": PLAYIT_ENGINE_VERSION,
             }),
             None,
         )?;
@@ -292,10 +292,10 @@ impl<'transport> PlayitApi<'transport> {
         Ok(Some(PlayitSecret(key.to_owned())))
     }
 
-    /// Lists all tunnels visible to the host's read-only agent key. The null
-    /// agent filter is intentional: the saved key is the authority, while the
+    /// Lists all tunnels visible to the host's read-only engine key. The null
+    /// engine filter is intentional: the saved key is the authority, while the
     /// application layer still verifies each named tunnel belongs to the
-    /// saved agent before reusing it.
+    /// saved engine before reusing it.
     pub fn list_tunnels(&self, secret: &str) -> Result<Vec<PlayitTunnel>, PlayitApiError> {
         let authorization = format!("Agent-Key {secret}");
         let response = self.request(
@@ -401,7 +401,7 @@ impl<'transport> PlayitApi<'transport> {
     }
 
     /// MSC 1 observed four authorization header schemes in the provider API.
-    /// Keep that compatibility behavior inside the agent and never expose the
+    /// Keep that compatibility behavior inside the engine and never expose the
     /// temporary session to the caller or to diagnostics.
     fn request_with_session(
         &self,
@@ -468,7 +468,7 @@ fn classify_failure(status: u16, value: &Value) -> PlayitApiError {
         || text.contains("agentversiontooold")
         || text.contains("agentoffline")
     {
-        PlayitApiError::AgentNotFound
+        PlayitApiError::EngineNotFound
     } else {
         PlayitApiError::ApiFailure
     }

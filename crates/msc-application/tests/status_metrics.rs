@@ -46,7 +46,7 @@ impl ProcessMetricsProvider for FakeMetrics {
 
 fn temp_server_dir(case: &str) -> PathBuf {
     let path =
-        std::env::temp_dir().join(format!("msc2-status-metrics-{}-{case}", std::process::id()));
+        std::env::temp_dir().join(format!("msc-status-metrics-{}-{case}", std::process::id()));
     let _ = fs::remove_dir_all(&path);
     fs::create_dir_all(path.join("world/region")).unwrap();
     fs::write(path.join("world/level.dat"), vec![0; 512 * 1024]).unwrap();

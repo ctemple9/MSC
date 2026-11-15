@@ -5,7 +5,7 @@ use std::fs;
 
 #[test]
 fn installs_feed_for_each_active_world_and_keeps_other_packs() {
-    let dir = std::env::temp_dir().join(format!("msc2-map-feed-{}", uuid::Uuid::new_v4()));
+    let dir = std::env::temp_dir().join(format!("msc-map-feed-{}", uuid::Uuid::new_v4()));
     fs::create_dir_all(dir.join("worlds/First")).unwrap();
     fs::write(dir.join("server.properties"), b"level-name=First\n").unwrap();
     fs::write(

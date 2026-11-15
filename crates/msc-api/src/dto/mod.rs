@@ -1,11 +1,11 @@
-//! `/v1/` wire DTOs — the serde structs `msc-agent`'s skeletal handlers
+//! `/v1/` wire DTOs — the serde structs `msc-engine`'s skeletal handlers
 //! (P2.13/P2.14) serialize into HTTP responses. Hand-written against
-//! `docs/msc2/api-contract/openapi.json` (P2.8), not generated — this
+//! `docs/msc/api-contract/openapi.json` (P2.8), not generated — this
 //! phase hand-writes both the Rust and (eventually) Swift sides of the
 //! frozen schema, per this phase's own "not in this phase" note on a
 //! generic codegen pipeline.
 //!
-//! Only the schemas the skeletal agent actually serves this phase are
+//! Only the schemas the skeletal engine actually serves this phase are
 //! covered: `OperationDTO`/`ErrorDTO` (operation lifecycle),
 //! `CapabilitiesDTO`, and the status/health response shapes
 //! (`RemoteAPIStatus`, `HealthResponseDTO`). Every other schema in

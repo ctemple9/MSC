@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """UI-bucket density scanner (P0.25).
 
-Reproduces the audit's own D1 finding (docs/msc2/audit/msc2-audit-
+Reproduces the audit's own D1 finding (docs/msc/audit/msc-audit-
 reconciliation.md, "D1 -- The Mixed bucket"): grep MSC 1's UI-bucket files
 for engine-shaped symbols and rank by hit count, so P0.27 has a live list
 of UI files that need symbol-level extraction before they can be retired --
@@ -11,7 +11,7 @@ written.
 Usage:
     scan.py --bucket ui --min-hits 3 <path-to-msc1-source-root>
 
-For each file the inventory CSV (docs/msc2/audit/msc2-file-inventory-b.csv)
+For each file the inventory CSV (docs/msc/audit/msc-file-inventory-b.csv)
 marks with the given --bucket, finds that file under <source-root> and counts
 occurrences of these patterns, comments stripped:
     - FileManager
@@ -34,7 +34,7 @@ import re
 import sys
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-INVENTORY_CSV = os.path.join(REPO_ROOT, "docs", "msc2", "audit", "msc2-file-inventory-b.csv")
+INVENTORY_CSV = os.path.join(REPO_ROOT, "docs", "msc", "audit", "msc-file-inventory-b.csv")
 
 LINE_COMMENT_RE = re.compile(r"//.*")
 BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)

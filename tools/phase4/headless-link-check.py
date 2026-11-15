@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify headless agent artifacts do not link desktop GUI frameworks."""
+"""Verify headless engine artifacts do not link desktop GUI frameworks."""
 
 from __future__ import annotations
 

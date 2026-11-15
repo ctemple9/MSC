@@ -1,5 +1,5 @@
 [package]
-name = "msc2-service-lifecycle"
+name = "msc-service-lifecycle"
 version = "0.1.0"
 edition = "2021"
 

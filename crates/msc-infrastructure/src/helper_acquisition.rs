@@ -1,6 +1,6 @@
 //! Checksum-verified acquisition for managed helper binaries.
 //!
-//! A helper is executable code that the agent downloads and later launches,
+//! A helper is executable code that the engine downloads and later launches,
 //! so it has a stricter contract than an ordinary provider download: the
 //! release and asset identity are exact, and the bytes must match a
 //! caller-supplied SHA-256 from either a repository pin or the upstream
@@ -34,7 +34,7 @@ pub enum HelperPlatform {
 }
 
 impl HelperPlatform {
-    /// Selects the platform identity compiled into the running agent. An
+    /// Selects the platform identity compiled into the running engine. An
     /// unsupported target fails before any release request is attempted.
     pub fn current() -> Result<Self, HelperAcquisitionError> {
         let platform = match (std::env::consts::OS, std::env::consts::ARCH) {

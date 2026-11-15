@@ -1,6 +1,6 @@
 <script lang="ts">
   // MSC 1 OverviewActiveWorldCardView, with live world time supplied by the
-  // agent's performance snapshot rather than a client-side clock or disk
+  // engine's performance snapshot rather than a client-side clock or disk
   // read. The card keeps that line compact so it remains an activity card,
   // not a second statistics panel.
   // Thumbnails use the same deterministic gradient placeholder MSC 1 falls
@@ -107,7 +107,7 @@
 
 <Card padding="14px 16px">
   <div class="overline">
-    <span class="msc2-type-overline">Active World</span>
+    <span class="msc-type-overline">Active World</span>
   </div>
 
   {#if slot}
@@ -175,7 +175,7 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .row {
     display: flex;
@@ -202,10 +202,10 @@
     background-position: center;
   }
   .thumb.selected {
-    border-color: var(--msc2-selection);
+    border-color: var(--msc-selection);
   }
   .thumb:focus-visible {
-    outline: 2px solid var(--msc2-selection);
+    outline: 2px solid var(--msc-selection);
     outline-offset: 2px;
   }
   .meta {
@@ -217,7 +217,7 @@
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -227,7 +227,7 @@
     font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .facts {
     display: grid;
@@ -242,12 +242,12 @@
   }
   .k {
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .v {
     font-size: 11px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .actions {
     display: flex;
@@ -261,7 +261,7 @@
     margin: 0 0 12px;
   }
   .world-time .unavailable {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-weight: 400;
   }
   .actions :global(.btn) {
@@ -271,7 +271,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     padding: 8px 0;
   }

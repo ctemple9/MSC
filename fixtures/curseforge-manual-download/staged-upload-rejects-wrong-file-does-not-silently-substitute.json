@@ -2,7 +2,7 @@
   "domain": "curseforge-manual-download",
   "case": "staged-upload-rejects-wrong-file-does-not-silently-substitute",
   "source": {
-    "file": "docs/msc2/addons/phase8-scope.md",
+    "file": "docs/msc/addons/phase8-scope.md",
     "test": "D-027 section -- rejection case",
     "line": 17
   },

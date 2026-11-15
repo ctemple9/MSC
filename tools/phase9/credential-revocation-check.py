@@ -29,7 +29,7 @@ def main() -> int:
         "nextest",
         "run",
         "-p",
-        "msc-agent",
+        "msc-engine",
         "--test",
         "user_routes",
         "--no-fail-fast",

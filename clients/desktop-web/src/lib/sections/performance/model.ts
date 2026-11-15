@@ -1,6 +1,6 @@
 // Pure helpers for the Performance tab. Thresholds ported from MSC 1's
 // DetailsPerformanceHelpers.swift (tpsHealthStatus/cpuHealthStatus/
-// ramHealthStatus) -- same cutoffs, remapped onto the shared MSC 2 status
+// ramHealthStatus) -- same cutoffs, remapped onto the shared MSC status
 // ramp (ok/warn/error) instead of MSC 1's own MetricStatus enum.
 
 export type Tone = 'ok' | 'warn' | 'error' | undefined;
@@ -69,7 +69,7 @@ export function formatUptime(elapsedMs: number | undefined): string {
 /** Bedrock's Load 1m/5m/15m is a client-side rolling average over a raw CPU%
  *  history buffer (MSC 1 AppViewModel+BedrockPerformance.swift's
  *  `rollingAverage(from:sampleCount:)`), not a distinct backend field --
- *  the agent only ever reports the instantaneous cpuPercent, sampled here
+ *  the engine only ever reports the instantaneous cpuPercent, sampled here
  *  once per poll. `count` is the number of POLL_INTERVAL_MS-spaced samples
  *  the window covers (12/60/180 at the 5s cadence below == 1m/5m/15m). */
 export function rollingAverage(history: readonly number[], count: number): number | undefined {

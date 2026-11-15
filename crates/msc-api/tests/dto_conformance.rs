@@ -1,10 +1,10 @@
 //! Serializes each `msc-api` DTO's example value and validates the result
-//! against its matching schema in `docs/msc2/api-contract/openapi.json`
+//! against its matching schema in `docs/msc/api-contract/openapi.json`
 //! (P2.8) — P0.23's schema-depth discipline (nesting reaches real content,
 //! not a stub), now pointed at Rust output instead of the schema's own
 //! shape.
 //!
-//! Only covers the five schemas the skeletal agent actually serves this
+//! Only covers the five schemas the skeletal engine actually serves this
 //! phase: `ErrorDTO`, `OperationDTO`, `CapabilitiesDTO`, `HealthResponseDTO`
 //! (with `HealthCardDTO` nested), and `RemoteAPIStatus`.
 //!
@@ -23,7 +23,7 @@ use std::path::Path;
 
 fn load_contract() -> Value {
     let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc2/api-contract/openapi.json");
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/msc/api-contract/openapi.json");
     let text = std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("reading {}: {e}", path.display()));
     serde_json::from_str(&text).expect("openapi.json is valid JSON")
@@ -189,7 +189,7 @@ fn dto_conformance_operation_dto_failed_matches_schema() {
 }
 
 /// P6.44's atomic cooperative-cancellation wire rule is part of the contract,
-/// not an agent-only implementation detail: acceptance is always pending,
+/// not an engine-only implementation detail: acceptance is always pending,
 /// while every terminal-first outcome is a conflict.
 #[test]
 fn dto_conformance_operation_cancellation_declares_atomic_pending_response() {

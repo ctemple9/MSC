@@ -1,12 +1,12 @@
 [package]
-name = "msc2-desktop-web"
+name = "msc-desktop-web"
 version = "0.1.44"
-description = "Thin Tauri shell for the shared MSC 2 client"
+description = "Thin Tauri shell for the shared MSC client"
 authors = ["Cameron Temple"]
 edition = "2021"
 
 [lib]
-name = "msc2_desktop_web_lib"
+name = "msc_desktop_web_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

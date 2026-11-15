@@ -3,11 +3,11 @@ id: handbook.first-server
 kind: handbook
 title: Your First Java Server
 category: getting-started
-subtitle: "Create, start, and manage a standard Java server in MSC 2."
+subtitle: "Create, start, and manage a standard Java server in MSC."
 relatedIds: [handbook.paper, handbook.plugins-crossplay, handbook.playit, handbook.worlds-backups]
 ---
 
-This guide starts after MSC 2 is installed and First-time Setup is finished. It also works if you skipped the tour or are returning to server creation later. You can leave this page open and work through the phases in the app.
+This guide starts after MSC is installed and First-time Setup is finished. It also works if you skipped the tour or are returning to server creation later. You can leave this page open and work through the phases in the app.
 
 ### Checklist: Phase 1 — Open the server creator
 

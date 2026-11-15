@@ -4,7 +4,7 @@
 //! programs such as Playit or Xbox Broadcast, keyed by the server and helper
 //! function. The application layer must still admit and journal the action
 //! through Phase 4's operation boundary before it calls this module. On an
-//! agent restart no old PID is trusted; callers restore keys with
+//! engine restart no old PID is trusted; callers restore keys with
 //! [`HelperProcessManager::recover_after_restart`] and must reconcile them
 //! before starting another helper.
 
@@ -114,8 +114,8 @@ struct ManagedHelper {
     diagnostics: VecDeque<HelperDiagnostic>,
 }
 
-/// Owns helper subprocesses within one running agent. It intentionally has
-/// no persistence: a PID cannot be safely recovered across an agent restart.
+/// Owns helper subprocesses within one running engine. It intentionally has
+/// no persistence: a PID cannot be safely recovered across an engine restart.
 pub struct HelperProcessManager<'supervisor> {
     supervisor: &'supervisor dyn ProcessSupervisor,
     helpers: BTreeMap<HelperKey, ManagedHelper>,
@@ -131,7 +131,7 @@ impl<'supervisor> HelperProcessManager<'supervisor> {
 
     /// Restores only the fact that a helper was in scope before the restart.
     /// It never reports the old process as running, because that PID belongs
-    /// to the prior agent and may now identify an unrelated process.
+    /// to the prior engine and may now identify an unrelated process.
     pub fn recover_after_restart(
         supervisor: &'supervisor dyn ProcessSupervisor,
         keys: impl IntoIterator<Item = HelperKey>,

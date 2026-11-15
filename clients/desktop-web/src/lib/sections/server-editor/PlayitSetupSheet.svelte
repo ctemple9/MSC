@@ -1,8 +1,8 @@
 <script lang="ts">
   // The native account flow from MSC 1's ContentView Playit sheet, moved behind
-  // the agent-owned P12.20a operation. The client collects credentials only
+  // the engine-owned P12.20a operation. The client collects credentials only
   // long enough to submit them, then clears both fields before the operation
-  // begins. It never receives or displays the resulting agent key.
+  // begins. It never receives or displays the resulting engine key.
   import Sheet from '../../components/base/Sheet.svelte';
   import Button from '../../components/base/Button.svelte';
   import Field from '../../components/base/Field.svelte';
@@ -33,7 +33,7 @@
   export let onClose: () => void;
   /** Records that the user submitted the native Playit attempt, even if it later fails. */
   export let onAttempted: () => void = () => {};
-  /** Called as soon as the agent reports success. In initiation mode the
+  /** Called as soon as the engine reports success. In initiation mode the
    * parent uses this to resume its waiting transport row, after which this
    * sheet closes so the row is immediately visible again. */
   export let onComplete: () => void = () => {};
@@ -70,12 +70,12 @@
   $: busy = phase === 'submitting' || phase === 'progress' || phase === 'resetting';
   $: title = context === 'initiation' ? 'Connect Playit for first start' : 'Set up Playit';
   $: intro = voiceOnly
-    ? 'Your Playit agent is already configured. Sign in again to add the missing Simple Voice Chat tunnel; existing tunnels will be reused.'
+    ? 'Your Playit engine is already configured. Sign in again to add the missing Simple Voice Chat tunnel; existing tunnels will be reused.'
     : playit?.hasSecretKey
-      ? "Sign in again to repair this host's Playit setup or add any tunnel the agent says is missing."
+      ? "Sign in again to repair this host's Playit setup or add any tunnel the engine says is missing."
       : context === 'settings'
         ? 'Sign in with your Playit account to set up this computer. Server tunnels stay unchanged.'
-        : 'Sign in with your Playit account and MSC will create or reuse the agent and applicable tunnels for this server.';
+        : 'Sign in with your Playit account and MSC will create or reuse the engine and applicable tunnels for this server.';
   $: submitLabel = voiceOnly ? 'Add voice tunnel' : 'Set up Playit';
   $: liveStatus = statusLine || setupSteps[currentStepIndex]?.label || 'Working…';
 
@@ -97,7 +97,7 @@
       return;
     }
 
-    // Do not leave submitted credentials in rendered fields while the agent
+    // Do not leave submitted credentials in rendered fields while the engine
     // performs the longer claim, reuse, and tunnel work.
     email = '';
     password = '';
@@ -137,7 +137,7 @@
         needsCleanup = playitSetupNeedsCleanup(operation?.error?.code, progressKey);
         error = playitSetupError(
           operation?.error?.message ??
-            'Playit setup did not complete. Check the agent and try again.',
+            'Playit setup did not complete. Check the engine and try again.',
         );
         phase = 'failed';
       }
@@ -211,7 +211,7 @@
   {#if phase === 'form' || phase === 'failed'}
     <div class="stack">
       <div>
-        <p class="msc2-type-overline">Native setup</p>
+        <p class="msc-type-overline">Native setup</p>
         <h2>
           {needsCleanup
             ? 'Playit setup couldn’t finish'
@@ -221,18 +221,18 @@
         </h2>
         {#if needsCleanup}
           <p class="copy">
-            Setup may have created an agent or tunnels in your Playit account. MSC couldn’t complete
-            setup. The error below is the detail available from this attempt.
+            Setup may have created an engine or tunnels in your Playit account. MSC couldn’t
+            complete setup. The error below is the detail available from this attempt.
           </p>
           <ol class="copy recovery-steps">
             <li>Click <strong>Reset local setup</strong> below.</li>
             <li>
-              Sign in at playit.gg and delete any agent or tunnels created by this failed attempt.
+              Sign in at playit.gg and delete any engine or tunnels created by this failed attempt.
             </li>
             <li>Return here and try setup again.</li>
           </ol>
           <p class="copy">
-            Reset only clears MSC’s saved Playit configuration. MSC cannot delete agents or tunnels
+            Reset only clears MSC’s saved Playit configuration. MSC cannot delete engines or tunnels
             from your Playit account.
           </p>
           <Button variant="secondary" onclick={() => void openAccountPage()}>Open playit.gg</Button>
@@ -296,10 +296,10 @@
   {:else if phase === 'submitting' || phase === 'progress'}
     <div class="stack">
       <div>
-        <p class="msc2-type-overline">Playit setup</p>
+        <p class="msc-type-overline">Playit setup</p>
         <h2>{voiceOnly ? 'Adding the voice tunnel' : 'Setting up your tunnels'}</h2>
         <p class="copy">
-          MSC is doing this through the agent. Your password is not retained in this sheet.
+          MSC is doing this through the engine. Your password is not retained in this sheet.
         </p>
       </div>
 
@@ -333,10 +333,11 @@
   {:else if phase === 'configured'}
     <div class="stack">
       <div>
-        <p class="msc2-type-overline">Playit setup complete</p>
+        <p class="msc-type-overline">Playit setup complete</p>
         <h2>{voiceOnly ? 'Voice tunnel added' : 'Playit is ready'}</h2>
         <p class="copy">
-          MSC has finished the agent setup and will reuse the applicable named tunnels on this host.
+          MSC has finished the engine setup and will reuse the applicable named tunnels on this
+          host.
           {#if context === 'initiation'}The first-start flow can now continue waiting for the
             transport.{/if}
         </p>
@@ -355,7 +356,7 @@
             </div>{/if}
         </div>
       {:else}
-        <p class="copy quiet">Public addresses will appear here after the agent reports them.</p>
+        <p class="copy quiet">Public addresses will appear here after the engine reports them.</p>
       {/if}
       <div class="actions">
         <Button variant="destructive" size="sm" onclick={beginReset}>Reset local setup…</Button>
@@ -365,7 +366,7 @@
     </div>
   {:else if phase === 'cancelled'}
     <div class="stack">
-      <p class="msc2-type-overline">Playit setup</p>
+      <p class="msc-type-overline">Playit setup</p>
       <h2>Setup cancelled</h2>
       <StatusDot tone="warn" label="Cancelled" />
       <p class="copy">No Playit setup was completed. You can start again whenever you are ready.</p>
@@ -377,11 +378,11 @@
     </div>
   {:else if phase === 'confirm-reset'}
     <div class="stack">
-      <p class="msc2-type-overline">Reset local setup</p>
+      <p class="msc-type-overline">Reset local setup</p>
       <h2>Forget this host's Playit connection?</h2>
       <p class="copy">
-        MSC will stop its helper and remove the saved key, agent ID, public addresses, and setup
-        prompt from this host. Your Playit account, agent, and cloud tunnels are not deleted.
+        MSC will stop its helper and remove the saved key, engine ID, public addresses, and setup
+        prompt from this host. Your Playit account, engine, and cloud tunnels are not deleted.
       </p>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
       <div class="actions">
@@ -394,20 +395,20 @@
     </div>
   {:else if phase === 'resetting'}
     <div class="stack">
-      <p class="msc2-type-overline">Reset local setup</p>
+      <p class="msc-type-overline">Reset local setup</p>
       <h2>Clearing this host's Playit state</h2>
       <p class="status-line" role="status">{statusLine}</p>
     </div>
   {:else}
     <div class="stack">
-      <p class="msc2-type-overline">Reset complete</p>
+      <p class="msc-type-overline">Reset complete</p>
       <h2>Local Playit setup cleared</h2>
       <StatusDot tone="warn" label="Not configured" />
       <p class="copy">{resetMessage}</p>
-      <p class="copy quiet">Your Playit account, agent, and cloud tunnels were left untouched.</p>
+      <p class="copy quiet">Your Playit account, engine, and cloud tunnels were left untouched.</p>
       {#if needsCleanup}
         <p class="copy">
-          Before trying again, sign in at playit.gg and delete any agent or tunnels created by the
+          Before trying again, sign in at playit.gg and delete any engine or tunnels created by the
           failed attempt. Leave your other Playit connections in place.
         </p>
         <Button variant="secondary" onclick={() => void openAccountPage()}>Open playit.gg</Button>
@@ -437,17 +438,17 @@
     margin: 5px 0 0;
     font-size: 18px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .copy {
     margin: 8px 0 0;
     font-size: 13px;
     line-height: 1.55;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .copy.quiet {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .recovery-steps {
     padding-left: 20px;
@@ -465,13 +466,13 @@
     flex-direction: column;
     gap: 6px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .account-link {
     align-self: flex-start;
-    border-bottom: 1px solid var(--msc2-text-tertiary);
+    border-bottom: 1px solid var(--msc-text-tertiary);
     padding-bottom: 1px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     background: transparent;
     font: inherit;
     font-size: 12px;
@@ -479,7 +480,7 @@
     text-decoration: none;
   }
   .account-link:hover {
-    border-bottom-color: var(--msc2-text-primary);
+    border-bottom-color: var(--msc-text-primary);
   }
   .warning,
   .error,
@@ -489,19 +490,19 @@
     line-height: 1.5;
   }
   .warning {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .status-line {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .progress-list {
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--msc2-hairline-subtle);
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .progress-row {
     display: flex;
@@ -509,29 +510,29 @@
     justify-content: space-between;
     gap: 12px;
     padding: 9px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
-    color: var(--msc2-text-tertiary);
+    border-top: 1px solid var(--msc-hairline-subtle);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
   }
   .progress-row:first-child {
     border-top: 0;
   }
   .progress-row.current {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .progress-row.complete {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .progress-state {
     min-width: 42px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
   .progress-row.current .progress-state {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .addresses {
     display: flex;
@@ -544,11 +545,11 @@
     justify-content: space-between;
     gap: 12px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   code {
-    color: var(--msc2-text-primary);
-    font-family: var(--msc2-font-mono, monospace);
+    color: var(--msc-text-primary);
+    font-family: var(--msc-font-mono, monospace);
     font-size: 12px;
   }
   .actions {

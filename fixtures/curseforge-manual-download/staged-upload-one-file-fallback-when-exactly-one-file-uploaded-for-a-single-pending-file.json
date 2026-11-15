@@ -2,7 +2,7 @@
   "domain": "curseforge-manual-download",
   "case": "staged-upload-one-file-fallback-when-exactly-one-file-uploaded-for-a-single-pending-file",
   "source": {
-    "file": "docs/msc2/addons/phase8-scope.md",
+    "file": "docs/msc/addons/phase8-scope.md",
     "test": "D-027 section -- staged-upload translation of Tier 3",
     "line": 17
   },

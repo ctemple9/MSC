@@ -21,7 +21,7 @@ describe('server lifecycle status polling', () => {
     expect(result.running).toBe(false);
   });
 
-  it('returns the latest state if the agent exceeds the polling timeout', async () => {
+  it('returns the latest state if the engine exceeds the polling timeout', async () => {
     let clock = 0;
     const result = await waitForRunningState(async () => ({ running: false }), true, {
       intervalMs: 10,
@@ -97,7 +97,7 @@ describe('continuous server status reconciliation', () => {
     const monitor = new ServerStatusMonitor<{ running: boolean }>();
     const failures: unknown[] = [];
     const observed: boolean[] = [];
-    const failure = new Error('agent temporarily unavailable');
+    const failure = new Error('engine temporarily unavailable');
     const apply = (next: { running: boolean }) => observed.push(next.running);
     const failed = (error: unknown) => failures.push(error);
     await monitor.poll(

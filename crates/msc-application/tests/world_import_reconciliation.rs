@@ -1,5 +1,5 @@
 //! Port of `fixtures/world-import-reconciliation/`'s 8 fixtures (P6.4),
-//! exercising `docs/msc2/worlds/phase6-scope.md`'s reconciliation rule as
+//! exercising `docs/msc/worlds/phase6-scope.md`'s reconciliation rule as
 //! implemented by `msc_application::worlds::reconcile_imported_worlds`.
 //!
 //! Each case builds a real server directory on disk (live world folders,
@@ -26,7 +26,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "msc2-world-reconciliation-test-{label}-{}",
+            "msc-world-reconciliation-test-{label}-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&dir);

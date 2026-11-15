@@ -48,16 +48,16 @@
     width: min(100%, 28rem);
     margin: 0;
     padding: 20px;
-    border: 1px solid var(--msc2-hairline-faint);
+    border: 1px solid var(--msc-hairline-faint);
     border-radius: 14px;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-chrome);
-    box-shadow: var(--msc2-shadow-float);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-chrome);
+    box-shadow: var(--msc-shadow-float);
   }
 
   .eyebrow {
     margin: 0 0 7px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.1em;
@@ -70,7 +70,7 @@
   }
   .message {
     margin: 10px 0 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 13px;
     line-height: 1.55;
   }

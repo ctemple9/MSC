@@ -373,8 +373,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-secondary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-secondary);
     font-size: 26px;
     font-weight: 600;
   }
@@ -387,12 +387,12 @@
   .display-name {
     font-size: 17px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .id {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     word-break: break-all;
   }
   .badges {
@@ -404,24 +404,24 @@
     font-weight: 500;
     padding: 2px 7px;
     border-radius: 5px;
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-tertiary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-tertiary);
   }
   .badge.on {
-    background: var(--msc2-status-ok-tint);
-    color: var(--msc2-status-ok);
+    background: var(--msc-status-ok-tint);
+    color: var(--msc-status-ok);
   }
   .badge.op {
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-secondary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-secondary);
   }
   .badge.bedrock {
-    background: var(--msc2-status-bedrock-tint);
-    color: var(--msc2-status-bedrock);
+    background: var(--msc-status-bedrock-tint);
+    color: var(--msc-status-bedrock);
   }
   .last-seen {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .block {
@@ -434,12 +434,12 @@
     margin: 0 0 8px;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .feedback {
     margin: 0 0 14px;
@@ -448,12 +448,12 @@
     border-radius: 6px;
   }
   .feedback.error {
-    color: var(--msc2-status-warn);
-    background: var(--msc2-status-warn-tint);
+    color: var(--msc-status-warn);
+    background: var(--msc-status-warn-tint);
   }
   .feedback.success {
-    color: var(--msc2-status-ok);
-    background: var(--msc2-status-ok-tint);
+    color: var(--msc-status-ok);
+    background: var(--msc-status-ok-tint);
   }
 
   .lookup-row,
@@ -478,21 +478,21 @@
     height: 64px;
     object-fit: contain;
     image-rendering: pixelated;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 8px;
   }
   .skin-thumb-label {
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .stats {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 8px;
     padding: 12px;
   }
@@ -504,16 +504,16 @@
   }
   .stat-row .label {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .stat-row .value {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     text-align: right;
   }
   .stat-row .value.mono {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-weight: 400;
   }
 
@@ -531,13 +531,13 @@
   }
   .confirm-message {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .bedrock-note {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
-    background: var(--msc2-status-bedrock-tint);
+    color: var(--msc-text-tertiary);
+    background: var(--msc-status-bedrock-tint);
     border-radius: 8px;
     padding: 10px 12px;
   }

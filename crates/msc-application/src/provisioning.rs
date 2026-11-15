@@ -243,7 +243,7 @@ pub(crate) fn check_java_runtime_guard(
 pub const CREATE_OPERATION_TYPE: &str = "server-create";
 
 /// Atomically claims `new_dir` for a brand-new server, closing the
-/// check-then-create race `docs/msc2/families/phase7-scope.md`'s P7.1
+/// check-then-create race `docs/msc/families/phase7-scope.md`'s P7.1
 /// note flagged and P7.30's gate audit confirmed was still open: the
 /// previous `fs.stat` (check) then `fs.create_dir_all` (create) were two
 /// separate filesystem calls, so two concurrent creates of the same
@@ -277,7 +277,7 @@ fn claim_new_server_directory(
 /// server directory, called by
 /// [`crate::operations::LifecycleOperations::reconcile_on_startup`] once
 /// it reconciles that operation to `Failed` after an interrupted install
-/// (agent killed or crashed mid-create, so the operation journal was left
+/// (engine killed or crashed mid-create, so the operation journal was left
 /// `running`). Before P7.33 this case was reconciled at the *operation*
 /// level only — `<servers_root>/java/<folder_name>` itself was never
 /// swept, the second of the two gaps this step's own scope note named. A
@@ -1180,7 +1180,7 @@ pub(crate) fn finish_server_creation(
 /// `should_cancel`/`on_output` instead, the identical shape
 /// `convert_world` already established, and returns synchronously —
 /// wrapping it in `begin_running`/`spawn_blocking`/`succeed`/`fail`, and
-/// polling `reconcile_on_startup` at agent boot, are the P7.23 route
+/// polling `reconcile_on_startup` at engine boot, are the P7.23 route
 /// layer's job. `operations.rs` itself needed no changes for this,
 /// despite being named in this step's own `Files:` list.
 ///
@@ -1439,7 +1439,7 @@ fn requested_loader_version(request: &NewServerRequest<'_>) -> Option<String> {
 /// (`AppViewModel+ServerCreation.swift:700-707`) call into the same
 /// `importModpack` used for an already-existing server — source has no
 /// dedicated "create from pack" primitive at all
-/// (`docs/msc2/addons/phase8-scope.md`'s own "Modpack create/import
+/// (`docs/msc/addons/phase8-scope.md`'s own "Modpack create/import
 /// boundary" finding). This section's own working exit criterion goes
 /// further than that oracle behavior on purpose (`rolling-plan.md`'s own
 /// gate text: "create a correctly pinned Fabric/Forge/NeoForge server as

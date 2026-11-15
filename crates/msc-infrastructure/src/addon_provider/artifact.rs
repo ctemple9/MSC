@@ -131,7 +131,7 @@ fn needs_curseforge_key(url: &url::Url) -> bool {
     url.host_str() == Some("edge.forgecdn.net")
 }
 
-/// Write a new file in agent-owned staging. Every redirect is validated before
+/// Write a new file in engine-owned staging. Every redirect is validated before
 /// issuing its request, and credentials are recomputed for the approved auth
 /// endpoint rather than blindly forwarded by the HTTP client.
 pub fn acquire(
@@ -180,7 +180,7 @@ pub fn acquire(
         .map_err(|_| failure("Cannot reserve staging file"))?;
     let result =
         (|| {
-            let agent: ureq::Agent = ureq::Agent::config_builder()
+            let engine: ureq::Agent = ureq::Agent::config_builder()
                 .timeout_global(Some(Duration::from_secs(30 * 60)))
                 .max_redirects(0)
                 .https_only(true)
@@ -197,7 +197,7 @@ pub fn acquire(
                 let remaining = deadline
                     .checked_duration_since(std::time::Instant::now())
                     .ok_or_else(|| failure("Provider artifact request timed out"))?;
-                let mut request = agent
+                let mut request = engine
                     .get(current_url.as_str())
                     .header("User-Agent", USER_AGENT);
                 if artifact.provider == "curseforge" && needs_curseforge_key(&current_url) {

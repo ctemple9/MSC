@@ -45,7 +45,7 @@ def require_markers(relative: str, markers: tuple[str, ...]) -> str:
 def check_no_literal_refusals() -> None:
     # Test names and historical notes may mention an old refusal. The guard
     # scans only production Rust, where such a literal would be user-visible.
-    production_files = sorted((ROOT / "crates/msc-agent/src").rglob("*.rs"))
+    production_files = sorted((ROOT / "crates/msc-engine/src").rglob("*.rs"))
     refusal = re.compile(
         r"(?i)(?:\bbedrock\b[^\n]{0,160}\b(?:not implemented|not supported|unsupported)\b|"
         r"\b(?:not implemented|not supported|unsupported)\b[^\n]{0,160}\bbedrock\b)"
@@ -63,7 +63,7 @@ def check_no_literal_refusals() -> None:
 
 def check_runtime_selection() -> None:
     main = require_markers(
-        "crates/msc-agent/src/main.rs",
+        "crates/msc-engine/src/main.rs",
         (
             "BedrockRuntimeSelection::production(app_config)",
             "with_app_config_and_auth_and_bedrock_and_notifications(",
@@ -73,7 +73,7 @@ def check_runtime_selection() -> None:
     require("BedrockRuntimeSelection::production(app_config)" in main, "main: Bedrock production selection is detached")
 
     selection = require_markers(
-        "crates/msc-agent/src/routes/bedrock_runtime.rs",
+        "crates/msc-engine/src/routes/bedrock_runtime.rs",
         (
             "BedrockRuntimeEligibility::detect",
             "BedrockHost::current()",
@@ -85,12 +85,12 @@ def check_runtime_selection() -> None:
         ),
     )
     require(
-        "pub fn production(app_config: &AgentAppConfigStore)" in selection,
+        "pub fn production(app_config: &EngineAppConfigStore)" in selection,
         "runtime selection: production constructor is missing",
     )
 
     capabilities = require_markers(
-        "crates/msc-agent/src/routes/capabilities.rs",
+        "crates/msc-engine/src/routes/capabilities.rs",
         (
             "networking.lifecycle.bedrock_runtime_state()",
             'bedrock_runtime.state == "available"',
@@ -143,7 +143,7 @@ def check_frozen_runtime_dtos() -> None:
         require("serde(rename_all = \"camelCase\")" in text, f"{relative}: runtime DTO is not camelCase-wired")
 
     require_markers(
-        "crates/msc-agent/src/routes/players.rs",
+        "crates/msc-engine/src/routes/players.rs",
         (
             "struct PlayersResponse",
             "pub async fn players",
@@ -151,7 +151,7 @@ def check_frozen_runtime_dtos() -> None:
         ),
     )
     require_markers(
-        "crates/msc-agent/src/routes/bedrock.rs",
+        "crates/msc-engine/src/routes/bedrock.rs",
         (
             "struct AllowlistResponse",
             "struct AllowlistMutationResult",
@@ -166,21 +166,21 @@ def check_production_smoke() -> None:
         "tools/phase10/phase10-smoke.sh",
         (
             "--synthetic",
-            "cargo nextest run -p msc-agent --test bedrock_production_smoke",
+            "cargo nextest run -p msc-engine --test bedrock_production_smoke",
         ),
     )
     require("--synthetic" in smoke, "smoke: production smoke is not synthetic-only")
 
     test = require_markers(
-        "crates/msc-agent/tests/bedrock_production_smoke.rs",
+        "crates/msc-engine/tests/bedrock_production_smoke.rs",
         (
             "ProductionBackend::current()",
             "ProductionFixture::new()",
-            "fixture.spawn_agent()",
+            "fixture.spawn_engine()",
             '"/v1/capabilities"',
             '"/v1/start"',
             "wait_for_operation(&fixture",
-            "fixture.stop(&mut agent)",
+            "fixture.stop(&mut engine)",
         ),
     )
     require(
@@ -189,10 +189,10 @@ def check_production_smoke() -> None:
     )
 
     support = require_markers(
-        "crates/msc-agent/tests/support/bedrock_smoke.rs",
+        "crates/msc-engine/tests/support/bedrock_smoke.rs",
         (
             "pub struct ProductionFixture",
-            "pub fn spawn_agent(&self)",
+            "pub fn spawn_engine(&self)",
             "env!(\"CARGO_BIN_EXE_msc\")",
             '.args(["serve",',
             "MSC2_APP_CONFIG_PATH",

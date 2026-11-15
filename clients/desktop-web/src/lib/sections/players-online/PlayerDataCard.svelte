@@ -39,7 +39,7 @@
   <div class="header">
     <div class="title-block">
       <div class="overline">
-        <span class="msc2-type-overline">Player Data</span>
+        <span class="msc-type-overline">Player Data</span>
       </div>
       {#if activeWorldName}<span class="world">Active world: {activeWorldName}</span>{/if}
     </div>
@@ -121,11 +121,11 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .world {
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .header-actions {
     display: flex;
@@ -134,11 +134,11 @@
   }
   .count {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hidden-toggle {
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: none;
     border: none;
     cursor: pointer;
@@ -151,7 +151,7 @@
     margin: 0;
     padding: 12px 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     text-align: center;
   }
   .grid {
@@ -166,8 +166,8 @@
     align-items: center;
     gap: 6px;
     padding: 10px 6px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 8px;
     cursor: pointer;
   }
@@ -187,14 +187,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-secondary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-secondary);
     font-size: 13px;
     font-weight: 600;
   }
   .name {
     font-size: 11px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -202,11 +202,11 @@
   }
   .online-label {
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .hint {
     margin: 10px 0 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

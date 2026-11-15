@@ -1,5 +1,5 @@
 //! Windows updates keep the signed old MSI and SCM recovery material until
-//! the replacement desktop and owned local agent have acknowledged readiness.
+//! the replacement desktop and owned local engine have acknowledged readiness.
 use super::{client_config, release_update, StagedUpdate};
 use rand::RngCore;
 use serde::Deserialize;
@@ -37,7 +37,7 @@ impl UpdateLock {
             let handle = CreateMutexW(
                 std::ptr::null(),
                 0,
-                wide("Global\\MSC2.DesktopUpdate").as_ptr(),
+                wide("Global\\MSC.DesktopUpdate").as_ptr(),
             );
             if handle == 0 {
                 return Err("Another session owns the Windows update coordinator.".into());
@@ -222,7 +222,7 @@ fn coordinator(
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
 }
 #[derive(Deserialize)]
-struct Agent {
+struct Engine {
     owned: bool,
     running: bool,
     present: bool,
@@ -231,7 +231,7 @@ struct Agent {
     #[serde(rename = "oldDesktopHash")]
     old_desktop_hash: Option<String>,
 }
-fn probe(executable: &Path) -> Result<Agent, String> {
+fn probe(executable: &Path) -> Result<Engine, String> {
     serde_json::from_str(&coordinator(
         "probe",
         "{00000000-0000-0000-0000-000000000000}",
@@ -300,7 +300,7 @@ pub(super) fn notify(detail: &str) {
         MessageBoxW(
             0,
             wide(detail).as_ptr(),
-            wide("MSC 2 update").as_ptr(),
+            wide("MSC update").as_ptr(),
             0x10030,
         );
     }
@@ -395,8 +395,8 @@ pub(super) fn schedule(release: &str, data: &Path) -> Result<(), String> {
     let _pins = pin(&executable)?;
     trusted_runner(&executable)?;
     let before = probe(&executable)?;
-    if !agent_health(&before, &executable, env!("CARGO_PKG_VERSION")) {
-        return Err("The existing owned agent must pass authenticated health before its usable installation can be retained.".into());
+    if !engine_health(&before, &executable, env!("CARGO_PKG_VERSION")) {
+        return Err("The existing owned engine must pass authenticated health before its usable installation can be retained.".into());
     }
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
@@ -404,7 +404,7 @@ pub(super) fn schedule(release: &str, data: &Path) -> Result<(), String> {
         .join("updates")
         .join(format!("windows-worker-{:x}", Sha256::digest(nonce)));
     fs::create_dir(&work).map_err(|_| "Could not create update continuation directory.")?;
-    let helper = work.join("msc2-update-worker.exe");
+    let helper = work.join("msc-update-worker.exe");
     fs::copy(&executable, &helper).map_err(|_| "Could not retain the update continuation.")?;
     if hash_file(&helper)? != hash_file(&executable)? {
         return Err("The copied update continuation changed.".into());
@@ -488,7 +488,7 @@ fn launch(executable: &Path, marker: &Path, token: &str) -> Result<Child, String
         .spawn()
         .map_err(|_| "Could not relaunch the installed desktop.".into())
 }
-fn agent_health(before: &Agent, executable: &Path, version: &str) -> bool {
+fn engine_health(before: &Engine, executable: &Path, version: &str) -> bool {
     if !before.owned {
         return true;
     }
@@ -573,7 +573,7 @@ fn healthy(
     child: &mut Child,
     marker: &Path,
     token: &str,
-    before: &Agent,
+    before: &Engine,
     executable: &Path,
     version: &str,
 ) -> Result<(), String> {
@@ -587,13 +587,13 @@ fn healthy(
             return Err("The replacement desktop exited before readiness.".into());
         }
         if fs::read_to_string(marker).is_ok_and(|v| v == token)
-            && agent_health(before, executable, version)
+            && engine_health(before, executable, version)
         {
             return Ok(());
         }
         std::thread::sleep(Duration::from_millis(500));
     }
-    Err("Desktop readiness and the owned local agent's authenticated/version-checked health did not both pass within 90 seconds.".into())
+    Err("Desktop readiness and the owned local engine's authenticated/version-checked health did not both pass within 90 seconds.".into())
 }
 fn save_result(data: &Path, state: &str, release: &str, detail: &str) -> Result<(), String> {
     let path = data.join("updates/windows-last-result.json");
@@ -627,7 +627,7 @@ pub(super) fn apply(
     };
     let product = property(&target.artifact_path, "ProductCode")?;
     let before = if resume {
-        serde_json::from_str::<Agent>(&coordinator("probe-recovery", &product, None)?)
+        serde_json::from_str::<Engine>(&coordinator("probe-recovery", &product, None)?)
             .map_err(|_| "Protected recovery state is invalid.")?
     } else {
         probe(executable)?
@@ -670,7 +670,7 @@ pub(super) fn apply(
         return Err(detail.into());
     }
     if matches!(code, 3010 | 1641) {
-        let detail=format!("Windows installed {release}; restart status {code}. MSC requested no automatic reboot and has not claimed healthy completion. Signed previous MSI and service recovery material remain retained. After restarting and closing MSC, resume with: & '{}' --msc2-resume-desktop-update --release-id {release} --data-dir '{}' --installed-executable '{}'", literal(&work.join("msc2-update-worker.exe")), literal(data), literal(executable));
+        let detail=format!("Windows installed {release}; restart status {code}. MSC requested no automatic reboot and has not claimed healthy completion. Signed previous MSI and service recovery material remain retained. After restarting and closing MSC, resume with: & '{}' --msc2-resume-desktop-update --release-id {release} --data-dir '{}' --installed-executable '{}'", literal(&work.join("msc-update-worker.exe")), literal(data), literal(executable));
         save_result(data, "reboot-required", release, &detail)?;
         notify(&detail);
         return Ok(detail);

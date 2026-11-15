@@ -267,7 +267,7 @@ impl<'a> XboxBroadcastService<'a> {
     }
 
     /// Drain the managed helper and feed each complete line through the
-    /// Broadcast parser. The route layer calls this from its agent-lifetime
+    /// Broadcast parser. The route layer calls this from its engine-lifetime
     /// pump so authentication prompts and readiness do not depend on a
     /// browser request arriving at exactly the right time.
     pub fn poll(&mut self) -> Result<Vec<BroadcastOutputLine>, XboxBroadcastError> {
@@ -396,7 +396,7 @@ impl<'a> XboxBroadcastService<'a> {
     }
 
     pub fn recover_after_restart(&mut self) {
-        self.snapshot = HelperSnapshot::after_agent_restart();
+        self.snapshot = HelperSnapshot::after_engine_restart();
         self.active_operation = None;
     }
 
@@ -411,7 +411,7 @@ impl<'a> XboxBroadcastService<'a> {
         if self.has_secret(global_alt_password_secret_key())? {
             return Ok(true);
         }
-        // Keep existing MSC 2 installations usable until the account is
+        // Keep existing MSC installations usable until the account is
         // saved again from MSC Settings under the new host-wide key.
         self.has_secret(&alt_password_secret_key(&self.server_id))
     }

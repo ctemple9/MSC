@@ -94,7 +94,7 @@
   <ScreenHeader
     eyebrow="Diagnostics"
     title="Health"
-    description="Cards explain the current server condition and repairs retain the agent's help and operation context."
+    description="Cards explain the current server condition and repairs retain the engine's help and operation context."
     status={health.overallSeverity}
     statusTone={health.overallSeverity === 'critical'
       ? 'danger'
@@ -124,7 +124,7 @@
           >{/if}
       </article>{:else}<div class="screen-card">
         <h3>Waiting for diagnostics</h3>
-        <p class="muted">The connected agent has not returned health cards.</p>
+        <p class="muted">The connected engine has not returned health cards.</p>
       </div>{/each}
   </div>
   <section class="screen-card">

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import oldAgentCapabilities from '../fixtures/old-agent-capabilities.json';
-import newAgentCapabilities from '../fixtures/new-agent-capabilities.json';
+import oldEngineCapabilities from '../fixtures/old-engine-capabilities.json';
+import newEngineCapabilities from '../fixtures/new-engine-capabilities.json';
 import operationProgress from '../fixtures/operation-progress.json';
 import consoleHistory from '../fixtures/console-history.json';
 import type { components } from '../../src/lib/api/generated';
@@ -76,7 +76,7 @@ describe('contract-backed client harness', () => {
     oldHttp.onJson<components['schemas']['CapabilitiesDTO']>(
       'GET',
       '/v1/capabilities',
-      oldAgentCapabilities as components['schemas']['CapabilitiesDTO'],
+      oldEngineCapabilities as components['schemas']['CapabilitiesDTO'],
     );
     const oldCapabilities = await (
       await oldHttp.request<components['schemas']['CapabilitiesDTO']>('GET', '/v1/capabilities')
@@ -88,7 +88,7 @@ describe('contract-backed client harness', () => {
     newHttp.onJson<components['schemas']['CapabilitiesDTO']>(
       'GET',
       '/v1/capabilities',
-      newAgentCapabilities as components['schemas']['CapabilitiesDTO'],
+      newEngineCapabilities as components['schemas']['CapabilitiesDTO'],
     );
     const newCapabilities = await (
       await newHttp.request<components['schemas']['CapabilitiesDTO']>('GET', '/v1/capabilities')

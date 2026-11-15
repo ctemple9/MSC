@@ -54,7 +54,7 @@
     if (installingReleaseId) throw new Error('Another content installation is still in progress.');
     const allowIncompatible = !compatible(release);
     if (allowIncompatible && !mismatchSupported)
-      throw new Error('Update this agent to install an incompatible release.');
+      throw new Error('Update this engine to install an incompatible release.');
     const projectId = Number(item.projectId);
     const versionId = Number(release.version.id);
     if (![projectId, versionId].every((id) => Number.isSafeInteger(id) && id > 0))
@@ -218,7 +218,7 @@
   }
   async function initialize(): Promise<void> {
     if (!connection) {
-      error = 'Connect to an agent to browse content.';
+      error = 'Connect to an engine to browse content.';
       return;
     }
     try {
@@ -231,7 +231,7 @@
       mismatchSupported =
         mode === 'stage' || (caps.contentCatalog?.incompatibleInstallReview ?? false);
       ready = true;
-      if (!supported) error = 'Update this agent to browse CurseForge mods and plugins.';
+      if (!supported) error = 'Update this engine to browse CurseForge mods and plugins.';
       else busy = true;
     } catch (cause) {
       if (current()) failure(cause);
@@ -248,7 +248,7 @@
         { apiKey: key.trim() },
       );
       key = '';
-      if (!status.configured) throw new Error('The agent did not save the CurseForge key.');
+      if (!status.configured) throw new Error('The engine did not save the CurseForge key.');
       needsKey = false;
       if (current()) await search();
     } catch (cause) {
@@ -317,7 +317,7 @@
             void saveKey();
           }}
         >
-          <label for="provider-api-key">API key for this agent</label>
+          <label for="provider-api-key">API key for this engine</label>
           <input id="provider-api-key" type="password" autocomplete="off" bind:value={key} />
           <Button size="sm" type="submit" disabled={savingKey || !key.trim()}
             >{savingKey ? 'Saving…' : 'Save key'}</Button
@@ -326,10 +326,10 @@
       {:else}<p class="context">Ask this host's owner to configure its CurseForge key.</p>{/if}
     {/if}
     {#if ready && supported && !installSupported}<p class="context">
-        Update this agent to install reviewed CurseForge content.
+        Update this engine to install reviewed CurseForge content.
       </p>{/if}
     {#if ready && installSupported && !mismatchSupported}<p class="context">
-        Update this agent to enable Install anyway for incompatible releases.
+        Update this engine to enable Install anyway for incompatible releases.
       </p>{/if}
   </CatalogBrowseContent>
 </div>
@@ -368,14 +368,14 @@
 <style>
   .context {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
     line-height: 1.5;
     overflow-wrap: anywhere;
   }
   .error {
     margin: 0;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     font-size: 12px;
   }
   .key-link {
@@ -383,7 +383,7 @@
     background: none;
     border: 0;
     padding: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font: inherit;
     font-size: 11px;
     text-decoration: underline;
@@ -397,11 +397,11 @@
     font-size: 12px;
   }
   input {
-    background: var(--msc2-tier-content);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-content);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 6px;
     padding: 8px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
   }
 </style>

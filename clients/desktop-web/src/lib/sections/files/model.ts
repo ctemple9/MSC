@@ -1,7 +1,7 @@
 import type { Schema, ScreenApi } from '../shared/types';
 
-// Real, frozen routes (docs/msc2/api-contract/openapi.json) -- backed by
-// crates/msc-agent/src/routes/files.rs (P12.9), a straight port of MSC 1's
+// Real, frozen routes (docs/msc/api-contract/openapi.json) -- backed by
+// crates/msc-engine/src/routes/files.rs (P12.9), a straight port of MSC 1's
 // `wireSkinAndFileProviders` (AppViewModel+APIWiringContent.swift:170-275).
 export const filePaths = {
   browse: (path: string): string =>
@@ -31,11 +31,11 @@ export interface Breadcrumb {
 }
 
 /** ServerFilesTabView's own `breadcrumbs`: "Server Root" first, then one
- *  crumb per path segment. `path` is the relative path the agent already
+ *  crumb per path segment. `path` is the relative path the engine already
  *  echoes back in `ServerFilesResponseDTO.path` -- no client-side
  *  navigation-stack bookkeeping needed (unlike the oracle's `navigationStack`,
  *  which existed only because `FileManager` calls need a real `URL`; this
- *  client just re-requests the agent with a new relative path string). */
+ *  client just re-requests the engine with a new relative path string). */
 export function breadcrumbsFor(path: string): Breadcrumb[] {
   const crumbs: Breadcrumb[] = [{ label: 'Server Root', path: '' }];
   if (!path) return crumbs;

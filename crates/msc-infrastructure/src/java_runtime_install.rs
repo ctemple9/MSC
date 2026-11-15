@@ -1,6 +1,6 @@
-//! Managed Java runtime install: Phase 7's new agent-owned behavior
-//! (QUESTION 1's answer (a) — "MSC 2 installs Java itself", per
-//! `docs/msc2/families/phase7-scope.md`'s D-006 addendum). MSC 1 has no
+//! Managed Java runtime install: Phase 7's new engine-owned behavior
+//! (QUESTION 1's answer (a) — "MSC installs Java itself", per
+//! `docs/msc/families/phase7-scope.md`'s D-006 addendum). MSC 1 has no
 //! equivalent to port — `JavaInstaller.swift` fetches a macOS-only
 //! Temurin `.pkg` for a *human* to double-click through
 //! `Installer.app`, with no cross-platform archive, no checksum step,

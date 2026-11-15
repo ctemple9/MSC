@@ -68,7 +68,7 @@
         '/v1/config/curseforge',
         { apiKey: key.trim() },
       );
-      if (!result.configured) throw new Error('The agent did not save the key.');
+      if (!result.configured) throw new Error('The engine did not save the key.');
       key = '';
       needsKey = false;
       await search();
@@ -99,7 +99,7 @@
       if (operation?.state !== 'succeeded')
         throw new Error(operation?.error?.message ?? 'Pack download did not complete.');
       const id = operation.result?.stagedUploadId;
-      if (typeof id !== 'string') throw new Error('The agent returned no staged pack.');
+      if (typeof id !== 'string') throw new Error('The engine returned no staged pack.');
       stagedId = id;
       if (!current()) throw new Error('The selected host changed.');
       const inspection = await connection.post<Schema['ModpackInspectionResultDTO']>(
@@ -224,14 +224,14 @@
     min-width: 0;
     padding: 8px 10px;
     border-radius: 6px;
-    border: 1px solid var(--msc2-hairline-subtle);
-    background: var(--msc2-tier-content);
-    color: var(--msc2-text-primary);
+    border: 1px solid var(--msc-hairline-subtle);
+    background: var(--msc-tier-content);
+    color: var(--msc-text-primary);
     font: inherit;
   }
   .error {
     margin: 0 0 10px;
     font-size: 12px;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
 </style>

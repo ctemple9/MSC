@@ -168,7 +168,7 @@ impl<'a> XboxBroadcastJarAcquisition<'a> {
         Ok(acquired)
     }
 
-    /// Use the agent's selected JAR without contacting GitHub. Older installs
+    /// Use the engine's selected JAR without contacting GitHub. Older installs
     /// have no selection marker, so discover their most recently written valid
     /// cache entry before falling back to a fresh download.
     pub fn cached_current(&self) -> Option<AcquiredHelper> {
@@ -280,7 +280,7 @@ pub fn make_config_yaml(host: &str, port: Option<u16>, server_name: &str) -> Str
 /// file, so replacing the whole file on every server start would discard
 /// operator choices. The standalone config is intentionally simple enough
 /// that a small indentation-aware patch is safer than adding a second YAML
-/// parser dependency to the agent.
+/// parser dependency to the engine.
 pub fn update_config_yaml(existing: &str, host: &str, port: u16, server_name: &str) -> String {
     let mut output = Vec::new();
     let mut in_session_info = false;
@@ -443,7 +443,7 @@ impl std::fmt::Display for XboxBroadcastDownloadError {
             Self::Selection(error) => write!(f, "could not select Xbox Broadcast JAR: {error}"),
             Self::Busy => write!(
                 f,
-                "Stop Xbox Broadcast on this agent before downloading or updating its JAR."
+                "Stop Xbox Broadcast on this engine before downloading or updating its JAR."
             ),
         }
     }

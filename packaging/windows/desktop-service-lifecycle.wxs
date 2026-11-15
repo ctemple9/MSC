@@ -2,8 +2,8 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <!-- The DLL lives in MSI's Binary table, not a user-selected helper path. -->
-    <Binary Id="MscLifecycle" SourceFile="../../../package/msi/msc2-service-lifecycle.dll" />
-    <CustomAction Id="MscRequireRollback" Error="MSC Setup requires Windows Installer rollback to be enabled before changing the local agent. Enable rollback and run Setup again." />
+    <Binary Id="MscLifecycle" SourceFile="../../../package/msi/msc-service-lifecycle.dll" />
+    <CustomAction Id="MscRequireRollback" Error="MSC Setup requires Windows Installer rollback to be enabled before changing the local engine. Enable rollback and run Setup again." />
     <CustomAction Id="MscPrepareService" BinaryKey="MscLifecycle" DllEntry="MscPrepareService" Execute="deferred" Impersonate="no" Return="check" />
     <CustomAction Id="MscApplyService" BinaryKey="MscLifecycle" DllEntry="MscApplyService" Execute="deferred" Impersonate="no" Return="check" />
     <CustomAction Id="MscResumeService" BinaryKey="MscLifecycle" DllEntry="MscResumeService" Execute="deferred" Impersonate="no" Return="check" />
@@ -28,10 +28,10 @@
       <Custom Action="MscCommitRemoveService" Before="InstallFinalize">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
     </InstallExecuteSequence>
     <UI>
-      <ProgressText Action="MscPrepareService">Checking the local agent owner and stopping Minecraft safely.</ProgressText>
-      <ProgressText Action="MscApplyService">Updating the owned local agent and terrain helpers.</ProgressText>
-      <ProgressText Action="MscResumeService">Restoring the local agent's previous running state.</ProgressText>
-      <ProgressText Action="MscRollbackService">Restoring the previous local agent installation.</ProgressText>
+      <ProgressText Action="MscPrepareService">Checking the local engine owner and stopping Minecraft safely.</ProgressText>
+      <ProgressText Action="MscApplyService">Updating the owned local engine and terrain helpers.</ProgressText>
+      <ProgressText Action="MscResumeService">Restoring the local engine's previous running state.</ProgressText>
+      <ProgressText Action="MscRollbackService">Restoring the previous local engine installation.</ProgressText>
     </UI>
   </Fragment>
 </Wix>

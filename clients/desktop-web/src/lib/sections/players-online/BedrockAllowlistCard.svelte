@@ -24,7 +24,7 @@
 <Card>
   <div class="header">
     <div class="overline">
-      <span class="msc2-type-overline">Allowlist</span>
+      <span class="msc-type-overline">Allowlist</span>
     </div>
     <div class="header-actions">
       <span class="count">{entries.length} entries</span>
@@ -73,7 +73,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .header-actions {
     display: flex;
@@ -82,7 +82,7 @@
   }
   .count {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .add-row {
     display: flex;
@@ -95,7 +95,7 @@
   .empty {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .list {
     list-style: none;
@@ -112,14 +112,14 @@
   }
   .name {
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .spacer {
     flex: 1;
   }
   .remove {
     font-size: 11px;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     background: none;
     border: none;
     cursor: pointer;
@@ -128,6 +128,6 @@
   .note {
     margin: 10px 0 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

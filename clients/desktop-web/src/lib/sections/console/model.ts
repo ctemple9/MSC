@@ -3,9 +3,9 @@ import type { Schema } from '../shared/types';
 export type ConsoleLine = Schema['ConsoleLineDTO'];
 
 /**
- * Stable identity for a console line while the agent's tail has no numeric id.
+ * Stable identity for a console line while the engine's tail has no numeric id.
  * The dock uses this to keep a locally-cleared line hidden when the next poll
- * returns the agent's still-retained history.
+ * returns the engine's still-retained history.
  */
 export function consoleLineKey(line: ConsoleLine): string {
   return [line.ts, line.source, line.level ?? '', line.text].join('\u0000');
@@ -37,10 +37,10 @@ export function consoleLinesAfterClear(
 }
 
 /**
- * The agent's public console routes already return user/server history only.
- * Keep this boundary in the client as a compatibility guard for older agents
- * or a reconnect that races an agent upgrade; filtering here cannot recover
- * history already evicted by the agent.
+ * The engine's public console routes already return user/server history only.
+ * Keep this boundary in the client as a compatibility guard for older engines
+ * or a reconnect that races an engine upgrade; filtering here cannot recover
+ * history already evicted by the engine.
  */
 export function isHumanConsoleLine(line: ConsoleLine): boolean {
   if (line.origin === 'controller' || line.origin === 'helper') return false;
@@ -96,7 +96,7 @@ export const livePaths = {
 } as const;
 
 // --- Docked console (P12.10): MSC 1 ConsoleManager/ConsoleLineParser ported to the
-// agent's actual ConsoleLineDTO {ts, source, level?, auto?, origin?, text}. The agent
+// engine's actual ConsoleLineDTO {ts, source, level?, auto?, origin?, text}. The engine
 // now supplies producer origin at ingestion (P14.6); older lines may omit it, so the
 // client decodes source as a compatibility fallback. MSC 1's richer per-line `tag`
 // has no contract equivalent, so Server/Plugins is inferred from bracketed text.
@@ -118,7 +118,7 @@ export type ConsoleCategory = 'server' | 'plugins' | 'controller' | 'commands';
 
 const CORE_SERVER_TAGS = new Set(['bootstrap', 'minecraftserver', 'paper', 'server', 'main']);
 
-/** MSC 1 ConsoleLineParser.inferLevel -- the agent never sets `level`, so this reads it
+/** MSC 1 ConsoleLineParser.inferLevel -- the engine never sets `level`, so this reads it
  *  from the declared field when present and otherwise infers it from the raw text. */
 export function inferLevel(line: ConsoleLine): ConsoleLevel {
   const declared = line.level?.trim().toLowerCase();
@@ -141,7 +141,7 @@ export function isStackTraceLine(text: string): boolean {
   );
 }
 
-/** The origin the agent reports. Omitted origin is decoded for older agents. */
+/** The origin the engine reports. Omitted origin is decoded for older engines. */
 export function originOf(line: ConsoleLine): ConsoleOrigin {
   if (line.origin) return line.origin;
   if (line.source === 'command') return 'user';
@@ -240,7 +240,7 @@ export function matchesSearch(line: ConsoleLine, search: string): boolean {
 /**
  * Returns the lines MSC 1 would classify as automatic output for legacy callers.
  * The main console no longer uses this presentation filter: P14.6 applies the
- * retention boundary in the agent before history and WebSocket delivery.
+ * retention boundary in the engine before history and WebSocket delivery.
  */
 export function automaticConsoleLineKeys(lines: readonly ConsoleLine[]): ReadonlySet<string> {
   const automatic = new Set<string>();

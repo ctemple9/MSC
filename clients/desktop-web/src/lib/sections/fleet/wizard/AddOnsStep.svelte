@@ -12,7 +12,7 @@
   // Real gap found and fixed, not worked around: an earlier version of this
   // step dropped Browse mods/plugins entirely, because GET /v1/catalog/search and
   // POST /v1/components/install both hard-required an already-active server
-  // (crates/msc-agent/src/routes/components.rs), which doesn't exist yet
+  // (crates/msc-engine/src/routes/components.rs), which doesn't exist yet
   // during the wizard. the owner asked for real parity with MSC 1 here --
   // AddServerWizardView.swift's own Add-ons step really does let you search
   // Modrinth and add your own files, via ModrinthBrowserView reused in a
@@ -43,7 +43,7 @@
   // oracle's native panel (`allowsMultipleSelection`) or its folder-of-jars
   // sniffing in `processModpackURL`. "Add your own .jar" here is a repeatable
   // single-file pick instead -- click it again to add another -- rather than
-  // a batch folder/zip-of-loose-jars import, since MSC 2's contract has no
+  // a batch folder/zip-of-loose-jars import, since MSC's contract has no
   // route to unpack an arbitrary zip of jars server-side (only a structured
   // mrpack/CurseForge manifest, via the modpack path below).
   import { onMount, onDestroy } from 'svelte';
@@ -192,7 +192,7 @@
     try {
       const caps = await candidate.api.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
       if (!caps.contentCatalog?.creationPackSetup)
-        throw new Error('Update this agent before selecting a catalog pack setup.');
+        throw new Error('Update this engine before selecting a catalog pack setup.');
       const loader = candidate.inspection.loaderName?.toLowerCase();
       if (!['fabric', 'forge', 'neoforge'].includes(loader ?? ''))
         throw new Error('This pack does not declare a supported MSC loader.');
@@ -345,7 +345,7 @@
       draft.stagedModpack = undefined;
       stageError = undefined;
     } catch (error) {
-      stageError = `Agent cleanup could not be confirmed: ${errorMessage(error)}`;
+      stageError = `Engine cleanup could not be confirmed: ${errorMessage(error)}`;
     }
   }
 
@@ -388,7 +388,7 @@
       if (entry?.kind === 'localFile') await discardWizardInput(draft, entry.stagedUploadId);
       draft.pendingAddOns = draft.pendingAddOns.filter((entry) => entry.id !== id);
     } catch (error) {
-      stageError = `Agent cleanup could not be confirmed: ${errorMessage(error)}`;
+      stageError = `Engine cleanup could not be confirmed: ${errorMessage(error)}`;
     }
   }
 
@@ -710,19 +710,19 @@
     gap: 12px;
     font-size: 12.5px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .pack-setup h2 {
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .pack-setup h3 {
     margin: 4px 0 0;
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .pack-setup p {
     margin: 0;
@@ -765,13 +765,13 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p {
     margin: 0;
     font-size: 12.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .header-actions {
@@ -794,8 +794,8 @@
     gap: 4px;
     text-align: left;
     padding: 12px 14px;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 10px;
     font: inherit;
     cursor: pointer;
@@ -807,19 +807,19 @@
   .card-title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .card-subtitle {
     font-size: 11.5px;
     line-height: 1.4;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .summary {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 10px;
     padding: 12px 14px;
   }
@@ -831,21 +831,21 @@
   }
   .label {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .value {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .value.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .warnings {
     margin: 0;
     padding-left: 18px;
     font-size: 12px;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
     line-height: 1.6;
   }
   .actions {
@@ -857,7 +857,7 @@
   .list {
     display: flex;
     flex-direction: column;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -866,7 +866,7 @@
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .item-row:first-child {
     border-top: none;
@@ -894,14 +894,14 @@
   .item-title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .item-subtitle {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -910,10 +910,10 @@
   .hint {
     margin: 0;
     font-size: 11.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
 
   .hidden-input {

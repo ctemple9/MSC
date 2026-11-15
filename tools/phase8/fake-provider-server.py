@@ -25,7 +25,7 @@ def response(handler: BaseHTTPRequestHandler, status: int, body: bytes, content_
 
 
 def version(base: str) -> dict[str, object]:
-    payload = b"PK\x03\x04msc2-phase8-synthetic-addon"
+    payload = b"PK\x03\x04msc-phase8-synthetic-addon"
     return {
         "id": "synthetic-version-2",
         "project_id": "synthetic-project",
@@ -60,7 +60,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path in {"/v2/project/synthetic-project/version", "/v2/project/synthetic-addon/version"}:
             response(self, 200, json.dumps([version(base)]).encode(), "application/json")
         elif path == "/downloads/synthetic-addon-2.0.jar":
-            response(self, 200, b"PK\x03\x04msc2-phase8-synthetic-addon", "application/java-archive")
+            response(self, 200, b"PK\x03\x04msc-phase8-synthetic-addon", "application/java-archive")
         else:
             response(self, 404, b"not found\n", "text/plain")
 

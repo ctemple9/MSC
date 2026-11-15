@@ -163,7 +163,7 @@
 
 <div class="failure-panel" aria-live="polite">
   <div class="failure-heading">
-    <p class="msc2-type-overline">Startup diagnosis</p>
+    <p class="msc-type-overline">Startup diagnosis</p>
     <h2>{titleForCode()}</h2>
     {#if worldSettingsFailed || !currentProblems.length}
       <p class="summary">{summaryForCode()}</p>
@@ -251,7 +251,7 @@
   }
   h2 {
     margin: 0;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 15px;
     font-weight: 600;
   }
@@ -260,13 +260,13 @@
   .repair-notice,
   .finding p {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.55;
   }
   .section-label {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -277,7 +277,7 @@
     align-items: flex-start;
     gap: 12px;
     padding: 11px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .finding:first-of-type {
     border-top: none;
@@ -291,14 +291,14 @@
     gap: 4px;
   }
   .finding-copy strong {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
     font-weight: 500;
   }
   .finding-copy code {
     overflow: hidden;
-    color: var(--msc2-text-secondary);
-    font-family: var(--msc2-font-mono);
+    color: var(--msc-text-secondary);
+    font-family: var(--msc-font-mono);
     font-size: 10px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -312,7 +312,7 @@
   }
   .evidence {
     margin: -3px 0 4px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 11px;
   }
   .evidence summary {
@@ -323,11 +323,11 @@
     margin: 8px 0 0;
     padding: 8px;
     overflow: auto;
-    color: var(--msc2-text-secondary);
-    background: var(--msc2-tier-terminal);
-    border: 1px solid var(--msc2-hairline-subtle);
+    color: var(--msc-text-secondary);
+    background: var(--msc-tier-terminal);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 6px;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 10px;
     line-height: 1.45;
     white-space: pre-wrap;
@@ -341,18 +341,18 @@
     gap: 5px;
     margin: 2px 0 0;
     padding-left: 17px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.45;
   }
   .repair-notice {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .failure-actions {
     display: flex;
     justify-content: flex-end;
     padding-top: 10px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   @media (max-width: 560px) {
     .finding {

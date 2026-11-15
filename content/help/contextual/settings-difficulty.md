@@ -9,5 +9,5 @@ source: {path: "MSCmacOS/MSCmacOS Swift/RemoteAPIModels.swift", symbol: SettingF
 ---
 Difficulty controls hostile mobs, damage, and hunger behavior in the selected
 world. It is saved with that world slot and applied when the slot becomes
-active; it is not a server-wide setting in MSC 2. Choose it for the experience
+active; it is not a server-wide setting in MSC. Choose it for the experience
 players expect.

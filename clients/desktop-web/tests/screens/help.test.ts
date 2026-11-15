@@ -14,7 +14,7 @@ import { renderMarkdown } from '../../src/lib/help/markdown';
 import { applicableTourSteps, firstLaunchStage, nextTourStep } from '../../src/lib/help/onboarding';
 
 describe('shared help and onboarding screens', () => {
-  it('renders agent Markdown through a safe allow-list rather than forwarding HTML', () => {
+  it('renders engine Markdown through a safe allow-list rather than forwarding HTML', () => {
     const rendered = renderMarkdown(
       '# Hello\n<script>alert(1)</script>\n[guide](https://example.test)',
     );
@@ -140,7 +140,7 @@ describe('shared help and onboarding screens', () => {
     expect(setupText).toContain('pickFolder');
     expect(setupText).toContain('pickFilePath');
     expect(setupText).toContain("platformKind === 'tauri'");
-    expect(setupText).toContain('path is on the computer running the selected agent');
+    expect(setupText).toContain('path is on the computer running the selected engine');
     expect(setupText).toContain('Check for Java');
     expect(setupText).toContain('Use PATH');
     expect(setupText).toContain('setup-page-in');
@@ -150,12 +150,12 @@ describe('shared help and onboarding screens', () => {
     expect(gateSource).toContain('max-height: calc(100vh - 2rem)');
     expect(gateSource).toContain('scrollbar-width: none');
     expect(gateSource).toContain('msc-onboarding-open');
-    expect(gateSource).toContain('agentReady');
+    expect(gateSource).toContain('engineReady');
     expect(gateSource).toContain("'/v1/config/host-setup'");
     expect(gateSource).not.toContain("localStorage.getItem('msc.setup-complete')");
-    expect(appSource).toContain("agentReadiness = 'ready'");
-    expect(appSource).toContain('readiness={agentReadiness}');
-    expect(appSource).toContain("agentReady={agentReadiness === 'ready'}");
+    expect(appSource).toContain("engineReadiness = 'ready'");
+    expect(appSource).toContain('readiness={engineReadiness}');
+    expect(appSource).toContain("engineReady={engineReadiness === 'ready'}");
     expect(appSource).toContain('let splashComplete = false');
     expect(appSource).toContain('<SplashGate onComplete={completeSplash} />');
     expect(appSource).toContain('{#if splashComplete && clientReady}');
@@ -163,7 +163,7 @@ describe('shared help and onboarding screens', () => {
     expect(helpSource).toContain("'/v1/guides/onboarding'");
     expect(helpSource).not.toContain('How MSC Works');
     expect(helpSource).not.toContain('ConceptGuidePanel');
-    expect(handbookSource).toContain('That topic is not available on this agent');
+    expect(handbookSource).toContain('That topic is not available on this engine');
     expect(helpSource).toContain('hideCard');
     expect(tourSource).toContain("'server-settings': 'ob_wizard_continue'");
     expect(tourSource).toContain("'network-continue': 'ob_wizard_continue'");

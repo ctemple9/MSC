@@ -7,7 +7,7 @@
     "line": 719
   },
   "input": {
-    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc2-port-plan.md line 187, first sub-item)",
+    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc-port-plan.md line 187, first sub-item)",
     "description": "A minimal, old-schema server_config_swift.json carrying only the fields that existed in an early MSC 1 release: no remote-API sharing, no Playit fields, no banner colors, none of the top-level fields added by later releases."
   },
   "expected": {

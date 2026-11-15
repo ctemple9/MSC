@@ -8,7 +8,7 @@ import {
 } from '../../src/lib/sections/files/model';
 
 describe('routes -- ServerFilesTabView.swift is the real oracle', () => {
-  it('exposes the real, frozen files routes (P12.9 backs them with crates/msc-agent/src/routes/files.rs)', () => {
+  it('exposes the real, frozen files routes (P12.9 backs them with crates/msc-engine/src/routes/files.rs)', () => {
     expect(filePaths.browse('')).toBe('/v1/files');
     expect(filePaths.browse('plugins')).toBe('/v1/files?path=plugins');
     expect(filePaths.browse('a b/c')).toBe('/v1/files?path=a%20b%2Fc');

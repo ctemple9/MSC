@@ -1,8 +1,8 @@
 # Windows headless service lifecycle
 
 Run `install.ps1` from an elevated PowerShell window. The installer copies the
-CLI, asks for the regular account that will own MSC 2 server files, grants
-that account access to `%ProgramData%\MSC2`, and registers
+CLI, asks for the regular account that will own MSC server files, grants
+that account access to `%ProgramData%\MSC`, and registers
 `com.ctemple.msc2.agent` with automatic startup. An automation script may
 pass a PowerShell `PSCredential` as `-ServiceCredential` to avoid an
 interactive prompt. The password is supplied only while the Service Control
@@ -16,19 +16,19 @@ serve` remains the foreground command.
 From the installing account's terminal, including a remote Windows login:
 
 ```powershell
-msc.exe status agent
-msc.exe stop agent
-msc.exe start agent
-msc.exe disable agent
-msc.exe enable agent
+msc.exe status engine
+msc.exe stop engine
+msc.exe start engine
+msc.exe disable engine
+msc.exe enable engine
 ```
 
 Start, stop, enable, and disable require the Windows privilege to change a
 service. A routine stop keeps automatic startup enabled, so the service
-starts at the next boot. `disable agent` changes that boot policy without
+starts at the next boot. `disable engine` changes that boot policy without
 stopping a running service. `uninstall.ps1` removes only the service that
 points at its own installed executable, then removes its executable and PATH
-entry. It leaves server files and `%ProgramData%\MSC2` in place.
+entry. It leaves server files and `%ProgramData%\MSC` in place.
 
 ## Headless updates
 

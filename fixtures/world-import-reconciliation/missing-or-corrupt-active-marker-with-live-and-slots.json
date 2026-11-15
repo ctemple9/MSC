@@ -3,7 +3,7 @@
   "case": "missing-or-corrupt-active-marker-with-live-and-slots",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "resolvedActiveSlotID(forServerDir:) — empty-slots guard, reused for Phase 6 reconciliation State 3's unresolvable-active sub-case — see docs/msc2/worlds/phase6-scope.md §\"State 3 — both together\", step 2",
+    "test": "resolvedActiveSlotID(forServerDir:) — empty-slots guard, reused for Phase 6 reconciliation State 3's unresolvable-active sub-case — see docs/msc/worlds/phase6-scope.md §\"State 3 — both together\", step 2",
     "line": 130
   },
   "input": {

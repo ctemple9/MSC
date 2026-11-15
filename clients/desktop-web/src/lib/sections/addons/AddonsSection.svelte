@@ -155,7 +155,7 @@
   <section class="screen-card">
     <div class="screen-card-header">
       <h3>Installed add-ons</h3>
-      <span class="metric-label">State comes from the agent</span>
+      <span class="metric-label">State comes from the engine</span>
     </div>
     <table class="data-table">
       <thead
@@ -232,7 +232,7 @@
   </section>
   <CapabilityNotice
     title="Provider and pack state stay honest"
-    message="Provider-unavailable, dependency, pack-managed, cancellation, and provenance messages come from the agent response and remain visible here."
+    message="Provider-unavailable, dependency, pack-managed, cancellation, and provenance messages come from the engine response and remain visible here."
   />
 </div>
 

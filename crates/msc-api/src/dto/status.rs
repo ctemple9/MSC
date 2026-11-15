@@ -1,5 +1,5 @@
 //! `RemoteAPIStatus` — `GET /v1/status`'s response shape, carried forward
-//! from the MSC 1 baseline (`docs/msc2/api-baseline/openapi.json`)
+//! from the MSC 1 baseline (`docs/msc/api-baseline/openapi.json`)
 //! unchanged in wire shape by P2.8's assembly.
 
 use serde::{Deserialize, Serialize};
@@ -48,7 +48,7 @@ pub struct PerformanceSnapshotDto {
     #[serde(rename = "worldSizeMB")]
     pub world_size_mb: Option<PerformanceMetricNumberDto>,
     /// Current Minecraft daylight-cycle day, when the running server has
-    /// answered the agent's world-time query.
+    /// answered the engine's world-time query.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub world_day: Option<i64>,
     /// Current time-of-day in Minecraft ticks (0..=23,999), when available.

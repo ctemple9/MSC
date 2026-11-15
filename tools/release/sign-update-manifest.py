@@ -17,26 +17,26 @@ from pathlib import Path
 
 RELEASE_VERSION = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
 ASSET_PATTERNS = {
-    "macos-desktop": re.compile(rf"^msc2-(?P<version>{RELEASE_VERSION})-macos-x86_64\.dmg$"),
+    "macos-desktop": re.compile(rf"^msc-(?P<version>{RELEASE_VERSION})-macos-x86_64\.dmg$"),
     "macos-headless": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-macos-x86_64\.tar\.gz$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-macos-x86_64\.tar\.gz$"
     ),
     "macos-desktop-aarch64": re.compile(
-        rf"^msc2-(?P<version>{RELEASE_VERSION})-macos-aarch64\.dmg$"
+        rf"^msc-(?P<version>{RELEASE_VERSION})-macos-aarch64\.dmg$"
     ),
     "macos-headless-aarch64": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-macos-aarch64\.tar\.gz$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-macos-aarch64\.tar\.gz$"
     ),
     "windows-desktop": re.compile(
-        rf"^msc2-(?P<version>{RELEASE_VERSION})-windows-x86_64\.msi$"
+        rf"^msc-(?P<version>{RELEASE_VERSION})-windows-x86_64\.msi$"
     ),
     "windows-headless": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-windows-x86_64\.zip$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-windows-x86_64\.zip$"
     ),
-    "linux-deb": re.compile(rf"^msc2-(?P<version>{RELEASE_VERSION})-linux-x86_64\.deb$"),
-    "linux-rpm": re.compile(rf"^msc2-(?P<version>{RELEASE_VERSION})-linux-x86_64\.rpm$"),
+    "linux-deb": re.compile(rf"^msc-(?P<version>{RELEASE_VERSION})-linux-x86_64\.deb$"),
+    "linux-rpm": re.compile(rf"^msc-(?P<version>{RELEASE_VERSION})-linux-x86_64\.rpm$"),
     "linux-headless": re.compile(
-        rf"^msc2-headless-(?P<version>{RELEASE_VERSION})-linux-x86_64\.tar\.gz$"
+        rf"^msc-headless-(?P<version>{RELEASE_VERSION})-linux-x86_64\.tar\.gz$"
     ),
 }
 CHUNK_SIZE = 1024 * 1024
@@ -280,14 +280,14 @@ def make_manifest(
                 "tauri-coordinated",
                 assets["macos-desktop"],
                 "desktop",
-                ["agent", "sidecar"],
+                ["engine", "sidecar"],
             ),
             "macos-headless-x86_64": entry(
                 "x86_64-apple-darwin",
                 "standalone-archive",
                 assets["macos-headless"],
                 "archive",
-                ["agent", "sidecar"],
+                ["engine", "sidecar"],
             ),
             "macos-desktop-aarch64": {
                 **entry(
@@ -295,7 +295,7 @@ def make_manifest(
                     "tauri-coordinated",
                     assets["macos-desktop-aarch64"],
                     "desktop",
-                    ["agent"],
+                    ["engine"],
                 ),
                 "forbiddenArtifacts": ["sidecar"],
             },
@@ -305,7 +305,7 @@ def make_manifest(
                     "standalone-archive",
                     assets["macos-headless-aarch64"],
                     "archive",
-                    ["agent"],
+                    ["engine"],
                 ),
                 "forbiddenArtifacts": ["sidecar"],
             },
@@ -314,14 +314,14 @@ def make_manifest(
                 "tauri-coordinated",
                 assets["windows-desktop"],
                 "desktop",
-                ["agent"],
+                ["engine"],
             ),
             "windows-headless-x86_64": entry(
                 "x86_64-pc-windows-msvc",
                 "standalone-archive",
                 assets["windows-headless"],
                 "archive",
-                ["agent"],
+                ["engine"],
             ),
             "linux-desktop-deb-x86_64": entry(
                 "x86_64-unknown-linux-gnu",
@@ -342,7 +342,7 @@ def make_manifest(
                 "standalone-archive",
                 assets["linux-headless"],
                 "archive",
-                ["agent"],
+                ["engine"],
             ),
         },
         "releaseId": release_id,

@@ -153,7 +153,7 @@
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p,
   .section-heading p,
@@ -161,7 +161,7 @@
   .recovered p,
   .empty {
     margin: 4px 0 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -170,10 +170,10 @@
   .recovered,
   .downloaded {
     padding-top: 16px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .attention {
-    border-top-color: var(--msc2-status-warn);
+    border-top-color: var(--msc-status-warn);
   }
   .section-heading {
     display: flex;
@@ -183,7 +183,7 @@
   }
   h3 {
     margin: 0;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 13px;
     font-weight: 500;
   }
@@ -200,7 +200,7 @@
     justify-content: space-between;
     gap: 16px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .file-info {
     min-width: 0;
@@ -210,12 +210,12 @@
   }
   .file-name,
   .file-list span {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
   }
   .file-detail,
   .file-reason {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
     line-height: 1.45;
     overflow-wrap: anywhere;
@@ -225,25 +225,25 @@
     border: 0;
     padding: 0;
     background: transparent;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font: inherit;
     font-size: 11px;
     text-decoration: underline;
     cursor: pointer;
   }
   .provider-link:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .file-list span {
     padding-bottom: 6px;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .recovered .file-list span:last-child {
     border-bottom: 0;
   }
   .error {
     margin: 10px 0 0;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     font-size: 11px;
   }
   .footer {

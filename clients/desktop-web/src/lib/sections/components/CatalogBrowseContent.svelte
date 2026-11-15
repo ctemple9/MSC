@@ -120,17 +120,17 @@
   .subtitle {
     margin: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .notice {
     margin: 0 0 10px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .explain {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .results {
     display: flex;
@@ -151,7 +151,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .result:first-child {
     border-top: none;
@@ -176,11 +176,11 @@
     height: 40px;
     border-radius: 8px;
     overflow: hidden;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .icon img {
     width: 100%;
@@ -199,17 +199,17 @@
   .title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .meta {
     margin: 2px 0 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .description {
     margin: 4px 0 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -220,6 +220,6 @@
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
 </style>

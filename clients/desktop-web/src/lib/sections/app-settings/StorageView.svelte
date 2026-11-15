@@ -178,8 +178,8 @@
   }
   function desktopAppEntry(item: StorageItem): { label: string; description: string } | null {
     const path = item.displayPath?.replaceAll('\\', '/').replace(/\/$/, '').toLowerCase() ?? '';
-    if (path.endsWith('/msc 2.app'))
-      return { label: 'Installed app', description: 'The MSC 2 desktop application.' };
+    if (path.endsWith('/minecraft server controller.app') || path.endsWith('/msc 2.app'))
+      return { label: 'Installed app', description: 'The MSC desktop application.' };
     if (path.includes('/webkit/com.ctemple.msc2'))
       return { label: 'WebKit data', description: "Data stored by the app's web-based interface." };
     if (path.includes('/caches/com.ctemple.msc2'))
@@ -192,15 +192,18 @@
       return { label: 'Saved window state', description: 'The desktop app’s last window state.' };
     return null;
   }
-  function agentEntry(item: StorageItem): { label: string; description: string } | null {
+  function engineEntry(item: StorageItem): { label: string; description: string } | null {
     const path = item.displayPath?.replaceAll('\\', '/').replace(/\/$/, '').toLowerCase() ?? '';
     if (path.endsWith('/server_config_swift.json'))
       return {
         label: 'Server configuration',
-        description: 'Saved server definitions used by the agent.',
+        description: 'Saved server definitions used by the engine.',
       };
     if (path.endsWith('/logs/agent.log'))
-      return { label: 'Agent log', description: 'Diagnostic record of agent activity and errors.' };
+      return {
+        label: 'Background Service log',
+        description: 'Diagnostic record of engine activity and errors.',
+      };
     if (path.endsWith('/bedrock-helper'))
       return {
         label: 'Bedrock helper',
@@ -213,8 +216,8 @@
       };
     if (path.endsWith('/library/application support/msc 2'))
       return {
-        label: 'Agent data',
-        description: 'Working files and configuration for the background agent.',
+        label: 'Background Service data',
+        description: 'Working files and configuration for the background engine.',
       };
     return null;
   }
@@ -398,12 +401,12 @@
           const message = errorMessage(e);
           c.unsupported = message.includes('404') || message.includes('405');
           c.problem = c.unsupported
-            ? 'This agent does not support storage inventory. Update the agent to scan and manage files.'
-            : `Agent unavailable: ${message}. Dated results remain historical.`;
+            ? 'This engine does not support storage inventory. Update the engine to scan and manage files.'
+            : `Engine unavailable: ${message}. Dated results remain historical.`;
         }
       } else
         c.problem =
-          'Desktop footprint only. Pair this computer’s agent to include its server data.';
+          'Desktop footprint only. Pair this computer’s engine to include its server data.';
     } catch (e) {
       c.problem = errorMessage(e);
     } finally {
@@ -489,7 +492,7 @@
     update(c);
   }
   function request(c: Computer, ids: string[]): StorageSelection {
-    if (!c.agentId) throw Error('No agent paired.');
+    if (!c.agentId) throw Error('No engine paired.');
     return { hostId: c.agentId, category, action, itemIds: ids };
   }
   async function inspectAction(next: string) {
@@ -786,7 +789,7 @@
           </details>{/if}
       {:else}<p class="quiet">
           Refresh this computer to measure known MSC files. Desktop measurement works independently
-          of its agent.
+          of its engine.
         </p>{/if}
     {:else if category === 'servers' && !server && snapshot}
       {#each grouped(snapshot, 'serverId', categoryItems) as entry (entry.id)}<button
@@ -926,7 +929,7 @@
           category === 'desktopApp'
             ? desktopAppEntry(item)
             : category === 'agent'
-              ? agentEntry(item)
+              ? engineEntry(item)
               : null}
         <div class="file-row">
           <span
@@ -963,8 +966,8 @@
           >
         </div>
       {:else if category === 'agent'}<p class="quiet">
-          Current agent files remain protected. Installation and repair are available from Agent… in
-          the computer picker.
+          Current engine files remain protected. Installation and repair are available from Engine…
+          in the computer picker.
         </p>
         <Button
           size="sm"
@@ -1000,7 +1003,9 @@
       </details>{/if}
   {/if}
   <details class="legacy">
-    <summary>Map cleanup on {hostName === 'Local agent' ? 'Local Agent' : hostName}</summary>
+    <summary
+      >Map cleanup on {hostName === 'Local engine' ? 'Local Background Service' : hostName}</summary
+    >
     {#key api}<StorageCleanup {api} {hostName} />{/key}
   </details>
 </section>
@@ -1010,7 +1015,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 13px;
     min-height: 420px;
   }
@@ -1035,7 +1040,7 @@
     font-size: 10px;
     letter-spacing: 0.8px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin: 0;
   }
   p {
@@ -1045,7 +1050,7 @@
   .quiet,
   .footnote,
   small {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
   }
   .footnote {
@@ -1072,7 +1077,7 @@
   }
   .column-head {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .column-head span:not(:first-child) {
     text-align: right;
@@ -1081,7 +1086,7 @@
   .inventory-row {
     appearance: none;
     border: 0;
-    border-bottom: 1px solid var(--msc2-hairline);
+    border-bottom: 1px solid var(--msc-hairline);
     background: transparent;
     color: inherit;
     text-align: left;
@@ -1092,12 +1097,12 @@
   }
   .computer-row:hover,
   .inventory-row:hover {
-    background: var(--msc2-tier-content);
+    background: var(--msc-tier-content);
   }
   .computer-row:focus-visible,
   .inventory-row:focus-visible,
   .text-action:focus-visible {
-    outline: 2px solid var(--msc2-text-secondary);
+    outline: 2px solid var(--msc-text-secondary);
     outline-offset: 3px;
   }
   .inventory-row,
@@ -1112,7 +1117,7 @@
     padding-top: 18px;
   }
   .world-section + .world-section {
-    border-top: 1px solid var(--msc2-hairline);
+    border-top: 1px solid var(--msc-hairline);
   }
   .world-section-heading {
     display: flex;
@@ -1135,7 +1140,7 @@
   .file-row,
   .volume {
     padding: 12px 0;
-    border-bottom: 1px solid var(--msc2-hairline);
+    border-bottom: 1px solid var(--msc-hairline);
   }
   .file-row > span:first-child {
     min-width: 0;
@@ -1148,7 +1153,7 @@
   .measured span {
     font-size: 13px;
     font-weight: 400;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .proportion {
     display: flex;
@@ -1184,7 +1189,7 @@
     display: flex;
     justify-content: space-between;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     gap: 8px;
   }
   .bar-labels span {
@@ -1201,11 +1206,11 @@
   }
   .notice {
     padding: 10px 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .working {
     padding: 10px 0;
-    border-bottom: 1px solid var(--msc2-hairline);
+    border-bottom: 1px solid var(--msc-hairline);
   }
   .candidate {
     display: grid;
@@ -1213,11 +1218,11 @@
     gap: 10px;
     align-items: start;
     padding: 13px 0;
-    border-bottom: 1px solid var(--msc2-hairline);
+    border-bottom: 1px solid var(--msc-hairline);
   }
   input[type='checkbox'] {
     margin: 2px 0;
-    accent-color: var(--msc2-text-secondary);
+    accent-color: var(--msc-text-secondary);
   }
   .confirm {
     display: flex;
@@ -1236,7 +1241,7 @@
   .text-action {
     background: none;
     border: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     padding: 6px 0;
     font: inherit;
     font-size: 12px;
@@ -1247,7 +1252,7 @@
   }
   summary {
     cursor: pointer;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   .coverage p {

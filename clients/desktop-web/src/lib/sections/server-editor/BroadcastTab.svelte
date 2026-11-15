@@ -1,8 +1,8 @@
 <script lang="ts">
   // Ports ServerEditorBroadcastTab.swift (Java) -- Xbox broadcast runtime
   // controls plus the per-server Playit runtime panel. Every route this tab calls
-  // (crates/msc-agent/src/routes/networking.rs) resolves a single
-  // agent-wide "active server", so -- like GeneralTab's Memory block -- the
+  // (crates/msc-engine/src/routes/networking.rs) resolves a single
+  // engine-wide "active server", so -- like GeneralTab's Memory block -- the
   // whole tab is gated on `isActive` rather than risking a mutation landing
   // on the wrong server.
   //
@@ -300,7 +300,7 @@
     </Card>
   {:else}
     <section class="zone">
-      <p class="msc2-type-overline">Xbox Broadcast</p>
+      <p class="msc-type-overline">Xbox Broadcast</p>
       <Card padding="0">
         <div class="row">
           <StatusDot
@@ -377,7 +377,7 @@
     </section>
 
     <section class="zone">
-      <p class="msc2-type-overline">Playit</p>
+      <p class="msc-type-overline">Playit</p>
       <Card padding="0">
         <div class="row">
           <div class="toggle-info">
@@ -502,7 +502,7 @@
   .notice {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .zone {
     display: flex;
@@ -528,12 +528,12 @@
     padding: 11px 14px;
   }
   .row.bordered {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .toggle-info {
     display: flex;
@@ -558,16 +558,16 @@
     width: 30px;
     height: 30px;
     padding: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: transparent;
     border: none;
     cursor: pointer;
   }
   .visibility-toggle:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .visibility-toggle:focus-visible {
-    outline: 2px solid var(--msc2-hairline);
+    outline: 2px solid var(--msc-hairline);
     outline-offset: 2px;
     border-radius: 3px;
   }
@@ -580,16 +580,16 @@
     overflow-wrap: anywhere;
     text-align: right;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .setup-state {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     line-height: 1.5;
   }
 </style>

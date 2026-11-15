@@ -1,6 +1,6 @@
 <script lang="ts">
   // Category = neutral (Java/Paper). Status = colored tint (Active, Missing).
-  // docs/msc2/renderings/primitives.html
+  // docs/msc/renderings/primitives.html
   export let variant: 'category' | 'status' = 'category';
   export let tone: 'ok' | 'warn' | 'error' | 'bedrock' = 'ok';
 </script>
@@ -22,23 +22,23 @@
 
   .category {
     color: rgba(255, 255, 255, 0.8);
-    background: var(--msc2-neutral-elevated);
+    background: var(--msc-neutral-elevated);
   }
 
   .status.ok {
-    color: var(--msc2-status-ok);
-    background: var(--msc2-status-ok-tint);
+    color: var(--msc-status-ok);
+    background: var(--msc-status-ok-tint);
   }
   .status.warn {
-    color: var(--msc2-status-warn);
-    background: var(--msc2-status-warn-tint);
+    color: var(--msc-status-warn);
+    background: var(--msc-status-warn-tint);
   }
   .status.error {
-    color: var(--msc2-status-error);
-    background: var(--msc2-status-error-tint);
+    color: var(--msc-status-error);
+    background: var(--msc-status-error-tint);
   }
   .status.bedrock {
-    color: var(--msc2-status-bedrock);
-    background: var(--msc2-status-bedrock-tint);
+    color: var(--msc-status-bedrock);
+    background: var(--msc-status-bedrock-tint);
   }
 </style>

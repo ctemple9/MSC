@@ -29,7 +29,7 @@ HELP_REQUIREMENTS = {
     "content/help/handbook/bedrock.md": [
         "World settings and achievements",
         "permanently disable Xbox achievements",
-        "agent-enforced across Settings",
+        "engine-enforced across Settings",
         "Java has different semantics",
         "force-gamemode",
     ],
@@ -88,7 +88,7 @@ EVIDENCE_REQUIREMENTS = {
         "world_activation_switches_between_distinct_profiles_and_preserves_server_settings",
         "world_activation_reports_restart_required_bedrock_profile_changes",
     ],
-    "crates/msc-agent/tests/cli_worlds_backups.rs": [
+    "crates/msc-engine/tests/cli_worlds_backups.rs": [
         "world_profile_set_help_shows_changes_and_confirmation",
         "--change",
         "--confirm",
@@ -96,7 +96,7 @@ EVIDENCE_REQUIREMENTS = {
     "crates/msc-application/tests/command_input.rs": [
         "world_safety_confirmation_contract_distinguishes_bedrock_and_server_scope",
     ],
-    "crates/msc-agent/tests/bedrock_routes.rs": [
+    "crates/msc-engine/tests/bedrock_routes.rs": [
         "safety_confirmation_is_part_of_the_shared_api_contract",
     ],
 }
@@ -131,7 +131,7 @@ def check_help(root: Path) -> list[str]:
 
 
 def check_release_note(root: Path) -> list[str]:
-    relative = "docs/msc2/clients/world-settings.md"
+    relative = "docs/msc/clients/world-settings.md"
     path = root / relative
     if not path.is_file():
         return [f"missing release note: {relative}"]
@@ -142,7 +142,7 @@ def check_release_note(root: Path) -> list[str]:
 
 
 def check_matrix(root: Path) -> list[str]:
-    relative = "docs/msc2/client-capability-matrix.csv"
+    relative = "docs/msc/client-capability-matrix.csv"
     path = root / relative
     if not path.is_file():
         return [f"missing capability matrix: {relative}"]

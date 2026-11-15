@@ -39,8 +39,8 @@
 //! oracle behavior for any of the three** (confirmed by reading both
 //! scanners: no corrupt-archive branch, no dedup logic, and
 //! `FileManager.contentsOfDirectory` makes a hostile filename structurally
-//! impossible in a local macOS app). Decided for this port, since MSC 2 is
-//! a headless, remotely-driven agent rather than a local app: a jar this
+//! impossible in a local macOS app). Decided for this port, since MSC is
+//! a headless, remotely-driven engine rather than a local app: a jar this
 //! module can't open or whose expected manifest entry is absent/malformed
 //! degrades to the same filename-heuristic fallback a jar with no
 //! manifest gets (never a hard error — one bad jar must never blank the

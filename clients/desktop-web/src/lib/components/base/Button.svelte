@@ -1,6 +1,6 @@
 <script lang="ts">
   // The button system. 2 shapes only — filled (one per context) and quiet
-  // (the default). No gradient, no shadow, no glow. docs/msc2/renderings/buttons-and-type.html
+  // (the default). No gradient, no shadow, no glow. docs/msc/renderings/buttons-and-type.html
   import { onboardingAnchor } from '../../help/tourAnchors';
 
   export let variant: 'primary' | 'start' | 'stop' | 'secondary' | 'destructive' | 'ghost-icon' =
@@ -102,16 +102,16 @@
   }
 
   .primary {
-    color: var(--msc2-neutral-fill-ink);
-    background: var(--msc2-neutral-fill);
+    color: var(--msc-neutral-fill-ink);
+    background: var(--msc-neutral-fill);
   }
   .start {
     color: #0d2416;
-    background: var(--msc2-status-ok);
+    background: var(--msc-status-ok);
   }
   .stop {
     color: #fff;
-    background: var(--msc2-status-error);
+    background: var(--msc-status-error);
   }
 
   /* Quiet — the default */
@@ -119,7 +119,7 @@
   .destructive {
     font-weight: 500;
     background: transparent;
-    border: 1px solid var(--msc2-hairline);
+    border: 1px solid var(--msc-hairline);
   }
   .secondary {
     color: rgba(255, 255, 255, 0.9);
@@ -128,7 +128,7 @@
     background: rgba(255, 255, 255, 0.06);
   }
   .destructive {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     border-color: rgba(226, 75, 74, 0.4);
   }
   .destructive:hover:not(:disabled) {

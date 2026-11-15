@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inspect the installed macOS Bedrock agent/helper pair without mutating it.
+"""Inspect the installed macOS Bedrock engine/helper pair without mutating it.
 
 This is intentionally a live inspector rather than an installer or restart
 wrapper. P15.75 must prove the process boundary and relay state that already
@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-AGENT_LABEL = "com.ctemple.msc2.agent"
+ENGINE_LABEL = "com.ctemple.msc2.agent"
 HELPER_LABEL = "com.ctemple.msc2.bedrock-helper"
 HELPER_PLIST = Path(f"/Library/LaunchDaemons/{HELPER_LABEL}.plist")
 HELPER_ROOT = Path("/Library/Application Support/MSC 2/bedrock-helper")
@@ -110,16 +110,16 @@ class Inspector:
             f"{system or 'unknown'} {architecture or 'unknown'}",
         )
 
-    def check_agent_identity(self, agent_output: str | None) -> None:
+    def check_engine_identity(self, engine_output: str | None) -> None:
         expected_user = getpass.getuser()
-        pid = self.launchd_pid(agent_output)
+        pid = self.launchd_pid(engine_output)
         details = self.process_details(pid) if pid else None
         if details is None:
-            self.add("agent process identity", False, "agent PID is not available")
+            self.add("engine process identity", False, "engine PID is not available")
             return
         user, command, arguments, memory = details
         self.add(
-            "agent process identity",
+            "engine process identity",
             user == expected_user,
             f"pid {pid}, user {user}, command {command}, RSS/CPU {memory}; args {arguments}",
         )
@@ -342,9 +342,9 @@ class Inspector:
 
     def run(self) -> int:
         self.check_platform()
-        agent_output = self.launchctl_print(AGENT_LABEL)
+        engine_output = self.launchctl_print(ENGINE_LABEL)
         helper_output = self.launchctl_print(HELPER_LABEL)
-        self.check_agent_identity(agent_output)
+        self.check_engine_identity(engine_output)
         helper_pid = self.check_helper_identity(helper_output)
         self.check_helper_resources(helper_pid)
         self.check_artifacts()

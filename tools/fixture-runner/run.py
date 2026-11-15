@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Fixture runner and comparison tool (P0.2).
 
-Validates a fixture against the schema in docs/msc2/fixture-format.md
+Validates a fixture against the schema in docs/msc/fixture-format.md
 (reproduced machine-readably in schema.json alongside this file) and,
 where an `actual` value can be computed, compares it to `expected`.
 
-Four modes, matching docs/msc2/rolling-plan.md P0.2:
+Four modes, matching docs/msc/rolling-plan.md P0.2:
   run.py <file>                          full compare (from Phase 1 on)
   run.py --schema-only <file>             shape check only, no actual needed
   run.py --validate-dir <dir> --expect N  schema-only over a whole directory,

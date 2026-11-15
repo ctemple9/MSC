@@ -1,6 +1,6 @@
 # Educational content corpus
 
-This directory is the agent-owned, reviewable source for structured guide data.
+This directory is the engine-owned, reviewable source for structured guide data.
 `content/help/` holds one Markdown topic per `id`; this directory holds the
 ordered records that do not belong to a screen: the first-launch tour and
 router-guide data.

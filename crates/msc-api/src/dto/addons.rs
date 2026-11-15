@@ -308,7 +308,7 @@ pub struct ModpackManualFileDto {
     pub file_name: String,
     pub project_name: String,
     /// Provider that still owns the unresolved file, such as Modrinth or
-    /// CurseForge. Older agents omit this field.
+    /// CurseForge. Older engines omit this field.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub provider: Option<String>,
     /// Why MSC could not install the file automatically.
@@ -354,7 +354,7 @@ pub struct ModpackInspectionResultDto {
     pub files: Vec<ModpackFileDto>,
     pub manual_files: Vec<ModpackManualFileDto>,
     /// Whether CurseForge file IDs were resolved during inspection. Optional
-    /// on the wire so newer clients can still read responses from older agents.
+    /// on the wire so newer clients can still read responses from older engines.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub curseforge_lookup_available: Option<bool>,
     pub warnings: Vec<String>,
@@ -402,9 +402,9 @@ pub struct ModpackManualFileResultDto {
 mod tests {
     //! `#[serde(rename_all = "camelCase")]` turns `icon_url` into `iconUrl`,
     //! not `iconURL` -- it has no concept of an acronym staying uppercase.
-    //! The frozen contract (docs/msc2/api-contract/openapi.json) spells
+    //! The frozen contract (docs/msc/api-contract/openapi.json) spells
     //! these fields `iconURL`/`projectURL`, matching MSC 1's Swift naming.
-    //! P12.7a found this the hard way (a real agent silently sending
+    //! P12.7a found this the hard way (a real engine silently sending
     //! `iconUrl`, which the generated `iconURL`-typed TypeScript never
     //! reads) after fixing `GET /v1/catalog/search` to actually populate
     //! the field at all. These guard the explicit `#[serde(rename = ...)]`

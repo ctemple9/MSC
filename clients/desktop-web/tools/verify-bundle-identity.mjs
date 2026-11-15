@@ -6,7 +6,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const dist = join(root, 'dist');
 const index = join(dist, 'index.html');
 const identity = join(dist, 'bundle-identity.json');
-const marker = 'msc2-shared-client';
+const marker = 'msc-shared-client';
 
 if (!statSync(dist, { throwIfNoEntry: false })?.isDirectory()) {
   throw new Error('dist/ is missing; run npm run build first');

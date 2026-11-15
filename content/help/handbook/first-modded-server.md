@@ -3,11 +3,11 @@ id: handbook.first-modded-server
 kind: handbook
 title: Your First Modded Server
 category: getting-started
-subtitle: "Create a Fabric, NeoForge, or Forge server with MSC 2."
+subtitle: "Create a Fabric, NeoForge, or Forge server with MSC."
 relatedIds: [handbook.fabric, handbook.neoforge, handbook.forge, handbook.client-requirements, handbook.mods-browser]
 ---
 
-This guide assumes MSC 2 and First-time Setup are already complete. A modded server needs a matching Minecraft version, loader, and usually mods on every player's computer. MSC handles the server installation, but players still need compatible client files. See [Client Requirements](help:handbook.client-requirements) before inviting friends.
+This guide assumes MSC and First-time Setup are already complete. A modded server needs a matching Minecraft version, loader, and usually mods on every player's computer. MSC handles the server installation, but players still need compatible client files. See [Client Requirements](help:handbook.client-requirements) before inviting friends.
 
 ### Checklist: Phase 1 — Choose the server
 

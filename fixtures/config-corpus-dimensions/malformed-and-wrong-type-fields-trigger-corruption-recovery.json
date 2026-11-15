@@ -7,7 +7,7 @@
     "line": 86
   },
   "input": {
-    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc2-port-plan.md line 187, first sub-item)",
+    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc-port-plan.md line 187, first sub-item)",
     "subCases": [
       {
         "name": "malformed JSON syntax",

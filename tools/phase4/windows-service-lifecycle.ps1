@@ -41,7 +41,7 @@ function Wait-HttpReady([string]$BaseUrl, [int]$TimeoutSeconds = 45) {
             Start-Sleep -Milliseconds 250
         }
     }
-    throw "agent did not become healthy at $BaseUrl"
+    throw "engine did not become healthy at $BaseUrl"
 }
 
 function Wait-ServerRunning([string]$Msc, [string]$BaseUrl, [string]$Token, [int]$TimeoutSeconds = 45) {
@@ -91,7 +91,7 @@ function Wait-ConsoleContains([string]$Msc, [string]$BaseUrl, [string]$Token, [s
     throw "console tail never observed: $Needle"
 }
 
-function Get-AgentServePid([int]$Port) {
+function Get-EngineServePid([int]$Port) {
     $needle = "serve --bind 127.0.0.1:$Port"
     $process = Get-CimInstance Win32_Process |
         Where-Object { $_.CommandLine -like "*$needle*" } |
@@ -133,7 +133,7 @@ using System.Diagnostics;
 using System.IO;
 using System.ServiceProcess;
 
-public class MscAgentWindowsService : ServiceBase
+public class MscEngineWindowsService : ServiceBase
 {
     private readonly string mscPath;
     private readonly string bindAddress;
@@ -144,7 +144,7 @@ public class MscAgentWindowsService : ServiceBase
     private Process child;
     private StreamWriter logWriter;
 
-    public MscAgentWindowsService(string serviceName, string mscPath, string bindAddress, string token, string journalDir, string workingDirectory, string logPath)
+    public MscEngineWindowsService(string serviceName, string mscPath, string bindAddress, string token, string journalDir, string workingDirectory, string logPath)
     {
         ServiceName = serviceName;
         AutoLog = true;
@@ -238,12 +238,12 @@ public class MscAgentWindowsService : ServiceBase
 
     public static void RunService(string serviceName, string mscPath, string bindAddress, string token, string journalDir, string workingDirectory, string logPath)
     {
-        ServiceBase.Run(new MscAgentWindowsService(serviceName, mscPath, bindAddress, token, journalDir, workingDirectory, logPath));
+        ServiceBase.Run(new MscEngineWindowsService(serviceName, mscPath, bindAddress, token, journalDir, workingDirectory, logPath));
     }
 }
 "@
 
-[MscAgentWindowsService]::RunService($ServiceName, $MscPath, $BindAddress, $Token, $JournalDir, $WorkingDirectory, $LogPath)
+[MscEngineWindowsService]::RunService($ServiceName, $MscPath, $BindAddress, $Token, $JournalDir, $WorkingDirectory, $LogPath)
 
 } catch {
     $crashDir = Split-Path -Parent $crashLogPath
@@ -320,9 +320,9 @@ $runDir = Join-Path $RunRoot "run-$runId"
 $logsDir = Join-Path $runDir "logs"
 $journalDir = Join-Path $runDir "journal"
 $stateDir = Join-Path $runDir "state"
-$hostScript = Join-Path $runDir "msc-agent-service-host.ps1"
+$hostScript = Join-Path $runDir "msc-engine-service-host.ps1"
 $serviceLog = Join-Path $logsDir "service-host.log"
-$serviceName = "msc2-phase4-agent-$runId"
+$serviceName = "msc-phase4-engine-$runId"
 $serverName = "Phase4 Paper"
 $port = Get-FreePort
 $baseUrl = "http://127.0.0.1:$port"
@@ -335,7 +335,7 @@ New-ServiceHostScript -Path $hostScript
 
 Push-Location $root
 try {
-    cargo build -p msc-agent | Out-Null
+    cargo build -p msc-engine | Out-Null
 } finally {
     Pop-Location
 }
@@ -365,7 +365,7 @@ try {
     Start-Service -Name $serviceName
     Wait-HttpReady -BaseUrl $baseUrl -TimeoutSeconds 45
     Test-ProtectedStatus -BaseUrl $baseUrl -Token $token
-    $agentPidBeforeRestart = Get-AgentServePid -Port $port
+    $enginePidBeforeRestart = Get-EngineServePid -Port $port
 
     $innerCommandNoBootstrap = "`"$serviceBinary`" -NoProfile -ExecutionPolicy Bypass -File `"$hostScript`" -ServiceName `"$serviceName`" -MscPath `"$msc`" -BindAddress `"127.0.0.1:$port`" -Token `"`" -JournalDir `"$journalDir`" -WorkingDirectory `"$stateDir`" -LogPath `"$serviceLog`""
     $launcherContentNoBootstrap = "@echo off`r`n$innerCommandNoBootstrap > `"$rawOutputLog`" 2>&1`r`n"
@@ -373,8 +373,8 @@ try {
     Restart-Service -Name $serviceName -Force
     Wait-HttpReady -BaseUrl $baseUrl -TimeoutSeconds 45
     Test-ProtectedStatus -BaseUrl $baseUrl -Token $token
-    $agentPidAfterRestart = Get-AgentServePid -Port $port
-    if ($agentPidBeforeRestart -eq $agentPidAfterRestart) {
+    $enginePidAfterRestart = Get-EngineServePid -Port $port
+    if ($enginePidBeforeRestart -eq $enginePidAfterRestart) {
         throw "Windows Service restart did not produce a new msc serve pid"
     }
 
@@ -387,8 +387,8 @@ try {
         credentialStoredInProductionStore = $true
         platform = "windows"
         processEvidence = [pscustomobject]@{
-            beforeRestartPid = $agentPidBeforeRestart
-            afterRestartPid = $agentPidAfterRestart
+            beforeRestartPid = $enginePidBeforeRestart
+            afterRestartPid = $enginePidAfterRestart
         }
         protectedRequestAfterRestart = $true
         protectedRequestBeforeRestart = $true
@@ -396,7 +396,7 @@ try {
         restartedActualServiceProcess = $true
         result = "passed"
         runId = $runId
-        schema = "msc2.phase4.credential-evidence.v1"
+        schema = "msc.phase4.credential-evidence.v1"
         script = "tools/phase4/windows-service-lifecycle.ps1"
         serviceManager = "Windows Service"
         serviceName = $serviceName
@@ -425,7 +425,7 @@ try {
         throw "could not find the Paper Java process to confirm the service-launched server exists"
     }
     Write-Host "client exit check: service and Paper server remain running with no active CLI client"
-    Write-Host "job object precondition: Paper server launched through the Windows agent process path"
+    Write-Host "job object precondition: Paper server launched through the Windows engine process path"
 
     [pscustomobject]@{
         RunDir = $runDir

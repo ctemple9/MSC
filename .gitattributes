@@ -2,6 +2,9 @@
 # interpret Windows checkout line endings as repository-wide style changes.
 * text=auto eol=lf
 
-# Vite's minified assets are copied byte-for-byte into the headless agent.
+# Vite's minified assets are copied byte-for-byte into the headless engine.
 # Do not normalize their significant end-of-line bytes during diff checks.
-crates/msc-agent/web-ui/** -whitespace
+crates/msc-engine/web-ui/** -whitespace
+
+# Preserve original historical audit CSV bytes when moving the evidence directory.
+docs/msc/audit/*.csv -text

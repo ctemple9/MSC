@@ -11,14 +11,14 @@ PATH_DIR="/usr/local/bin"
 PATH_LINK="$PATH_DIR/msc"
 UNIT_DIR="/etc/systemd/system"
 TMPFILES_DIR="/usr/lib/tmpfiles.d"
-AGENT_UNIT="com.ctemple.msc2.agent.service"
+ENGINE_UNIT="com.ctemple.msc2.agent.service"
 HELPER_SOCKET_UNIT="msc2-credential-helper.socket"
 HELPER_SERVICE_UNIT="msc2-credential-helper.service"
 TMPFILES_UNIT="msc2.conf"
 DATA_DIR_OVERRIDE="${MSC2_DATA_DIR:-}"
 
 fail() {
-  printf 'msc 2 linux installer: %s\n' "$1" >&2
+  printf 'MSC linux installer: %s\n' "$1" >&2
   exit 1
 }
 
@@ -26,7 +26,7 @@ usage() {
   cat <<'USAGE'
 Usage: install.sh [--data-dir PATH]
 
-Install the Linux headless MSC 2 agent for the invoking user. The installer
+Install the Linux headless MSC engine for the invoking user. The installer
 requests elevation itself; do not run pairing commands through sudo.
 USAGE
 }
@@ -69,7 +69,7 @@ if ((EUID != 0)); then
 fi
 
 [[ -n "${SUDO_UID:-}" && "${SUDO_UID}" != "0" ]] || fail \
-  "run install.sh as the user who will own MSC 2; it requests sudo itself"
+  "run install.sh as the user who will own MSC; it requests sudo itself"
 
 INSTALLING_UID="$SUDO_UID"
 INSTALLING_USER="$(id -nu "$INSTALLING_UID")" || fail "could not resolve installing user"
@@ -89,10 +89,10 @@ for required in \
   "$SCRIPT_DIR/vantage" \
   "$SCRIPT_DIR/bedrock-map" \
   "$SCRIPT_DIR/VANTAGE-LICENSE.txt" \
-  "$SCRIPT_DIR/systemd/com.ctemple.msc2.agent.service.in" \
-  "$SCRIPT_DIR/systemd/msc2-credential-helper.socket.in" \
-  "$SCRIPT_DIR/systemd/msc2-credential-helper.service.in" \
-  "$SCRIPT_DIR/systemd/msc2.conf.in"; do
+  "$SCRIPT_DIR/systemd/com.ctemple.msc.engine.service.in" \
+  "$SCRIPT_DIR/systemd/msc-credential-helper.socket.in" \
+  "$SCRIPT_DIR/systemd/msc-credential-helper.service.in" \
+  "$SCRIPT_DIR/systemd/msc.conf.in"; do
   [[ -f "$required" ]] || fail "package input is missing: $required"
 done
 
@@ -137,29 +137,29 @@ render_template() {
     ' "$template" > "$output"
 }
 
-TEMP_DIR="$(mktemp -d /tmp/msc2-linux-install.XXXXXX)"
+TEMP_DIR="$(mktemp -d /tmp/msc-linux-install.XXXXXX)"
 cleanup() {
   rm -rf "$TEMP_DIR"
 }
 trap cleanup EXIT
 
-render_template "$SCRIPT_DIR/systemd/com.ctemple.msc2.agent.service.in" \
-  "$TEMP_DIR/$AGENT_UNIT"
-render_template "$SCRIPT_DIR/systemd/msc2-credential-helper.socket.in" \
+render_template "$SCRIPT_DIR/systemd/com.ctemple.msc.engine.service.in" \
+  "$TEMP_DIR/$ENGINE_UNIT"
+render_template "$SCRIPT_DIR/systemd/msc-credential-helper.socket.in" \
   "$TEMP_DIR/$HELPER_SOCKET_UNIT"
-render_template "$SCRIPT_DIR/systemd/msc2-credential-helper.service.in" \
+render_template "$SCRIPT_DIR/systemd/msc-credential-helper.service.in" \
   "$TEMP_DIR/$HELPER_SERVICE_UNIT"
-render_template "$SCRIPT_DIR/systemd/msc2.conf.in" \
+render_template "$SCRIPT_DIR/systemd/msc.conf.in" \
   "$TEMP_DIR/$TMPFILES_UNIT"
 
 # Stop the old definitions before replacing them. This is an upgrade-safe
 # boundary: managed server files and the root-owned credential store are not
 # touched, while the next start uses the new binary and unit definitions.
-if [[ -f "$UNIT_DIR/$AGENT_UNIT" ]]; then
-  systemctl stop "$AGENT_UNIT"
+if [[ -f "$UNIT_DIR/$ENGINE_UNIT" ]]; then
+  systemctl stop "$ENGINE_UNIT"
 fi
 systemctl stop "$HELPER_SERVICE_UNIT" "$HELPER_SOCKET_UNIT" >/dev/null 2>&1 || true
-systemctl disable "$AGENT_UNIT" "$HELPER_SERVICE_UNIT" "$HELPER_SOCKET_UNIT" >/dev/null 2>&1 || true
+systemctl disable "$ENGINE_UNIT" "$HELPER_SERVICE_UNIT" "$HELPER_SOCKET_UNIT" >/dev/null 2>&1 || true
 
 if [[ ! -e "$PATH_DIR" ]]; then
   install -d -m 0755 -o root -g root "$PATH_DIR"
@@ -190,7 +190,7 @@ install -d -m 0700 -o "$INSTALLING_USER" -g "$INSTALLING_GROUP" "$DATA_DIR/logs"
 install -d -m 0700 -o "$INSTALLING_USER" -g "$INSTALLING_GROUP" "$DATA_DIR/servers"
 
 install -d -m 0755 -o root -g root "$UNIT_DIR" "$TMPFILES_DIR"
-install -m 0644 -o root -g root "$TEMP_DIR/$AGENT_UNIT" "$UNIT_DIR/$AGENT_UNIT"
+install -m 0644 -o root -g root "$TEMP_DIR/$ENGINE_UNIT" "$UNIT_DIR/$ENGINE_UNIT"
 install -m 0644 -o root -g root "$TEMP_DIR/$HELPER_SOCKET_UNIT" "$UNIT_DIR/$HELPER_SOCKET_UNIT"
 install -m 0644 -o root -g root "$TEMP_DIR/$HELPER_SERVICE_UNIT" "$UNIT_DIR/$HELPER_SERVICE_UNIT"
 install -m 0644 -o root -g root "$TEMP_DIR/$TMPFILES_UNIT" "$TMPFILES_DIR/$TMPFILES_UNIT"
@@ -198,12 +198,12 @@ install -m 0644 -o root -g root "$TEMP_DIR/$TMPFILES_UNIT" "$TMPFILES_DIR/$TMPFI
 install -d -m 0700 -o root -g root /var/lib/msc2/credentials
 systemd-tmpfiles --create "$TMPFILES_DIR/$TMPFILES_UNIT"
 systemctl daemon-reload
-systemctl enable "$HELPER_SOCKET_UNIT" "$AGENT_UNIT" >/dev/null
+systemctl enable "$HELPER_SOCKET_UNIT" "$ENGINE_UNIT" >/dev/null
 systemctl start "$HELPER_SOCKET_UNIT"
-systemctl start "$AGENT_UNIT"
+systemctl start "$ENGINE_UNIT"
 
 cat <<MESSAGE
-MSC 2 headless agent installed for ${INSTALLING_USER}.
+MSC headless engine installed for ${INSTALLING_USER}.
 
 The command is installed as ${PATH_LINK} and is available as msc.
 $(if [[ ":${PATH:-}:" == *":${PATH_DIR}:"* ]]; then
@@ -212,12 +212,12 @@ $(if [[ ":${PATH:-}:" == *":${PATH_DIR}:"* ]]; then
     printf 'Refresh PATH or open a new shell before using it from this shell.\n'
   fi)
 
-The agent is enabled for boot and is running under ${INSTALLING_USER}.
+The engine is enabled for boot and is running under ${INSTALLING_USER}.
 The management service listens on 127.0.0.1:48001.
 Routine control:
-  systemctl status ${AGENT_UNIT}
-  systemctl start ${AGENT_UNIT}
-  systemctl stop ${AGENT_UNIT}
+  systemctl status ${ENGINE_UNIT}
+  systemctl start ${ENGINE_UNIT}
+  systemctl stop ${ENGINE_UNIT}
 
 Create a desktop pairing code locally as ${INSTALLING_USER}; never run pairing as root:
   msc pairing create --client-kind desktop

@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Green = enabled (Mac-native, matches Start). docs/msc2/renderings/primitives.html
+  // Green = enabled (Mac-native, matches Start). docs/msc/renderings/primitives.html
   export let checked = false;
   export let label = '';
   export let disabled = false;
@@ -30,7 +30,7 @@
     width: 38px;
     height: 22px;
     border-radius: 11px;
-    background: var(--msc2-neutral-muted);
+    background: var(--msc-neutral-muted);
     border: none;
     padding: 0;
     position: relative;
@@ -39,7 +39,7 @@
   }
 
   .track.on {
-    background: var(--msc2-status-ok);
+    background: var(--msc-status-ok);
   }
 
   .track:disabled {

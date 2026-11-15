@@ -1,0 +1,8 @@
+{
+  "domain": "bedrock-runtime",
+  "case": "msc-net-new-native-crash-is-not-clean-stop",
+  "source": {"file": "msc-engineering.md", "test": "P10.4 native crash classification", "line": 1},
+  "input": {"backend": "native-linux", "process_exit": {"code": 139, "requested_stop": false}},
+  "expected": {"termination_reason": "crash", "recovery_state": "unexpected-exit", "clean_stop": false},
+  "notes": "MSC net-new case: native process supervision must distinguish an unrequested exit from a requested clean stop."
+}

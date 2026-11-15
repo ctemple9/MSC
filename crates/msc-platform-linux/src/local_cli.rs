@@ -32,6 +32,6 @@ fn peer_uid_from_fd(fd: RawFd) -> Result<u32, String> {
 }
 
 pub fn service_uid() -> u32 {
-    // The agent service runs as the installing user, not the root helper.
+    // The engine service runs as the installing user, not the root helper.
     unsafe { libc::geteuid() }
 }

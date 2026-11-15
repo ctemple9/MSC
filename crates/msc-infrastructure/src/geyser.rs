@@ -1,7 +1,7 @@
 //! GeyserMC's latest Paper-plugin resolver.
 //!
 //! MSC 1 asks the Geyser API for the latest version and build, then downloads
-//! the `spigot` artifact for that exact result. MSC 2 keeps that moving
+//! the `spigot` artifact for that exact result. MSC keeps that moving
 //! resolution behavior, but carries the API's SHA-256 into the shared helper
 //! acquisition boundary before the JAR can be staged or used.
 

@@ -29,7 +29,7 @@
     </div>
 
     <section class="block">
-      <p class="msc2-type-overline">Server Settings</p>
+      <p class="msc-type-overline">Server Settings</p>
       <div class="summary">
         <div class="row">
           <span class="label">Server type</span>
@@ -63,7 +63,7 @@
     </section>
 
     <section class="block">
-      <p class="msc2-type-overline">Active World</p>
+      <p class="msc-type-overline">Active World</p>
       {#if worlds.length === 0}
         <p class="hint">
           No worlds were detected in this server folder. A world will be generated on first start.
@@ -107,12 +107,12 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p {
     margin: 0;
     font-size: 12.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .block {
@@ -129,7 +129,7 @@
   .summary {
     display: flex;
     flex-direction: column;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -139,35 +139,35 @@
     justify-content: space-between;
     gap: 12px;
     padding: 8px 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .row:first-child {
     border-top: none;
   }
   .label {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .value {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 
   .hint {
     margin: 0;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
 
   .list {
     display: flex;
     flex-direction: column;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -177,7 +177,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     background: transparent;
     border-left: none;
     border-right: none;
@@ -195,10 +195,10 @@
   .world-name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .world-meta {
     font-size: 11.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

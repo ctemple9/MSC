@@ -1,7 +1,7 @@
 /**
- * The agent owns the prose, but it is still untrusted input at this boundary.
+ * The engine owns the prose, but it is still untrusted input at this boundary.
  * This deliberately small renderer emits only escaped text and a short allow-list
- * of Markdown constructs; it never forwards agent HTML into the document.
+ * of Markdown constructs; it never forwards engine HTML into the document.
  */
 function escapeHtml(value: string): string {
   return value

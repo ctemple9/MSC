@@ -20,7 +20,7 @@ const tokensSource = readFileSync(
   'utf-8',
 );
 
-describe('S1 shell skeleton (docs/msc2/renderings/shell.html)', () => {
+describe('S1 shell skeleton (docs/msc/renderings/shell.html)', () => {
   it('assembles the shell from the host-aware sidebar, header, tab strip, and docked console', () => {
     expect(applicationShellSource).toContain('<TopBar');
     expect(applicationShellSource).toContain('<ControlSidebar');
@@ -32,24 +32,24 @@ describe('S1 shell skeleton (docs/msc2/renderings/shell.html)', () => {
     expect(controlSidebarSource).toContain('onLifecycle');
     expect(controlSidebarSource).toContain('onInitiate');
     expect(controlSidebarSource).toContain('firstStartRequired');
-    expect(controlSidebarSource).toContain('onOpenAgentSetup');
+    expect(controlSidebarSource).toContain('onOpenEngineSetup');
     expect(controlSidebarSource).toContain('onManage');
     expect(controlSidebarSource).toContain("anchorId: 'ob_manage_servers'");
     expect(controlSidebarSource).toContain("use:onboardingAnchor={'ob_server_picker'}");
   });
 
-  it('keeps the host-scoped agent screen reachable without adding an eighth server tab', () => {
-    expect(controlSidebarSource).not.toContain("label: 'Agent…'");
+  it('keeps the host-scoped engine screen reachable without adding an eighth server tab', () => {
+    expect(controlSidebarSource).not.toContain("label: 'Engine…'");
     expect(controlSidebarSource).toContain("label: 'Manage…'");
-    expect(controlSidebarSource).toContain('onclick={onOpenAgentSetup}>Agent</Button>');
-    expect(applicationShellSource).toContain('{onOpenAgentSetup}');
-    expect(appSource).toContain("selectSection('agent-setup')");
+    expect(controlSidebarSource).toContain('onclick={onOpenEngineSetup}>Engine</Button>');
+    expect(applicationShellSource).toContain('{onOpenEngineSetup}');
+    expect(appSource).toContain("selectSection('engine-setup')");
     expect(primaryTabsSource.match(/\{ id: '/g)?.length).toBe(7);
   });
 
   it('drives the primary tab strip from the registry-backed tab list, not a hardcoded switch', () => {
     expect(tabStripSource).toContain('{#each tabs as tab');
-    // MSC 2 ships 7 of MSC 1's DetailsView tabs (docs/msc2/renderings/shell.html);
+    // MSC ships 7 of MSC 1's DetailsView tabs (docs/msc/renderings/shell.html);
     // Packs is deliberately dropped (rolling-plan.md P12.5, owner decision 2026-08-26).
     expect(primaryTabsSource.match(/\{ id: '/g)?.length).toBe(7);
   });
@@ -79,7 +79,7 @@ describe('S1 shell skeleton (docs/msc2/renderings/shell.html)', () => {
 
   it('keeps the docked console collapsible and console-tier surfaced', () => {
     expect(consoleDockSource).toContain('onToggle');
-    expect(consoleDockSource).toContain('var(--msc2-tier-terminal)');
+    expect(consoleDockSource).toContain('var(--msc-tier-terminal)');
     expect(consoleDockSource).toContain('consoleLinesAfterClear');
     expect(consoleDockSource).toContain('clearedLineKeys');
   });
@@ -117,7 +117,7 @@ describe('S1 shell skeleton (docs/msc2/renderings/shell.html)', () => {
     expect(howToConnectSource).toContain('.pill-value.scrollable::-webkit-scrollbar');
   });
 
-  it('reconciles helper service labels after asynchronous agent startup', () => {
+  it('reconciles helper service labels after asynchronous engine startup', () => {
     expect(controlSidebarSource).toContain('<ConsoleAccessSection');
     expect(controlSidebarSource).toContain('{running}');
     expect(consoleAccessSource).toContain('setInterval(() => void load(), 1000)');

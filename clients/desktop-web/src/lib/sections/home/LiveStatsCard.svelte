@@ -58,16 +58,16 @@
   ] satisfies Gauge[];
 
   const toneColor: Record<string, string> = {
-    ok: 'var(--msc2-status-ok)',
-    warn: 'var(--msc2-status-warn)',
-    error: 'var(--msc2-status-error)',
+    ok: 'var(--msc-status-ok)',
+    warn: 'var(--msc-status-warn)',
+    error: 'var(--msc-status-error)',
   };
 </script>
 
 <Card padding="14px 16px">
   <div class="stats-body">
     <div class="overline">
-      <span class="msc2-type-overline">Live Stats</span>
+      <span class="msc-type-overline">Live Stats</span>
     </div>
 
     {#if unavailable}
@@ -108,12 +108,12 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .unavailable {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     line-height: 1.5;
   }
   .gauges {

@@ -11,7 +11,7 @@ use super::BedrockRuntimeStateDto;
 use super::worlds::{WorldGameplayDto, WorldGenerationDto, WorldIdentityDto};
 
 /// The first world profile supplied alongside a fresh server create. It
-/// intentionally omits readback-only safety and field metadata; the agent
+/// intentionally omits readback-only safety and field metadata; the engine
 /// owns those values after it has created the slot.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

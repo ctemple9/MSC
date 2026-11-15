@@ -21,7 +21,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "msc2-modpack-inspection-test-{label}-{}",
+            "msc-modpack-inspection-test-{label}-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&dir);
@@ -207,7 +207,7 @@ fn identify_format_modrinth_wins_when_both_markers_present() {
 }
 
 #[test]
-fn identify_format_plain_jar_zip_is_a_recognized_msc2_shape() {
+fn identify_format_plain_jar_zip_is_a_recognized_msc_shape() {
     let tmp = TempDir::new("identify-plain-jars");
     let archive = tmp.path().join("jars.zip");
     write_zip(

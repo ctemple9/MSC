@@ -58,7 +58,7 @@ Requires, for every recorded file in the tree (anything except
 - A `manifest.json` entry keyed by the file's path relative to this
   directory, recording:
   - `provider` — one of the five providers/dispatch cases
-    `docs/msc2/addons/phase8-scope.md`'s "Provider purposes" table names:
+    `docs/msc/addons/phase8-scope.md`'s "Provider purposes" table names:
     `modrinth`, `hangar`, `curseforge`, `github`, `direct`. Any other value
     fails loudly — coverage mode below depends on every recorded response
     being attributed to a real provider.
@@ -86,13 +86,13 @@ P8.4 onward) against this corpus:
 - A fixture may carry an optional top-level `corpus_source` field — a list
   of paths, relative to `corpus/addons/`, naming which recorded
   response(s) it was characterized from. This is additive to the six
-  fields `docs/msc2/fixture-format.md` defines; existing fixture tooling
+  fields `docs/msc/fixture-format.md` defines; existing fixture tooling
   ignores fields it doesn't know about.
 - Every path a fixture cites must have a real manifest entry here — a
   fixture cannot claim a response that was never recorded.
 - A fixture may also carry a top-level `workflow` field naming which of
   Phase 8's eight symbol-ledger domains
-  (`docs/msc2/addons/phase8-scope.md`'s "Symbol-ledger rows owned by this
+  (`docs/msc/addons/phase8-scope.md`'s "Symbol-ledger rows owned by this
   phase" table: `addon-updates`, `modpack-client-only`, `modpack-import`,
   `modpacks`, `modrinth-deps`, `mods`, `plugin-management`, `plugins`) it
   characterizes.

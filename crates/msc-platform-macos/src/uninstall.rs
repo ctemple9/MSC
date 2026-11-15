@@ -11,7 +11,7 @@ pub struct MacUninstall;
 impl LocalServices for MacUninstall {
     fn inspect(&self) -> Result<Vec<ServiceStatusReport>, String> {
         let manager = MacosLaunchdServiceManager::new();
-        let agent = manager
+        let engine = manager
             .execute(ServiceManagerCommand::Status {
                 service_name: ServiceName::new("com.ctemple.msc2.agent"),
             })
@@ -22,12 +22,12 @@ impl LocalServices for MacUninstall {
                 "com.ctemple.msc2.bedrock-helper",
                 "/Library/Application Support/MSC 2/bedrock-helper/BedrockSidecar",
                 "/Library/Application Support/MSC 2/bedrock-helper",
-                "/Library/Logs/msc2-bedrock-helper.log",
+                "/Library/Logs/msc-bedrock-helper.log",
                 0,
             )
         });
         Ok(vec![
-            agent,
+            engine,
             ServiceStatusReport {
                 service_name: ServiceName::new("com.ctemple.msc2.bedrock-helper"),
                 state: helper.state,

@@ -23,15 +23,15 @@ from urllib.parse import urlparse
 
 
 ROOT = Path(__file__).resolve().parents[2]
-EVIDENCE_DIR = ROOT / "docs" / "msc2" / "bedrock" / "evidence"
-MATRIX_PATH = ROOT / "docs" / "msc2" / "bedrock" / "compatibility-matrix.csv"
-SCHEMA = "msc2.phase10.distribution-evidence.v1"
-RUNTIME_SCHEMA = "msc2.phase10.runtime-evidence.v1"
+EVIDENCE_DIR = ROOT / "docs" / "msc" / "bedrock" / "evidence"
+MATRIX_PATH = ROOT / "docs" / "msc" / "bedrock" / "compatibility-matrix.csv"
+SCHEMA = "msc.phase10.distribution-evidence.v1"
+RUNTIME_SCHEMA = "msc.phase10.runtime-evidence.v1"
 MATRIX_HEADER = [
     "host",
     "architecture",
-    "agent_host_status",
-    "agent_host_evidence",
+    "engine_host_status",
+    "engine_host_evidence",
     "bedrock_backend",
     "bedrock_runtime_status",
     "bedrock_runtime_evidence",

@@ -1,6 +1,6 @@
 <script lang="ts">
   // Centered muted icon, title, one line, optional action. No decoration.
-  // docs/msc2/renderings/primitives.html
+  // docs/msc/renderings/primitives.html
   export let title: string;
   export let message = '';
 </script>
@@ -14,7 +14,7 @@
 
 <style>
   .empty {
-    background: var(--msc2-tier-content);
+    background: var(--msc-tier-content);
     border-radius: 12px;
     padding: 26px 16px;
     text-align: center;
@@ -30,7 +30,7 @@
     font-size: 14px;
     font-weight: 500;
     margin-top: 10px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 
   .message {

@@ -13,7 +13,7 @@ export const DEFAULT_SSH_PORT = 22;
 export type HostRoute = 'lan' | 'tailscale';
 
 /** The only SSH authentication choices a profile is allowed to remember. */
-export type SshAuthentication = 'password' | 'private-key' | 'agent';
+export type SshAuthentication = 'password' | 'private-key' | 'keychain';
 
 /** SSH connection metadata. Secret values are deliberately not representable here. */
 export interface SshProfile {
@@ -33,14 +33,14 @@ export interface HostRecord {
   tailscaleAddresses: readonly string[];
   preferredRouteOrder: readonly HostRoute[];
   ssh: SshProfile;
-  /** The agent's remote management port; this is not the Minecraft server port. */
+  /** The engine's remote management port; this is not the Minecraft server port. */
   managementPort: number;
   /** A client-side port for a future managed SSH forward. */
   localForwardedPort?: number;
   /** Legacy saved setting; managed remote connections now always use SSH tunnels. */
   tryDirectFirst: boolean;
   /** An existing user-maintained tunnel endpoint, when the advanced path is used. */
-  manualAgentAddress?: string;
+  manualEngineAddress?: string;
 
   /** Accepted while reading old in-memory callers; never written by saved.ts. */
   readonly label?: string;
@@ -68,7 +68,7 @@ export interface RemoteHostProfileInput {
   readonly localForwardedPort?: number;
   /** Legacy input accepted for compatibility; remote records now always use SSH tunnels. */
   readonly tryDirectFirst?: boolean;
-  readonly manualAgentAddress?: string;
+  readonly manualEngineAddress?: string;
 }
 
 /**
@@ -88,7 +88,7 @@ export interface RemoteHostConnectionInput {
   readonly managementPort: number;
   readonly localForwardedPort: number;
   readonly manualTunnel: boolean;
-  readonly manualAgentAddress?: string;
+  readonly manualEngineAddress?: string;
   readonly baseUrl: string;
   readonly pairingCode: string;
   /** Set only after the user explicitly trusts a changed SSH identity. */
@@ -98,7 +98,7 @@ export interface RemoteHostConnectionInput {
 export function createLocalHostRecord(baseUrl: string): HostRecord {
   return {
     id: LOCAL_HOST_ID,
-    displayName: 'Local agent',
+    displayName: 'Local engine',
     lanAddresses: [baseUrl],
     tailscaleAddresses: [],
     preferredRouteOrder: ['lan'],
@@ -106,7 +106,7 @@ export function createLocalHostRecord(baseUrl: string): HostRecord {
       hostname: '',
       port: DEFAULT_SSH_PORT,
       username: '',
-      authentication: 'agent',
+      authentication: 'keychain',
     },
     managementPort: portFromUrl(baseUrl) ?? DEFAULT_MANAGEMENT_PORT,
     tryDirectFirst: true,
@@ -128,7 +128,7 @@ export function createRemoteHostRecord(input: RemoteHostProfileInput): HostRecor
       hostname: input.ssh?.hostname?.trim() || parsedAddress?.hostname || '',
       port: DEFAULT_SSH_PORT,
       username: input.ssh?.username?.trim() ?? '',
-      authentication: input.ssh?.authentication ?? 'agent',
+      authentication: input.ssh?.authentication ?? 'keychain',
       ...(input.ssh?.privateKeyPath?.trim()
         ? { privateKeyPath: input.ssh.privateKeyPath.trim() }
         : {}),
@@ -138,8 +138,8 @@ export function createRemoteHostRecord(input: RemoteHostProfileInput): HostRecor
       ? { localForwardedPort: DEFAULT_LOCAL_FORWARDED_PORT }
       : { localForwardedPort: input.localForwardedPort }),
     tryDirectFirst: false,
-    ...(input.manualAgentAddress?.trim()
-      ? { manualAgentAddress: input.manualAgentAddress.trim() }
+    ...(input.manualEngineAddress?.trim()
+      ? { manualEngineAddress: input.manualEngineAddress.trim() }
       : {}),
   };
 }
@@ -170,14 +170,15 @@ export function normalizeHostRecord(value: unknown): HostRecord | null {
   const sshRecord = objectValue(record.ssh);
   const firstAddress = [...lanAddresses, ...tailscaleAddresses][0] ?? '';
   const parsedAddress = parseAddress(firstAddress);
-  const authentication = sshAuthentication(sshRecord?.authentication) ?? 'agent';
+  const authentication = sshAuthentication(sshRecord?.authentication) ?? 'keychain';
   const managementPort =
     validPort(record.managementPort) ?? portFromUrl(firstAddress) ?? DEFAULT_MANAGEMENT_PORT;
   const localForwardedPort =
     validPort(record.localForwardedPort) ??
     (id === LOCAL_HOST_ID ? undefined : DEFAULT_LOCAL_FORWARDED_PORT);
   const tryDirectFirst = id === LOCAL_HOST_ID && record.tryDirectFirst !== false;
-  const manualAgentAddress = stringValue(record.manualAgentAddress);
+  const manualEngineAddress =
+    stringValue(record.manualEngineAddress) ?? stringValue(record.manualAgentAddress);
 
   return {
     id,
@@ -197,7 +198,7 @@ export function normalizeHostRecord(value: unknown): HostRecord | null {
     managementPort,
     ...(localForwardedPort === undefined ? {} : { localForwardedPort }),
     tryDirectFirst,
-    ...(manualAgentAddress ? { manualAgentAddress } : {}),
+    ...(manualEngineAddress ? { manualEngineAddress } : {}),
   };
 }
 
@@ -261,11 +262,11 @@ export function withPreferredHostRoute(host: HostRecord, preferredRoute: HostRou
   return { ...host, preferredRouteOrder: [preferredRoute, ...remaining] };
 }
 
-/** Builds the agent origin for a selected route or the saved managed tunnel. */
+/** Builds the engine origin for a selected route or the saved managed tunnel. */
 export function hostManagementUrl(host: HostRecord, route?: HostRoute): string {
   if (route === undefined && !host.tryDirectFirst) {
     return (
-      host.manualAgentAddress ??
+      host.manualEngineAddress ??
       `http://127.0.0.1:${host.localForwardedPort ?? DEFAULT_LOCAL_FORWARDED_PORT}`
     );
   }
@@ -363,7 +364,10 @@ function routeOrder(
 }
 
 function sshAuthentication(value: unknown): SshAuthentication | undefined {
-  return value === 'password' || value === 'private-key' || value === 'agent' ? value : undefined;
+  if (value === 'agent') return 'keychain';
+  return value === 'password' || value === 'private-key' || value === 'keychain'
+    ? value
+    : undefined;
 }
 
 function validPort(value: unknown): number | undefined {

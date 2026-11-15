@@ -185,12 +185,12 @@ export function sessionDurationLabel(
 // ── Client-local "clear log" — Bedrock-only fallback. Java's Clear Log now
 // calls the real POST /v1/session-log/clear (P12.3a/c), which actually
 // deletes the events. Bedrock still derives from the console tail, a bounded
-// recent buffer with nothing durable on the agent to send a clear mutation
+// recent buffer with nothing durable on the engine to send a clear mutation
 // to, so it keeps the client-side cutoff-timestamp treatment notes.ts
 // already gives other per-server state with no backend field. ────────────
 
 function clearedKey(hostId: string, serverId: string): string {
-  return `msc2.sessionLogClearedAt.${hostId}.${serverId}`;
+  return `msc.sessionLogClearedAt.${hostId}.${serverId}`;
 }
 
 export function readSessionLogClearedAt(hostId: string, serverId: string): number {

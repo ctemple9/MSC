@@ -27,6 +27,6 @@ cargo nextest --version >/dev/null 2>&1 || fail "cargo-nextest is not installed"
 
 cd "${ROOT}"
 echo "== exercising the production Bedrock router with the platform fixture adapter =="
-cargo nextest run -p msc-agent --test bedrock_production_smoke
+cargo nextest run -p msc-engine --test bedrock_production_smoke
 
 echo "PHASE 10 CROSS-BACKEND SYNTHETIC SMOKE PASSED"

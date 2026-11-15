@@ -1,6 +1,6 @@
 # Exact-release gameplay rules
 
-The agent embeds `crates/msc-infrastructure/data/gamerules/catalogs.json`.
+The engine embeds `crates/msc-infrastructure/data/gamerules/catalogs.json`.
 Individual catalogs retain their source URL/checksum. Neither the API nor the UI
 substitutes a nearby version. Unsupported versions retain manual entry.
 
@@ -51,7 +51,7 @@ picker replaces one override when selecting the other, and validation rejects
 conflicting manual values. Coordinates uses the existing dedicated world toggle.
 
 Both scripts rebuild the embedded combined bundle. Catalog updates ship with the
-agent, so an offline client and remote client use the same agent-owned data.
+engine, so an offline client and remote client use the same engine-owned data.
 Creating a server resolves Latest to an exact release before requesting its
 catalog and retains that selection for the download. A missing catalog never
 blocks creating a server with Minecraft defaults or manually entered rules.

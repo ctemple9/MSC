@@ -165,7 +165,7 @@ pub fn java_setting_contract(key: &str) -> Option<SettingContract> {
 /// accepted by the compatibility validator, but naming them here prevents a
 /// future route from deciding ownership by whichever screen happens to render
 /// the value first.
-/// New `server.properties` values require a restart until the agent applies
+/// New `server.properties` values require a restart until the engine applies
 /// them through a verified live Bedrock command as part of the same update.
 pub fn bedrock_setting_contract(key: &str) -> Option<SettingContract> {
     let contract = match key {

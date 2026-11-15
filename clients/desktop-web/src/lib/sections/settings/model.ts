@@ -1,8 +1,8 @@
 import type { Schema } from '../shared/types';
 
 // Same values GET /v1/settings' java_sections() falls back to for a fresh
-// server.properties (crates/msc-agent/src/routes/settings.rs) -- shown
-// before the agent responds and whenever no agent is connected, same
+// server.properties (crates/msc-engine/src/routes/settings.rs) -- shown
+// before the engine responds and whenever no engine is connected, same
 // precedent as addons/model.ts's demoAddons.
 export const demoSettings: Schema['SettingsResponseDTO'] = {
   serverType: 'java',

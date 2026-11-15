@@ -26,7 +26,7 @@ describe('world-settings release gate', () => {
     expect(settingsSource).toContain("'server_force_gamemode'");
     expect(settingsSource).not.toContain('Edit active world settings in Worlds');
     expect(formSource).toContain('serverSettingsHref');
-    expect(formSource).toContain('The agent will require an acknowledgement');
+    expect(formSource).toContain('The engine will require an acknowledgement');
   });
 
   it('does not send fields that the selected edition or runtime cannot support', () => {

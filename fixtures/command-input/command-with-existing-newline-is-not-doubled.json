@@ -13,5 +13,5 @@
   "expected": {
     "stdinBytes": [115, 97, 121, 32, 104, 105, 10]
   },
-  "notes": "The API path trims user input before delivery, so MSC 1's Java path normally never sees a trailing newline. MSC 2 keeps delivery idempotent here so a direct caller cannot accidentally send a blank command after the intended one."
+  "notes": "The API path trims user input before delivery, so MSC 1's Java path normally never sees a trailing newline. MSC keeps delivery idempotent here so a direct caller cannot accidentally send a blank command after the intended one."
 }

@@ -2,7 +2,7 @@ import type { StorageSnapshot, StorageItem, StorageResult } from '../../platform
 export const categories = [
   ['servers', 'Servers'],
   ['desktopApp', 'Desktop app'],
-  ['agent', 'Agent'],
+  ['agent', 'Background Service'],
   ['sharedTools', 'Shared tools & runtimes'],
   ['cache', 'Cache & temporary files'],
 ] as const;
@@ -34,7 +34,7 @@ export interface PendingCleanup {
   name: string;
   operationId: string;
 }
-const pendingKey = 'msc2.storage-pending-cleanups';
+const pendingKey = 'msc.storage-pending-cleanups';
 export function pendingCleanups(): PendingCleanup[] {
   try {
     const parsed: unknown = JSON.parse(localStorage.getItem(pendingKey) ?? '[]');

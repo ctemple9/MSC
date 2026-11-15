@@ -94,7 +94,7 @@
     const lifecycle = metadata[key]?.lifecycle;
     if (lifecycle === 'restart_required') return 'Saved now; applies after the server restarts.';
     if (lifecycle === 'apply_on_activation') return 'Used when this world becomes active.';
-    if (metadata[key]?.valueState === 'unknown') return 'The agent could not verify this value.';
+    if (metadata[key]?.valueState === 'unknown') return 'The engine could not verify this value.';
     return undefined;
   }
 
@@ -251,7 +251,7 @@
 
   {#if creativeSelected}
     <p class="safety-note" role="note">
-      Creative changes the world's gameplay rules. The agent will require an acknowledgement before
+      Creative changes the world's gameplay rules. The engine will require an acknowledgement before
       applying it; on Bedrock, achievements may be permanently disabled for this world.
     </p>
   {/if}
@@ -614,7 +614,7 @@
   }
   .intro h2 {
     margin: 0;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 15px;
     font-weight: 600;
   }
@@ -631,15 +631,15 @@
   .intro p,
   .ownership,
   .hint {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .context {
     display: flex;
     flex-direction: column;
     gap: 3px;
     padding: 10px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .context-label,
   .context-value {
@@ -647,27 +647,27 @@
   }
   .context-label,
   .boundary-label {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.07em;
     text-transform: uppercase;
   }
   .context-value {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
   }
   .boundary {
     padding-left: 10px;
-    border-left: 2px solid var(--msc2-hairline-field);
-    color: var(--msc2-text-tertiary);
+    border-left: 2px solid var(--msc-hairline-field);
+    color: var(--msc-text-tertiary);
   }
   .boundary-label {
     margin-right: 5px;
   }
   .boundary a {
     margin-left: 4px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
@@ -678,7 +678,7 @@
   }
   .section-title,
   .label {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
     font-weight: 500;
   }
@@ -736,7 +736,7 @@
     margin-top: 2px;
   }
   .disclosure {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .disclosure summary {
     display: flex;
@@ -744,7 +744,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 12px 0;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     cursor: pointer;
     list-style: none;
   }
@@ -752,7 +752,7 @@
     display: none;
   }
   .disclosure summary:focus-visible {
-    outline: 1px solid var(--msc2-hairline-field-focus);
+    outline: 1px solid var(--msc-hairline-field-focus);
     outline-offset: 3px;
   }
   .disclosure-title,
@@ -765,11 +765,11 @@
   }
   .disclosure-subtitle {
     margin-top: 2px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .chevron {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 16px;
     transition: transform 120ms ease;
   }
@@ -783,17 +783,17 @@
     width: 100%;
     box-sizing: border-box;
     padding: 8px 10px;
-    border: 1px solid var(--msc2-hairline-subtle);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 8px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
     line-height: 1.45;
   }
   .safety-note {
     padding: 9px 11px;
-    border: 1px solid var(--msc2-hairline-strong);
+    border: 1px solid var(--msc-hairline-strong);
     border-radius: 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   @media (max-width: 560px) {
     .field-grid {

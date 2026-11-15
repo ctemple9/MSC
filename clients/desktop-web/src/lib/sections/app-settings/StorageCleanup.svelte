@@ -26,7 +26,7 @@
       if (alive) preview = result;
     } catch (error) {
       if (alive)
-        notice = `${errorMessage(error)} Both local and remote cleanup require an updated host agent.`;
+        notice = `${errorMessage(error)} Both local and remote cleanup require an updated host engine.`;
     } finally {
       if (alive) busy = false;
     }
@@ -114,14 +114,14 @@
   .path {
     overflow-wrap: anywhere;
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .summary {
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .hint {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
   }
 </style>

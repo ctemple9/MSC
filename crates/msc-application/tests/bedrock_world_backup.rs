@@ -25,7 +25,7 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(label: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "msc2-bedrock-world-backup-{label}-{}-{}",
+            "msc-bedrock-world-backup-{label}-{}-{}",
             std::process::id(),
             uuid::Uuid::new_v4()
         ));

@@ -16,13 +16,13 @@ describe('native Playit setup sheet', () => {
     }
     for (const code of ['incorrect_credentials', 'account_banned', 'two_factor_required']) {
       expect(playitSetupNeedsCleanup(code, 'signing_in')).toBe(false);
-      expect(playitSetupNeedsCleanup(code, 'waiting_for_agent')).toBe(false);
+      expect(playitSetupNeedsCleanup(code, 'waiting_for_engine')).toBe(false);
     }
     expect(playitSetupNeedsCleanup('rate_limited', 'signing_in')).toBe(false);
     expect(playitSetupNeedsCleanup('rate_limited', 'creating_or_reusing_java_tunnel')).toBe(true);
   });
 
-  it('keeps the account flow agent-owned and credential-free after submission', () => {
+  it('keeps the account flow engine-owned and credential-free after submission', () => {
     expect(sheetSource).toContain('serverEditorPaths.playitSetup');
     expect(sheetSource).toContain('serverEditorPaths.playitReset');
     expect(sheetSource).toContain('email');
@@ -39,8 +39,8 @@ describe('native Playit setup sheet', () => {
   it('shows the frozen operation stages and narrows later voice setup', () => {
     expect(PLAYIT_SETUP_STEPS.map((step) => step.key)).toEqual([
       'signing_in',
-      'claiming_or_reusing_agent',
-      'waiting_for_agent',
+      'claiming_or_reusing_engine',
+      'waiting_for_engine',
       'creating_or_reusing_java_tunnel',
       'creating_or_reusing_bedrock_tunnel',
       'creating_or_reusing_voice_tunnel',
@@ -48,8 +48,8 @@ describe('native Playit setup sheet', () => {
     ]);
     expect(playitSetupStepsForMode(true).map((step) => step.key)).toEqual([
       'signing_in',
-      'claiming_or_reusing_agent',
-      'waiting_for_agent',
+      'claiming_or_reusing_engine',
+      'waiting_for_engine',
       'creating_or_reusing_voice_tunnel',
       'receiving_public_addresses',
     ]);
@@ -57,9 +57,9 @@ describe('native Playit setup sheet', () => {
     expect(sheetSource).toContain('onComplete');
   });
 
-  it('maps agent progress wording and provider failures to useful UI copy', () => {
-    expect(playitSetupProgressForStatus('Reusing existing agent')).toBe(
-      'claiming_or_reusing_agent',
+  it('maps engine progress wording and provider failures to useful UI copy', () => {
+    expect(playitSetupProgressForStatus('Reusing existing engine')).toBe(
+      'claiming_or_reusing_engine',
     );
     expect(playitSetupProgressForStatus('Creating or reusing MSC Voice tunnel')).toBe(
       'creating_or_reusing_voice_tunnel',

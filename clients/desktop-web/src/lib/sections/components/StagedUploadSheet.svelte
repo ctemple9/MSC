@@ -84,7 +84,7 @@
         stagedId = undefined;
         cleanupUnconfirmed = false;
       } catch (cause) {
-        error = `Agent cleanup could not be confirmed: ${errorMessage(cause)}`;
+        error = `Engine cleanup could not be confirmed: ${errorMessage(cause)}`;
         return;
       }
     }
@@ -97,7 +97,7 @@
     const signal = controller.signal;
     const current = () => !disposed && !signal.aborted && (scoped?.isCurrent?.() ?? true);
     try {
-      if (!scoped) throw new Error('Connect to an agent before uploading.');
+      if (!scoped) throw new Error('Connect to an engine before uploading.');
       if (!current())
         throw new Error('The selected host or server changed. Choose the file again.');
       progress = { phase: 'preparing', bytesUploaded: 0, totalBytes: source.size };
@@ -150,7 +150,7 @@
           stagedId = undefined;
         } catch (cleanup) {
           cleanupUnconfirmed = true;
-          messages.push(`Agent cleanup could not be confirmed: ${errorMessage(cleanup)}`);
+          messages.push(`Engine cleanup could not be confirmed: ${errorMessage(cleanup)}`);
         }
       }
       try {
@@ -184,7 +184,7 @@
     if (mode === 'settings' && !task) task = runUpload();
   }
   onMount(() => {
-    if (native && !source.olderAgent) startUpload();
+    if (native && !source.olderEngine) startUpload();
   });
   onDestroy(() => {
     disposed = true;
@@ -216,7 +216,7 @@
       {#if native}
         <p class="explain">
           This host uses older transfer support. MSC will use its supported native fallback. Update
-          the agent for streamed receipt; some older file routes buffer input in host memory.
+          the engine for streamed receipt; some older file routes buffer input in host memory.
         </p>
       {:else}
         <p class="explain">
@@ -280,7 +280,7 @@
 
   .file {
     margin: 0;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 13px;
     font-weight: 500;
     overflow-wrap: anywhere;
@@ -290,18 +290,18 @@
   label,
   .range-hints {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
     line-height: 1.5;
   }
 
   label {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
 
   input[type='range'] {
     width: 100%;
-    accent-color: var(--msc2-accent);
+    accent-color: var(--msc-accent);
   }
 
   .range-hints,

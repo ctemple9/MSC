@@ -93,23 +93,23 @@ fn uses_local_service_overrides_without_disclosing_other_environment_values() {
         "/opt/msc2/logs/agent.log",
         48001,
     )
-    .env("MSC2_DATA_DIR", "/srv/msc2/data")
-    .env("MSC2_APP_CONFIG_PATH", "/srv/msc2/config.json")
-    .env("MSC2_AGENT_SERVERS_ROOT", "/srv/msc2/servers")
+    .env("MSC2_DATA_DIR", "/srv/msc/data")
+    .env("MSC2_APP_CONFIG_PATH", "/srv/msc/config.json")
+    .env("MSC2_AGENT_SERVERS_ROOT", "/srv/msc/servers")
     .env("PASSWORD", "private-fixture-value");
     req.services = vec![ServiceStatusReport::stopped(definition)];
     let result = uninstall::inventory(&fs, &req);
     let encoded = serde_json::to_string(&result).unwrap();
-    assert!(encoded.contains("/srv/msc2/data"));
-    assert!(encoded.contains("/srv/msc2/config.json"));
+    assert!(encoded.contains("/srv/msc/data"));
+    assert!(encoded.contains("/srv/msc/config.json"));
     assert!(!encoded.contains("private-fixture-value"));
     let overrides = Overrides::from_environment(&BTreeMap::from([
-        ("MSC2_DATA_DIR".into(), "/srv/msc2/data".into()),
+        ("MSC2_DATA_DIR".into(), "/srv/msc/data".into()),
         ("SECRET".into(), "private-fixture-value".into()),
     ]));
     assert_eq!(
         overrides.data_dir.as_deref(),
-        Some(Path::new("/srv/msc2/data"))
+        Some(Path::new("/srv/msc/data"))
     );
 }
 

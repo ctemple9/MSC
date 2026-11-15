@@ -1,12 +1,12 @@
 //! `SettingsResponseDTO`/`SettingsUpdateResultDTO` and friends —
 //! `GET`/`POST /v1/settings`'s typed `server.properties` schema, per
 //! `openapi.json`. Wire shapes only; the section/field builder and the
-//! validate-and-persist logic live in `msc-agent`'s settings route (this
+//! validate-and-persist logic live in `msc-engine`'s settings route (this
 //! crate carries no dependency on `msc-domain`, matching every other DTO
 //! module here).
 //!
 //! `helpId` replaces the MSC 1 baseline's free-text `SettingFieldDTO.help`
-//! field one-for-one (`docs/msc2/api-contract/helpid-contract.md` §4):
+//! field one-for-one (`docs/msc/api-contract/helpid-contract.md` §4):
 //! present only on the handful of fields MSC 1 actually gave inline help
 //! text, resolved later via the still-homeless `GET /v1/help/{helpId}`
 //! route this phase does not build.

@@ -18,7 +18,7 @@ describe('Fedora remote Xbox Broadcast sign-in regression', () => {
     expect(settingsSource).toContain('<BroadcastAuthSheet {api} prompt={broadcastAuth}');
   });
 
-  it('polls the selected agent for a device-code prompt and shows it in a shell sheet', () => {
+  it('polls the selected engine for a device-code prompt and shows it in a shell sheet', () => {
     expect(appSource).toContain("'/v1/broadcast/auth-prompt'");
     expect(appSource).toContain('broadcastAuthShouldPoll && broadcastAuthTimer === undefined');
     expect(appSource).toContain('broadcastAuthTimer = setInterval');
@@ -26,7 +26,7 @@ describe('Fedora remote Xbox Broadcast sign-in regression', () => {
     expect(appSource).toContain('<BroadcastAuthSheet api={screenApi}');
   });
 
-  it('shows the authenticated identity returned by the remote agent in the sidebar', () => {
+  it('shows the authenticated identity returned by the remote engine in the sidebar', () => {
     expect(sidebarSource).toContain("'/v1/broadcast/status'");
     expect(sidebarSource).toContain('value: broadcast.gamertag');
     expect(sidebarSource).toContain("broadcast.authenticated ? 'Signed in' : 'Not signed in yet'");

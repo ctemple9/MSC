@@ -16,15 +16,15 @@
     font-weight: 500;
   }
   .label.ok {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .label.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .label.error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .label.bedrock {
-    color: var(--msc2-status-bedrock);
+    color: var(--msc-status-bedrock);
   }
 </style>

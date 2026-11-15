@@ -5,7 +5,7 @@
   // The oracle color-codes causes/actions/escalation by card (neutral/blue/
   // orange); here only severity -- a real computed system state, not a
   // content classification -- keeps a reserved status color
-  // (docs/msc2/antiAIslop.md; see routerLabels.ts).
+  // (docs/msc/antiAIslop.md; see routerLabels.ts).
   import Badge from '../../components/base/Badge.svelte';
   import Button from '../../components/base/Button.svelte';
   import Card from '../../components/base/Card.svelte';
@@ -46,7 +46,7 @@
 
   async function analyze(): Promise<void> {
     if (!api) {
-      phase = { kind: 'failed', message: 'Connect to an agent to run a diagnosis.' };
+      phase = { kind: 'failed', message: 'Connect to an engine to run a diagnosis.' };
       return;
     }
     phase = { kind: 'busy' };
@@ -75,10 +75,10 @@
 </script>
 
 <div class="troubleshooting">
-  <p class="msc2-type-overline">Step 3 of 3 — Diagnose issues</p>
+  <p class="msc-type-overline">Step 3 of 3 — Diagnose issues</p>
 
   <div class="checklist">
-    <p class="msc2-type-overline">What are you seeing?</p>
+    <p class="msc-type-overline">What are you seeing?</p>
     <Card padding="0">
       {#each symptoms as symptom, index (symptom.id)}
         <button
@@ -90,8 +90,8 @@
         >
           <span class="check" aria-hidden="true">{selected.has(symptom.id) ? '✓' : ''}</span>
           <span class="text">
-            <span class="msc2-type-card">{symptom.title}</span>
-            <span class="msc2-type-meta">{symptom.description}</span>
+            <span class="msc-type-card">{symptom.title}</span>
+            <span class="msc-type-meta">{symptom.description}</span>
           </span>
         </button>
         {#if index < symptoms.length - 1}<div class="divider"></div>{/if}
@@ -100,7 +100,7 @@
   </div>
 
   {#if selected.size === 0 && phase.kind !== 'done'}
-    <p class="msc2-type-meta">Select the symptoms above to get a diagnosis.</p>
+    <p class="msc-type-meta">Select the symptoms above to get a diagnosis.</p>
   {:else}
     <Button
       variant="primary"
@@ -112,19 +112,19 @@
   {/if}
 
   {#if phase.kind === 'failed'}
-    <p class="msc2-type-meta error">{phase.message}</p>
+    <p class="msc-type-meta error">{phase.message}</p>
   {:else if phase.kind === 'done'}
     {@const analysis = phase.analysis}
     <div class="results">
       <Card>
-        <p class="msc2-type-overline">Diagnosis</p>
-        <p class="msc2-type-card">{analysis.summary}</p>
+        <p class="msc-type-overline">Diagnosis</p>
+        <p class="msc-type-card">{analysis.summary}</p>
       </Card>
 
       {#if analysis.likelyCauses.length === 0}
         <Card>
-          <p class="msc2-type-card">No specific cause matched.</p>
-          <p class="msc2-type-body muted">
+          <p class="msc-type-card">No specific cause matched.</p>
+          <p class="msc-type-body muted">
             Try the advanced troubleshooting guide for deeper diagnostics.
           </p>
           <Button
@@ -137,7 +137,7 @@
         </Card>
       {:else}
         <div class="causes">
-          <p class="msc2-type-overline">Likely causes</p>
+          <p class="msc-type-overline">Likely causes</p>
           {#each analysis.likelyCauses as cause (cause.id)}
             <Card padding="0">
               <button
@@ -149,15 +149,15 @@
                 <Badge variant="status" tone={severityTone(cause.severity)}>
                   {severityLabel(cause.severity)}
                 </Badge>
-                <span class="msc2-type-card cause-title">{cause.topic.title}</span>
+                <span class="msc-type-card cause-title">{cause.topic.title}</span>
                 <span class="chevron" class:open={expandedCauseIds.has(cause.id)}>›</span>
               </button>
               {#if expandedCauseIds.has(cause.id)}
                 <div class="cause-body">
-                  <p class="msc2-type-body muted">{cause.topic.summary}</p>
+                  <p class="msc-type-body muted">{cause.topic.summary}</p>
                   {#if cause.topic.suggestedNextActions.length}
-                    <p class="msc2-type-meta">Suggested actions:</p>
-                    <ul class="msc2-type-body muted">
+                    <p class="msc-type-meta">Suggested actions:</p>
+                    <ul class="msc-type-body muted">
                       {#each cause.topic.suggestedNextActions as action (action)}
                         <li>{action}</li>
                       {/each}
@@ -172,8 +172,8 @@
 
       {#if analysis.recommendedActions.length}
         <Card>
-          <p class="msc2-type-overline">Recommended actions</p>
-          <ul class="msc2-type-body muted">
+          <p class="msc-type-overline">Recommended actions</p>
+          <ul class="msc-type-body muted">
             {#each analysis.recommendedActions as action (action)}
               <li>{action}</li>
             {/each}
@@ -183,8 +183,8 @@
 
       {#if analysis.escalationBullets.length}
         <Card>
-          <p class="msc2-type-overline">Important</p>
-          <ul class="msc2-type-body muted">
+          <p class="msc-type-overline">Important</p>
+          <ul class="msc-type-body muted">
             {#each analysis.escalationBullets as bullet (bullet)}
               <li>{bullet}</li>
             {/each}
@@ -196,9 +196,9 @@
         {@const targetId =
           analysis.fallbackResolution.matchedGuideId ?? analysis.fallbackResolution.fallbackGuideId}
         <Card>
-          <p class="msc2-type-overline">Suggested path</p>
+          <p class="msc-type-overline">Suggested path</p>
           {#if analysis.fallbackResolution.explanationBullets.length}
-            <ul class="msc2-type-body muted">
+            <ul class="msc-type-body muted">
               {#each analysis.fallbackResolution.explanationBullets as bullet (bullet)}
                 <li>{bullet}</li>
               {/each}
@@ -225,16 +225,16 @@
 <style>
   /* Router Guide runs a size step above the shared type scale, and this
      screen a step above that again -- the owner's own visual-review call. */
-  .troubleshooting :global(.msc2-type-overline) {
+  .troubleshooting :global(.msc-type-overline) {
     font-size: 12px;
   }
-  .troubleshooting :global(.msc2-type-body),
-  .troubleshooting :global(.msc2-type-card) {
+  .troubleshooting :global(.msc-type-body),
+  .troubleshooting :global(.msc-type-card) {
     font-size: 16px;
   }
-  .troubleshooting :global(.msc2-type-meta) {
+  .troubleshooting :global(.msc-type-meta) {
     font-size: 14px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .troubleshooting {
     display: flex;
@@ -256,16 +256,16 @@
     padding: 10px 14px;
     border: none;
     background: transparent;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     text-align: left;
     cursor: pointer;
   }
   .symptom-row:hover {
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
   }
   .symptom-row.selected {
-    background: var(--msc2-neutral-elevated);
+    background: var(--msc-neutral-elevated);
   }
   .check {
     width: 16px;
@@ -273,17 +273,17 @@
     flex: none;
     margin-top: 1px;
     border-radius: 4px;
-    border: 1px solid var(--msc2-hairline);
+    border: 1px solid var(--msc-hairline);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 11px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .symptom-row.selected .check {
-    background: var(--msc2-neutral-muted);
-    color: var(--msc2-text-primary);
-    border-color: var(--msc2-neutral-muted);
+    background: var(--msc-neutral-muted);
+    color: var(--msc-text-primary);
+    border-color: var(--msc-neutral-muted);
   }
   .text {
     display: flex;
@@ -292,14 +292,14 @@
   }
   .divider {
     height: 1px;
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
     margin-left: 40px;
   }
   .muted {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   ul {
     margin: 4px 0 0;
@@ -316,7 +316,7 @@
     padding: 11px 14px;
     border: none;
     background: transparent;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     text-align: left;
     cursor: pointer;
@@ -325,7 +325,7 @@
     flex: 1;
   }
   .chevron {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     transform: rotate(90deg);
     transition: transform 0.15s ease;
   }
@@ -343,6 +343,6 @@
     align-items: center;
     justify-content: space-between;
     padding-top: 10px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
 </style>

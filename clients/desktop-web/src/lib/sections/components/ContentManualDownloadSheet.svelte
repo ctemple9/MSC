@@ -97,7 +97,7 @@
           stagedUploadId: receipt.stagedUploadId,
         },
       );
-      if (!result.success) throw new Error('The agent did not confirm this manual file.');
+      if (!result.success) throw new Error('The engine did not confirm this manual file.');
       consumed = true;
       if (current()) acceptedManual = new Set(acceptedManual).add(file.versionId);
     } catch (cause) {
@@ -312,7 +312,7 @@
   .identity p,
   .explain {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
     line-height: 1.5;
     overflow-wrap: anywhere;
@@ -324,20 +324,20 @@
     line-height: 1.5;
   }
   .error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .warning {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .verified {
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .files {
     margin: 16px 0;
   }
   .file {
     padding: 12px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .file-info {
     display: grid;
@@ -351,7 +351,7 @@
   }
   details {
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   summary {
     cursor: pointer;
@@ -369,6 +369,6 @@
   }
   progress {
     width: 100%;
-    accent-color: var(--msc2-neutral-fill);
+    accent-color: var(--msc-neutral-fill);
   }
 </style>

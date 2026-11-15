@@ -35,7 +35,7 @@ and the provider corpus it should be characterized against:
     `corpus_source` field -- a list of paths, relative to the provider
     corpus root, naming which recorded response(s) that case was
     characterized from. This is additive to the six required fields
-    `docs/msc2/fixture-format.md` already defines; existing tooling ignores
+    `docs/msc/fixture-format.md` already defines; existing tooling ignores
     unknown fields, so this doesn't touch that spec.
   - Every path a fixture cites must actually have a manifest entry in the
     provider corpus -- a fixture cannot claim a response that was never
@@ -46,7 +46,7 @@ and the provider corpus it should be characterized against:
     citation it does have is real.
 
 Evidence mode (P7.28) checks a real-provisioning evidence directory (default
-`docs/msc2/families/provisioning-evidence/`) -- the one Phase 7 step that
+`docs/msc/families/provisioning-evidence/`) -- the one Phase 7 step that
 uses the real internet, proving live providers still return what the fake
 providers/tests above were built to simulate:
 
@@ -62,7 +62,7 @@ providers/tests above were built to simulate:
     `matches_provider_published` key -- `null` is how a family whose
     provider publishes no checksum to compare against records that
     honestly), `checksum_verification` (P7.37: `"enforced_by_production"`
-    when the real, unmodified `msc-agent` binary's own P7.35 checksum
+    when the real, unmodified `msc-engine` binary's own P7.35 checksum
     enforcement is what accepted these bytes -- a mismatch would have
     refused the download outright, so a successful create *is* the
     evidence -- or `"not_published"` when this family's provider gives
@@ -78,7 +78,7 @@ providers/tests above were built to simulate:
 Passing and deliberately failing self-tests (`--selftest`) prove each
 rejection fires, for all three modes, against small synthetic fixtures
 under `tools/phase7/fixtures/` -- never against `corpus/providers/` or
-`docs/msc2/families/provisioning-evidence/` themselves, so nothing invented
+`docs/msc/families/provisioning-evidence/` themselves, so nothing invented
 ends up standing in for the real thing. No network access anywhere in this
 tool.
 
@@ -93,7 +93,7 @@ tool.
   provider-corpus-check.py --evidence [EVIDENCE_DIR]
                                              check a real-provisioning
                                              evidence directory (default:
-                                             docs/msc2/families/
+                                             docs/msc/families/
                                              provisioning-evidence)
   provider-corpus-check.py --selftest       run all three modes against the
                                              fixtures in
@@ -117,7 +117,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 DEFAULT_PROVIDERS_DIR = Path("corpus/providers")
-DEFAULT_EVIDENCE_DIR = Path("docs/msc2/families/provisioning-evidence")
+DEFAULT_EVIDENCE_DIR = Path("docs/msc/families/provisioning-evidence")
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 FAMILIES = ("vanilla", "paper", "purpur", "fabric", "neoforge", "forge")
@@ -138,7 +138,7 @@ REQUIRED_EVIDENCE_FIELDS = (
 
 REQUIRED_CHECKSUM_FIELDS = ("algorithm", "value")
 
-# P7.37: whether the *real, unmodified* `msc-agent` binary's own P7.35
+# P7.37: whether the *real, unmodified* `msc-engine` binary's own P7.35
 # checksum enforcement is what accepted this family's bytes
 # ("enforced_by_production" -- the create would have refused a mismatch
 # outright) or whether this family's provider publishes nothing for

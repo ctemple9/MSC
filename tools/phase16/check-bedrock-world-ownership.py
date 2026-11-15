@@ -22,7 +22,7 @@ def run(source: Path) -> None:
         raise RuntimeError("Run as the installing user on an Intel Mac, not with sudo")
     if not (source / "bedrock_server").is_file():
         raise RuntimeError("Source must contain the installed Bedrock runtime")
-    target = Path(tempfile.mkdtemp(prefix="msc2-ownership-check-", dir=source.parent))
+    target = Path(tempfile.mkdtemp(prefix="msc-ownership-check-", dir=source.parent))
     print(f"Disposable server: {target}", flush=True)
     for entry in source.iterdir():
         if entry.is_symlink():

@@ -126,13 +126,13 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   .creation-progress progress {
     width: 100%;
     height: 6px;
-    accent-color: var(--msc2-text-secondary);
+    accent-color: var(--msc-text-secondary);
   }
   .body {
     display: flex;
@@ -146,21 +146,21 @@
     line-height: 1.5;
   }
   .error {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .confirmation {
     display: flex;
     flex-direction: column;
     gap: 7px;
     padding: 10px 12px;
-    border: 1px solid var(--msc2-hairline-strong);
+    border: 1px solid var(--msc-hairline-strong);
     border-radius: 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.45;
   }
   .confirmation-title {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 600;
   }
   .confirmation-actions,

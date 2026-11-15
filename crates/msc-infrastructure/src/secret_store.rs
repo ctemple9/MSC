@@ -4,7 +4,7 @@
 //! etc., lines 53-132), each sitting on top of its own generic
 //! `(service, account)`-keyed primitive (`read`/`write`/`delete`, lines
 //! 162-228). Here, a new secret kind is a new key string, documented in
-//! `docs/msc2/substrate/secret-storage.md` section 9, not a new method.
+//! `docs/msc/substrate/secret-storage.md` section 9, not a new method.
 //!
 //! Behavior is generalized directly from those three primitives, not
 //! invented: `get` on a key that was never set returns `Ok(None)`
@@ -36,7 +36,7 @@ pub type Result<T> = std::result::Result<T, SecretStoreError>;
 /// A durable key-value store for secrets, backed by whatever the host
 /// platform offers (Keychain, Credential Manager, `systemd-creds`). `key`
 /// is an opaque string per the naming scheme in
-/// `docs/msc2/substrate/secret-storage.md` section 9 — this trait itself
+/// `docs/msc/substrate/secret-storage.md` section 9 — this trait itself
 /// has no notion of which secret a key names.
 pub trait SecretStore: Send + Sync {
     /// `Ok(None)` when `key` was never set — never an error for a plain

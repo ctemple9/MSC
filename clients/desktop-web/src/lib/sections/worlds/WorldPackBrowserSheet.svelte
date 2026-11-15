@@ -199,7 +199,7 @@
     stableOnly = true;
     if (!connection) {
       detailLoading = false;
-      detailError = 'Connect to an agent to load pack details.';
+      detailError = 'Connect to an engine to load pack details.';
       return;
     }
     try {
@@ -251,7 +251,7 @@
       if (!bedrock && provider === 'curseforge') {
         const caps = await connection!.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
         if (!caps.contentCatalog?.javaDatapacks?.includes('curseforge'))
-          throw new Error('Update this agent to browse and install CurseForge Java datapacks.');
+          throw new Error('Update this engine to browse and install CurseForge Java datapacks.');
       }
       const params = new URLSearchParams();
       if (bedrock) params.set('kind', packKind);
@@ -369,7 +369,7 @@
     version: Schema['CatalogVersionDTO'],
     restoreFingerprint: string | undefined = undefined,
   ): Promise<string> {
-    if (!connection) throw new Error('Connect to an agent to install a datapack.');
+    if (!connection) throw new Error('Connect to an engine to install a datapack.');
     installing = item.projectId;
     notice = '';
     try {
@@ -955,7 +955,7 @@
 {#if showKeySheet}
   <Sheet title="CurseForge API key" size="sm" onClose={closeKeySheet}>
     <div class="key-form">
-      <p>Save a key for this agent to browse CurseForge packs.</p>
+      <p>Save a key for this engine to browse CurseForge packs.</p>
       <a href="https://console.curseforge.com/" onclick={(event) => void openKeyConsole(event)}
         >Get a key from the CurseForge API Console</a
       >
@@ -1058,7 +1058,7 @@
     margin: 8px 0;
     border: 0;
     background: none;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     font-size: 12px;
     text-align: left;
@@ -1073,10 +1073,10 @@
   }
   .key-form p {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .key-form a {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .key-form label {
     display: flex;
@@ -1085,10 +1085,10 @@
   }
   .key-form input {
     padding: 8px 10px;
-    border: 1px solid var(--msc2-hairline-field);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
-    background: var(--msc2-tier-chrome);
-    color: var(--msc2-text-primary);
+    background: var(--msc-tier-chrome);
+    color: var(--msc-text-primary);
     font: inherit;
   }
   .key-actions {
@@ -1117,17 +1117,17 @@
   .subtitle {
     margin: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .notice {
     margin: 0 0 10px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .explain {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .results {
     display: flex;
@@ -1148,7 +1148,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .result:first-child {
     border-top: none;
@@ -1172,10 +1172,10 @@
     align-items: center;
     gap: 8px;
     min-width: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .title-row .title {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .title-row :global(svg) {
     flex-shrink: 0;
@@ -1190,11 +1190,11 @@
     height: 40px;
     border-radius: 8px;
     overflow: hidden;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .icon img {
     width: 100%;
@@ -1204,17 +1204,17 @@
   .title {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .meta {
     margin: 2px 0 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .description {
     margin: 4px 0 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -1225,7 +1225,7 @@
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .detail-header {
     display: flex;
@@ -1239,11 +1239,11 @@
     height: 56px;
     overflow: hidden;
     border-radius: 8px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .detail-icon img {
     width: 100%;
@@ -1256,39 +1256,39 @@
   .detail-title {
     font-size: 15px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .detail-stats {
     margin: 4px 0 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .detail-byline {
     margin: 4px 0 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .provider-link {
     display: inline-flex;
     align-items: center;
     min-height: 30px;
     padding: 0 10px;
-    border: 1px solid var(--msc2-hairline-subtle);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 7px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 12px;
     text-decoration: none;
   }
   .provider-link:hover {
-    background: var(--msc2-neutral-muted);
+    background: var(--msc-neutral-muted);
   }
   .compat {
     margin: 14px 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .detail-error {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .detail-section {
     margin: 18px 0;
@@ -1297,7 +1297,7 @@
     margin: 0 0 8px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .gallery {
     display: flex;
@@ -1315,14 +1315,14 @@
   .about {
     font-size: 12.5px;
     line-height: 1.6;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .about p {
     margin: 0 0 8px;
     white-space: pre-wrap;
   }
   .about a {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .section-header {
     display: flex;
@@ -1334,7 +1334,7 @@
     align-items: center;
     gap: 6px;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .versions {
     display: flex;
@@ -1346,7 +1346,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 8px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .version-toggle {
     display: flex;
@@ -1366,7 +1366,7 @@
     display: inline-flex;
     flex: 0 0 12px;
     margin-top: 4px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     transition: transform 120ms ease;
   }
   .chevron.open {
@@ -1386,12 +1386,12 @@
   }
   .version-name {
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .version-mc,
   .version-downloads {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .version-detail {
     padding: 4px 0 10px 22px;
@@ -1399,7 +1399,7 @@
   .detail-label {
     margin: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .version-tags {
     display: flex;
@@ -1410,13 +1410,13 @@
   .tag {
     padding: 3px 7px;
     border-radius: 5px;
-    background: var(--msc2-neutral-muted);
-    color: var(--msc2-text-secondary);
+    background: var(--msc-neutral-muted);
+    color: var(--msc-text-secondary);
     font-size: 10px;
   }
   .tag.highlight {
-    background: var(--msc2-status-ok-tint);
-    color: var(--msc2-status-ok);
+    background: var(--msc-status-ok-tint);
+    color: var(--msc-status-ok);
   }
   .version-downloads {
     margin: 8px 0 0;

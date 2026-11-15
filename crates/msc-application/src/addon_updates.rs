@@ -21,10 +21,10 @@
 //! asserts, which is what a folder of any size costs.
 //!
 //! **`AddonPlanCache` — D-021's "bounded by construction" for a fleet
-//! agent.** `should_recompute_addon_plan` (P8.11) characterizes MSC 1's
+//! engine.** `should_recompute_addon_plan` (P8.11) characterizes MSC 1's
 //! own single in-memory plan slot: one desktop app showing one server's
 //! Components tab at a time, so `cached_server_id != current_server_id`
-//! (a "you switched servers" event) drops the old plan. A headless agent
+//! (a "you switched servers" event) drops the old plan. A headless engine
 //! managing several servers at once has no single "currently displayed"
 //! server to key that on — so [`AddonPlanCache`] applies the exact same
 //! ported function *per cache slot*, treating "the server id this slot
@@ -32,7 +32,7 @@
 //! one server, this reproduces MSC 1's own behavior exactly (recompute iff
 //! forced or this server has no cached plan yet); the genuinely new part —
 //! not a port, decided for this step per D-021 point 2 ("no unbounded
-//! growth is acceptable in a long-lived agent") — is that
+//! growth is acceptable in a long-lived engine") — is that
 //! [`MAX_CACHED_PLANS`] bounds how many *servers'* plans this cache holds
 //! at once, evicting the least-recently-resolved one once the bound is
 //! hit, the same shape this workspace's other bounded caches
@@ -410,7 +410,7 @@ pub fn resolve_addon_updates(
 
 /// A bounded, per-server cache of the last-resolved [`AddonUpdatePlan`] —
 /// see this module's own doc for how it generalizes
-/// `should_recompute_addon_plan` to a fleet agent.
+/// `should_recompute_addon_plan` to a fleet engine.
 #[derive(Default)]
 pub struct AddonPlanCache {
     entries: HashMap<String, AddonUpdatePlan>,
@@ -615,7 +615,7 @@ pub fn repair_update(
 /// extracted dependency name (e.g. `"fabric api"` from `"...requires any
 /// version of fabric api, which is missing!"` —
 /// `msc_domain::crash_analysis`'s own doc on `missing_dependency`) —
-/// genuinely new, agent-owned policy: MSC 1 never implements an `install`
+/// genuinely new, engine-owned policy: MSC 1 never implements an `install`
 /// repair at all, so there is no oracle behavior to port here. Matches
 /// only on a normalized (lowercased, alphanumeric-only) exact match of a
 /// search hit's `title` or `slug` — deliberately NOT a fuzzy/best-effort

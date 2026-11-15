@@ -2,12 +2,12 @@
 //!
 //! The production store was originally designed around a System-keychain-
 //! rooted encryption key (the P4.40 amendment), but that requires the
-//! keychain item's ACL to explicitly and correctly trust the agent binary
+//! keychain item's ACL to explicitly and correctly trust the engine binary
 //! for no-prompt reads from a non-interactive LaunchDaemon (no user session
 //! to answer an "allow access?" prompt) — a narrow, easy-to-get-wrong OS
 //! trust boundary that repeatedly failed in practice (stale ACLs surviving
 //! reinstalls, "User interaction is not allowed" with no way to self-heal
-//! without discarding every previously-stored secret). The agent and its
+//! without discarding every previously-stored secret). The engine and its
 //! desktop shell always run as the same regular user, so the same
 //! filesystem-permission boundary that already protects every other
 //! encrypted secret file here protects the root key too — the root key is
@@ -58,7 +58,7 @@ impl MacosSecretStore {
     }
 
     /// Opens the file-rooted production store at an explicitly selected
-    /// secrets directory. Desktop callers use this to share the exact agent
+    /// secrets directory. Desktop callers use this to share the exact engine
     /// data root chosen by the service transaction instead of independently
     /// deriving a legacy default path.
     pub fn at_directory(secrets_dir: impl Into<PathBuf>) -> Result<Self> {
@@ -363,7 +363,7 @@ mod tests {
 
         fn writable_or_skip(name: &str) -> Option<Self> {
             let store = Self::create(name);
-            let probe_key = "__msc2_contract_probe__";
+            let probe_key = "__msc_contract_probe__";
             match store.store.set(probe_key, "probe") {
                 Ok(()) => {
                     let _ = store.store.delete(probe_key);

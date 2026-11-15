@@ -386,7 +386,7 @@ impl<'deps, 'fs, R: BedrockRuntime> BedrockService<'deps, 'fs, R> {
         }
     }
 
-    /// Reconcile an operation left open if the agent was restarted. The
+    /// Reconcile an operation left open if the engine was restarted. The
     /// journal owns the state transition; the service deliberately does not
     /// pretend that a process can be resumed without a fresh start.
     pub fn reconcile_on_startup(

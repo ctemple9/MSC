@@ -1,11 +1,11 @@
 /**
  * Presentation-only label/tone lookups for router-guide raw enum values the
- * agent serves (crates/msc-domain/src/router/{composer,troubleshooting}.rs).
+ * engine serves (crates/msc-domain/src/router/{composer,troubleshooting}.rs).
  * No prose lives here -- only how a known raw value reads and, where the
  * value is a real computed system state (severity), which reserved status
  * color it gets. Confidence and category are content classifications, not
  * system states, so they stay plain text -- same call P12.16 made for the
- * Handbook's callout styles (docs/msc2/antiAIslop.md).
+ * Handbook's callout styles (docs/msc/antiAIslop.md).
  */
 
 export function confidenceLabel(raw: string): string {

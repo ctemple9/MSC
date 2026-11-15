@@ -3,14 +3,14 @@ set -euo pipefail
 
 # Phase 6 restart-sensitive public-path smoke (P6.25).
 #
-# Drives a real foreground msc-agent through nothing but the CLI/API
+# Drives a real foreground msc-engine through nothing but the CLI/API
 # (the same public surface every retained client uses):
 # import a Java multi-folder world, reconcile it into the formal slot
 # model (P6.1/P6.4/P6.11), exercise slot CRUD, activate with a
 # mandatory safety backup, take manual backups (both the confirmed and
 # the timed-out-but-still-best-effort save-coordination paths), inject
 # a real archive-creation failure, restore (including its running-
-# server and cross-slot guards), then SIGKILL the real agent process
+# server and cross-slot guards), then SIGKILL the real engine process
 # mid-activation and mid-restore and prove `reconcile_interrupted_activation`/
 # `reconcile_interrupted_restore` (P6.13/P6.18) actually recover a real
 # on-disk transaction, not just a fixture-shaped one.
@@ -92,7 +92,7 @@ if [[ "${MODE}" == "private-corpus" ]]; then
 fi
 
 TOKEN="msc2_phase6_gate_bootstrap_secret"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc2-phase6-gate.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/msc-phase6-gate.XXXXXX")"
 if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* ]]; then
   MSC_BIN="${TMP_DIR}/msc.exe"
   cp "${ROOT}/target/debug/msc.exe" "${MSC_BIN}"
@@ -105,15 +105,15 @@ SERVERS_ROOT="${TMP_DIR}/servers"
 CONFIG_PATH="${DATA_DIR}/server_config_swift.json"
 SERVER_DIR="${SERVERS_ROOT}/java/smoke-world"
 FAKE_SOURCE_DIR="${TMP_DIR}/fake-source"
-AGENT_PID=""
+ENGINE_PID=""
 PORT=""
 BASE_URL=""
 KEYCHAIN_SERVICE="com.msc2.phase6.gate.$(date +%Y%m%d%H%M%S).$$"
 
 cleanup() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill -9 "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill -9 "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
   if [[ "$(uname -s)" == "Darwin" ]]; then
     /usr/bin/security delete-generic-password \
@@ -151,7 +151,7 @@ s.close()
 PY
 }
 
-wait_for_agent_healthy() {
+wait_for_engine_healthy() {
   local base_url="$1"
   python3 - "${base_url}" <<'PY'
 import sys
@@ -168,16 +168,16 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy")
+raise SystemExit("engine did not become healthy")
 PY
 }
 
-start_agent() {
-  # Optional first arg "pause-after-world-move" starts this one agent
+start_engine() {
+  # Optional first arg "pause-after-world-move" starts this one engine
   # instance with MSC2_TEST_PAUSE_AFTER_WORLD_MOVE set, so the restart
   # races below get a stable, arbitrarily-wide window to catch instead
   # of racing a poll against a real handful-of-rename()-syscalls
-  # window. Every other start_agent call (including the restart right
+  # window. Every other start_engine call (including the restart right
   # after each race kills this one) leaves it unset -- this must never
   # leak into a process serving any other step's operations.
   if [[ "${1:-}" == "pause-after-world-move" ]]; then
@@ -201,21 +201,21 @@ start_agent() {
   PORT="$(free_port)"
   BASE_URL="http://127.0.0.1:${PORT}"
   "${MSC_BIN}" serve --bind "127.0.0.1:${PORT}" >>"${TMP_DIR}/agent.log" 2>&1 &
-  AGENT_PID="$!"
-  wait_for_agent_healthy "${BASE_URL}"
+  ENGINE_PID="$!"
+  wait_for_engine_healthy "${BASE_URL}"
 }
 
-stop_agent() {
-  if [[ -n "${AGENT_PID}" ]] && kill -0 "${AGENT_PID}" 2>/dev/null; then
-    kill "${AGENT_PID}" 2>/dev/null || true
-    wait "${AGENT_PID}" 2>/dev/null || true
+stop_engine() {
+  if [[ -n "${ENGINE_PID}" ]] && kill -0 "${ENGINE_PID}" 2>/dev/null; then
+    kill "${ENGINE_PID}" 2>/dev/null || true
+    wait "${ENGINE_PID}" 2>/dev/null || true
   fi
-  AGENT_PID=""
+  ENGINE_PID=""
 }
 
-restart_agent() {
-  stop_agent
-  start_agent
+restart_engine() {
+  stop_engine
+  start_engine
 }
 
 run_msc() {
@@ -409,10 +409,10 @@ PY
 }
 
 assert_operation_interrupted_by_restart() {
-  # The durable operation record left behind by a real agent restart
+  # The durable operation record left behind by a real engine restart
   # mid-transaction: `LifecycleOperations::reconcile_on_startup`
   # (called unconditionally by every `OperationsState::new`, so every
-  # `start_agent` call in this script already runs it) reconciles any
+  # `start_engine` call in this script already runs it) reconciles any
   # journaled entry still `running` after a crash to `failed`, with
   # `error.code == "operation_interrupted"` and a message naming the
   # real cause -- not merely inferred from folders/markers looking
@@ -482,13 +482,13 @@ EOF
   export MSC2_CHUNKER_JAR_PATH="${CHUNKER_BUILD_DIR}/fake-chunker.jar"
 
   echo "== importing custom Java target and Bedrock conversion source =="
-  (cd "${ROOT}" && cargo build -p msc-agent >/dev/null)
-  start_agent
+  (cd "${ROOT}" && cargo build -p msc-engine >/dev/null)
+  start_engine
   run_msc server import "${JAVA_SOURCE_DIR}" --name "custom-java" --type java --eula >/dev/null
-  restart_agent
+  restart_engine
   JAVA_SLOT_ID="$(active_slot_id)"
   run_msc server import "${BEDROCK_SOURCE_DIR}" --name "custom-bedrock" --type bedrock >/dev/null
-  restart_agent
+  restart_engine
 
   SERVER_IDS="$(python3 - "${BASE_URL}" "${TOKEN}" <<'PY'
 import json, sys, urllib.request
@@ -597,8 +597,8 @@ for path in sorted(root.rglob("*")):
 PY
 )"
 
-  echo "== building msc-agent =="
-  (cd "${ROOT}" && cargo build -p msc-agent >/dev/null)
+  echo "== building msc-engine =="
+  (cd "${ROOT}" && cargo build -p msc-engine >/dev/null)
 
   # `server import` expects a folder laid out like a real server root --
   # `server.properties` (whose `level-name` names the primary world
@@ -632,9 +632,9 @@ PY
   PRIVATE_SERVER_DIR="${SERVERS_ROOT}/java/private-corpus"
 
   echo "== importing the real world folder (server import, then reconciling) =="
-  start_agent
+  start_engine
   run_msc server import "${PRIVATE_STAGE_DIR}" --name "private-corpus" --type java --eula >/dev/null
-  restart_agent
+  restart_engine
   [[ "$(slot_count)" == "1" ]] || fail "expected exactly 1 slot after real-corpus reconciliation, got $(slot_count)"
   IMPORTED_SLOT_ID="$(active_slot_id)"
   [[ -f "${PRIVATE_SERVER_DIR}/world_slots/${IMPORTED_SLOT_ID}/world.zip" ]] || fail "reconciled real-corpus slot has no archived world.zip"
@@ -667,7 +667,7 @@ PY
   [[ -n "${MANUAL_BACKUP_ID}" ]] || fail "real-corpus manual backup did not appear"
   run_msc backup restore "${MANUAL_BACKUP_ID}" >/dev/null
 
-  stop_agent
+  stop_engine
 
   echo "== hashing real source files after the run =="
   HASHES_AFTER="$(python3 - "${PRIMARY_WORLD_DIR}" <<'PY'
@@ -794,23 +794,23 @@ printf 'dimension placeholder\n' > "${FAKE_SOURCE_DIR}/world_nether/DIM.txt"
 printf 'dimension placeholder\n' > "${FAKE_SOURCE_DIR}/world_the_end/DIM.txt"
 printf 'GEN-IMPORTED' > "${FAKE_SOURCE_DIR}/world/GENERATION.txt"
 
-echo "== building msc-agent =="
+echo "== building msc-engine =="
 (
   cd "${ROOT}"
-  cargo build -p msc-agent >/dev/null
+  cargo build -p msc-engine >/dev/null
 )
 
 # =====================================================================
 # 2. Import the raw folder, then restart to trigger reconciliation.
 #
 # `import_raw_server` (P5.20) copies the folder in and makes it active
-# immediately, but P6.1's reconciliation only runs at agent startup
+# immediately, but P6.1's reconciliation only runs at engine startup
 # (`reconcile_imported_worlds_at_startup`) -- so the live-folders-only
 # state this import produces isn't turned into a formal slot until the
-# next restart, exactly like a real upgrade from a pre-Phase-6 agent.
+# next restart, exactly like a real upgrade from a pre-Phase-6 engine.
 # =====================================================================
 echo "== importing raw Java world and reconciling =="
-start_agent
+start_engine
 run_msc server import "${FAKE_SOURCE_DIR}" --name "smoke-world" --type java --eula >/dev/null
 
 python3 - "${BASE_URL}" "${TOKEN}" <<'PY'
@@ -826,7 +826,7 @@ if len(servers) != 1:
     raise SystemExit(f"expected exactly 1 imported server, got {servers!r}")
 PY
 
-restart_agent
+restart_engine
 
 [[ "$(slot_count)" == "1" ]] || fail "expected exactly 1 slot after reconciliation, got $(slot_count)"
 [[ -f "${SERVER_DIR}/world_slots/$(active_slot_id)/world.zip" ]] || fail "reconciled slot has no archived world.zip"
@@ -980,7 +980,7 @@ SAFETY_2_ID="$(new_ids_since "${TMP_DIR}/backups-before-restore.txt")"
 [[ "$(backup_trigger_reason "${SAFETY_2_ID}")" == "pre-restore" ]] || fail "restore safety backup has unexpected trigger reason"
 
 # =====================================================================
-# 10. Restart mid-activation: SIGKILL the real agent while
+# 10. Restart mid-activation: SIGKILL the real engine while
 # `world_slots/.activation/prior/` exists (the live server directory
 # has no complete world at all), then prove a fresh startup's
 # `reconcile_interrupted_activation` recovers to a complete world
@@ -1007,16 +1007,16 @@ PRE_RACE_LIVE_GEN="$(read_generation)"
 PRE_RACE_ACTIVE_SLOT="$(active_slot_id)"
 [[ "${PRE_RACE_ACTIVE_SLOT}" == "${SLOT2_ID}" ]] || fail "unexpected active slot before the activation race"
 
-# Restart the agent dedicated to this one call, paused durably between
+# Restart the engine dedicated to this one call, paused durably between
 # "old world moved aside" and "new world installed" -- see
-# start_agent's own comment. This process's only job from here is to
+# start_engine's own comment. This process's only job from here is to
 # serve this call and then be killed by the race script.
-stop_agent
-start_agent pause-after-world-move
+stop_engine
+start_engine pause-after-world-move
 
 RACE_RESULT="$(python3 "${ROOT}/tools/phase6/fixtures/gate-smoke/race_transaction.py" \
   --msc "${MSC_BIN}" --base-url "${BASE_URL}" --token "${TOKEN}" \
-  --pid "${AGENT_PID}" \
+  --pid "${ENGINE_PID}" \
   --marker-dir "${SERVER_DIR}/world_slots/.activation" \
   --cmd-a "world,activate,${SLOT_IMPORTED_ID}" \
   --cmd-b "world,activate,${SLOT2_ID}" \
@@ -1025,7 +1025,7 @@ RACE_RESULT="$(python3 "${ROOT}/tools/phase6/fixtures/gate-smoke/race_transactio
 echo "activation race result: ${RACE_RESULT}"
 
 CAUGHT="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["caught"])' <<<"${RACE_RESULT}")"
-[[ "${CAUGHT}" == "True" ]] || fail "never caught the agent mid-activation within the attempt/time budget"
+[[ "${CAUGHT}" == "True" ]] || fail "never caught the engine mid-activation within the attempt/time budget"
 
 WINNING_TARGET="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["winning_target"])' <<<"${RACE_RESULT}")"
 PHASE="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["phase"])' <<<"${RACE_RESULT}")"
@@ -1047,8 +1047,8 @@ else
   EXPECTED_GEN="${OTHER_GEN}"; EXPECTED_ACTIVE="${OTHER_SLOT}"
 fi
 
-AGENT_PID=""  # already SIGKILLed by the race script
-start_agent
+ENGINE_PID=""  # already SIGKILLed by the race script
+start_engine
 
 [[ ! -d "${SERVER_DIR}/world_slots/.activation" ]] || fail "interrupted activation was not reconciled away"
 [[ "$(read_generation)" == "${EXPECTED_GEN}" ]] || fail "recovered generation mismatch: expected ${EXPECTED_GEN}, got $(read_generation)"
@@ -1089,12 +1089,12 @@ PRE_RACE_LIVE_GEN="$(read_generation)"
 [[ "${PRE_RACE_LIVE_GEN}" == "GEN-RESTORE-B" ]] || fail "unexpected live generation before the restore race"
 
 # Same dedicated-paused-process technique as the activation race above.
-stop_agent
-start_agent pause-after-world-move
+stop_engine
+start_engine pause-after-world-move
 
 RACE_RESULT="$(python3 "${ROOT}/tools/phase6/fixtures/gate-smoke/race_transaction.py" \
   --msc "${MSC_BIN}" --base-url "${BASE_URL}" --token "${TOKEN}" \
-  --pid "${AGENT_PID}" \
+  --pid "${ENGINE_PID}" \
   --marker-dir "${SERVER_DIR}/world_slots/.restore" \
   --cmd-a "backup,restore,${RACE_BACKUP_A}" \
   --cmd-b "backup,restore,${RACE_BACKUP_B}" \
@@ -1103,7 +1103,7 @@ RACE_RESULT="$(python3 "${ROOT}/tools/phase6/fixtures/gate-smoke/race_transactio
 echo "restore race result: ${RACE_RESULT}"
 
 CAUGHT="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["caught"])' <<<"${RACE_RESULT}")"
-[[ "${CAUGHT}" == "True" ]] || fail "never caught the agent mid-restore within the attempt/time budget"
+[[ "${CAUGHT}" == "True" ]] || fail "never caught the engine mid-restore within the attempt/time budget"
 
 WINNING_TARGET="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["winning_target"])' <<<"${RACE_RESULT}")"
 PHASE="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["phase"])' <<<"${RACE_RESULT}")"
@@ -1127,8 +1127,8 @@ else
   EXPECTED_GEN="${OTHER_GEN}"
 fi
 
-AGENT_PID=""  # already SIGKILLed by the race script
-start_agent
+ENGINE_PID=""  # already SIGKILLed by the race script
+start_engine
 
 [[ ! -d "${SERVER_DIR}/world_slots/.restore" ]] || fail "interrupted restore was not reconciled away"
 [[ "$(read_generation)" == "${EXPECTED_GEN}" ]] || fail "recovered restore generation mismatch: expected ${EXPECTED_GEN}, got $(read_generation)"
@@ -1147,14 +1147,14 @@ assert_operation_interrupted_by_restart "${RESTORE_OPERATION_ID}"
 # `succeed`/`cancel`/`fail` shape activation/restore already use --
 # proven here with a plain (non-crash) run rather than a third restart
 # race. `reconcile_interrupted_world_replace` (P6.33) exists at the
-# application layer but is not yet reachable from agent startup
+# application layer but is not yet reachable from engine startup
 # (`routes/lifecycle.rs::reconcile_servers_at_startup` has no call to
 # it -- flagged by P6.34's own report, confirmed still true here, and
 # `routes/lifecycle.rs` is not in this step's own Files list to fix).
 # A restart-mid-replace race built against that gap would prove
 # nothing real: the on-disk `world_slots/.replace/` marker would
 # simply be left behind forever, unreconciled, on the very next
-# `start_agent` below. So this section covers what actually exists --
+# `start_engine` below. So this section covers what actually exists --
 # replacement's own durable operation record explaining a real
 # completed outcome -- rather than faking a recovery path that isn't
 # wired up yet; see this step's own rolling-plan write-up for the
@@ -1194,7 +1194,7 @@ echo "replace-active operation ${REPLACE_OPERATION_ID} record explains its outco
 # scheduler's own minimum interval is one real minute
 # (`run_server_loop`'s `interval_minutes.max(1)`) -- no test-only
 # fast-forward hook exists for it (this step's own Files list has no
-# production `crates/msc-agent/src/*.rs` entry to add one to), so this
+# production `crates/msc-engine/src/*.rs` entry to add one to), so this
 # section genuinely waits roughly a minute of wall-clock time for the
 # first tick.
 # =====================================================================
@@ -1376,7 +1376,7 @@ run_msc backup now >/dev/null
 echo "target is usable again now that the cancelled operation's rollback/cleanup finished"
 
 # =====================================================================
-# 16. Final health check: the recovered agent still serves the full
+# 16. Final health check: the recovered engine still serves the full
 # public path, and its most recent backup is a real, valid archive.
 # =====================================================================
 echo "== final health check =="

@@ -2,7 +2,7 @@
   import { onDestroy } from 'svelte';
   import { reportTransferFailure } from '../shared/transfer-notices';
   // Ports ServerEditorWorldTab.swift's importZIPSheetView -- pick an
-  // external world archive (not one the agent already knows about, unlike
+  // external world archive (not one the engine already knows about, unlike
   // BackupsPanel's "import this backup as a slot"), stage it, name the new
   // slot, import. Same stage-then-mutate shape as
   // ImportModpackSheet.svelte/WorldSlotCard.svelte's thumbnail upload.
@@ -152,7 +152,7 @@
     {:else if step.kind === 'staged'}
       <p class="explain">Selected: {step.fileName}</p>
       <div class="field-group">
-        <span class="msc2-type-overline">Slot Name</span>
+        <span class="msc-type-overline">Slot Name</span>
         <Field bind:value={name} placeholder="Slot name" />
       </div>
       <div class="footer">
@@ -193,16 +193,16 @@
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .error-text {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .explain {
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .field-group {
     display: flex;
@@ -210,7 +210,7 @@
     gap: 6px;
   }
   .field-group span {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .footer {
     display: flex;

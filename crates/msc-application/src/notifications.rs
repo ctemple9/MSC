@@ -1,4 +1,4 @@
-//! Agent-owned notification events.
+//! Engine-owned notification events.
 //!
 //! Clients decide whether and how to show these events as native OS
 //! notifications.  The feed therefore contains safe status text only; it is

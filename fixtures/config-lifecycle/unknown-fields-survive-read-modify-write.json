@@ -2,7 +2,7 @@
   "domain": "config-lifecycle",
   "case": "unknown-fields-survive-read-modify-write",
   "source": {
-    "file": "msc2-engineering.md",
+    "file": "msc-engineering.md",
     "test": "§7 unknown-fields policy",
     "line": 234
   },
@@ -24,5 +24,5 @@
     "corruptBackupPath": null,
     "afterSaveContents": { "schemaVersion": 1, "tps": 99, "futureField": { "nested": true } }
   },
-  "notes": "Not from a Swift test — ConfigManager's Codable-backed AppConfig actually drops fields it doesn't declare (Swift's synthesized Decodable silently ignores unrecognized keys), which is exactly the destructive behavior msc2-engineering.md §7 calls out for server.properties and this phase's design note (rolling-plan.md P3.7) generalizes away from. This fixture pins down the corrected behavior instead: load, mutate one known field (tps), save, and confirm 'futureField' - a field this code never looks at - is still present afterward. Operating on serde_json::Value rather than a fixed struct is what makes this true for free, without a per-schema 'unknown fields' bucket."
+  "notes": "Not from a Swift test — ConfigManager's Codable-backed AppConfig actually drops fields it doesn't declare (Swift's synthesized Decodable silently ignores unrecognized keys), which is exactly the destructive behavior msc-engineering.md §7 calls out for server.properties and this phase's design note (rolling-plan.md P3.7) generalizes away from. This fixture pins down the corrected behavior instead: load, mutate one known field (tps), save, and confirm 'futureField' - a field this code never looks at - is still present afterward. Operating on serde_json::Value rather than a fixed struct is what makes this true for free, without a per-schema 'unknown fields' bucket."
 }

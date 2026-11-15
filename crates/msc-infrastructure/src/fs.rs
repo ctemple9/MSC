@@ -11,7 +11,7 @@ use std::time::SystemTime;
 
 /// What callers need to know about a path: file vs. directory, whether
 /// it's executable, its size, and its last-modified time. Mirrors the
-/// shape fixtures already use (`docs/msc2/fixture-format.md`'s `fsTree`),
+/// shape fixtures already use (`docs/msc/fixture-format.md`'s `fsTree`),
 /// not the full breadth of `std::fs::Metadata`. `size`/`modified` are a
 /// P6.15 addition (flagged deviation from that step's own `Files:` list,
 /// which didn't name this file) — backup listing (`backup_store::
@@ -219,7 +219,7 @@ fn set_executable(_path: &Path) -> io::Result<()> {
 
 /// Joins `base` and `component` with a literal `/`, never
 /// `std::path::MAIN_SEPARATOR`. Every fixture path in this codebase is
-/// written with forward slashes (`docs/msc2/fixture-format.md`), and
+/// written with forward slashes (`docs/msc/fixture-format.md`), and
 /// `FakeFileSystem` is meant to behave identically on every host OS since
 /// it never touches a real filesystem — but `Path::join`/`PathBuf::push`
 /// insert the *host's* separator, a backslash on Windows, when joining two
@@ -262,7 +262,7 @@ struct FakeEntry {
 
 /// An in-memory filesystem for tests. Constructible directly from the
 /// `fsTree` shape fixtures already use (`{"<path>": {"type": "file",
-/// "executable": true}}`, per `docs/msc2/fixture-format.md`), so
+/// "executable": true}}`, per `docs/msc/fixture-format.md`), so
 /// fixture-driven tests (P3.18's deferred java-runtime-guards cases) can
 /// build one without reshaping the fixture data.
 #[derive(Debug, Default)]

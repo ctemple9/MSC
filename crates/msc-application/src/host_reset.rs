@@ -1,8 +1,8 @@
 //! Host-reset filesystem workflow.
 //!
-//! The agent owns the orchestration and authorization, but this module owns
+//! The engine owns the orchestration and authorization, but this module owns
 //! the destructive filesystem boundary. A small marker is written before any
-//! deletion and removed only after the agent has revoked credentials and
+//! deletion and removed only after the engine has revoked credentials and
 //! rotated its host identity. If the process stops between those points, the
 //! next boot resumes the same filesystem work. Explicit cancellation is
 //! durable; a recorded failure pauses recovery and leaves management available.
@@ -109,7 +109,7 @@ impl<'fs> HostResetWorkflow<'fs> {
         })
     }
 
-    /// Adds the agent-owned downloaded-helper cache to a full reset without
+    /// Adds the engine-owned downloaded-helper cache to a full reset without
     /// changing the existing constructor used by other reset tests/callers.
     pub fn with_helper_cache(
         mut self,
@@ -507,78 +507,78 @@ mod tests {
     fn configuration_reset_preserves_servers_root() {
         let fs: &'static dyn FileSystem = Box::leak(Box::new(
             FakeFileSystem::new()
-                .with_dir("/agent")
-                .with_file("/agent/config.json", b"old".to_vec(), false)
-                .with_file("/srv/msc2/servers/paper/world", b"world".to_vec(), false),
+                .with_dir("/engine")
+                .with_file("/engine/config.json", b"old".to_vec(), false)
+                .with_file("/srv/msc/servers/paper/world", b"world".to_vec(), false),
         ));
         let workflow =
-            HostResetWorkflow::new(fs, "/agent/config.json", "/srv/msc2/servers").unwrap();
+            HostResetWorkflow::new(fs, "/engine/config.json", "/srv/msc/servers").unwrap();
         workflow.begin(HostResetMode::Configuration).unwrap();
         workflow.apply_files(HostResetMode::Configuration).unwrap();
-        assert!(fs.stat(Path::new("/agent/config.json")).is_err());
-        assert!(fs.stat(Path::new("/srv/msc2/servers/paper/world")).is_ok());
+        assert!(fs.stat(Path::new("/engine/config.json")).is_err());
+        assert!(fs.stat(Path::new("/srv/msc/servers/paper/world")).is_ok());
         workflow.finish().unwrap();
-        assert!(fs.stat(Path::new("/agent/.msc2-host-reset.json")).is_err());
+        assert!(fs.stat(Path::new("/engine/.msc2-host-reset.json")).is_err());
     }
 
     #[test]
     fn everything_reset_removes_only_the_configured_tree() {
         let fs: &'static dyn FileSystem = Box::leak(Box::new(
             FakeFileSystem::new()
-                .with_dir("/agent")
-                .with_file("/agent/config.json", b"old".to_vec(), false)
-                .with_file("/srv/msc2/servers/paper/world", b"world".to_vec(), false)
-                .with_file("/srv/msc2/other/keep", b"keep".to_vec(), false),
+                .with_dir("/engine")
+                .with_file("/engine/config.json", b"old".to_vec(), false)
+                .with_file("/srv/msc/servers/paper/world", b"world".to_vec(), false)
+                .with_file("/srv/msc/other/keep", b"keep".to_vec(), false),
         ));
         let workflow =
-            HostResetWorkflow::new(fs, "/agent/config.json", "/srv/msc2/servers").unwrap();
+            HostResetWorkflow::new(fs, "/engine/config.json", "/srv/msc/servers").unwrap();
         workflow.apply_files(HostResetMode::Everything).unwrap();
-        assert!(fs.stat(Path::new("/srv/msc2/servers/paper/world")).is_err());
-        assert!(fs.stat(Path::new("/srv/msc2/other/keep")).is_ok());
+        assert!(fs.stat(Path::new("/srv/msc/servers/paper/world")).is_err());
+        assert!(fs.stat(Path::new("/srv/msc/other/keep")).is_ok());
     }
 
     #[test]
     fn recovery_replays_marker_and_file_deletion() {
         let fs: &'static dyn FileSystem = Box::leak(Box::new(
             FakeFileSystem::new()
-                .with_dir("/agent")
-                .with_file("/agent/config.json", b"old".to_vec(), false)
-                .with_file("/srv/msc2/servers/paper/world", b"world".to_vec(), false),
+                .with_dir("/engine")
+                .with_file("/engine/config.json", b"old".to_vec(), false)
+                .with_file("/srv/msc/servers/paper/world", b"world".to_vec(), false),
         ));
         let workflow =
-            HostResetWorkflow::new(fs, "/agent/config.json", "/srv/msc2/servers").unwrap();
+            HostResetWorkflow::new(fs, "/engine/config.json", "/srv/msc/servers").unwrap();
         workflow.begin(HostResetMode::Everything).unwrap();
-        let mode = recover_files(fs, "/agent/config.json").unwrap();
+        let mode = recover_files(fs, "/engine/config.json").unwrap();
         assert_eq!(mode, Some(HostResetMode::Everything));
-        assert!(fs.stat(Path::new("/agent/config.json")).is_err());
-        assert!(fs.stat(Path::new("/srv/msc2/servers/paper/world")).is_err());
+        assert!(fs.stat(Path::new("/engine/config.json")).is_err());
+        assert!(fs.stat(Path::new("/srv/msc/servers/paper/world")).is_err());
     }
     fn reset_fs() -> FakeFileSystem {
         FakeFileSystem::new()
-            .with_dir("/agent")
-            .with_file("/agent/config.json", b"old".to_vec(), false)
-            .with_file("/srv/msc2/servers/a", b"a".to_vec(), false)
-            .with_file("/srv/msc2/servers/b", b"b".to_vec(), false)
+            .with_dir("/engine")
+            .with_file("/engine/config.json", b"old".to_vec(), false)
+            .with_file("/srv/msc/servers/a", b"a".to_vec(), false)
+            .with_file("/srv/msc/servers/b", b"b".to_vec(), false)
     }
 
     #[test]
     fn cancellation_between_files_survives_recovery_and_preserves_configuration() {
         let fs = reset_fs();
         let workflow =
-            HostResetWorkflow::new(&fs, "/agent/config.json", "/srv/msc2/servers").unwrap();
+            HostResetWorkflow::new(&fs, "/engine/config.json", "/srv/msc/servers").unwrap();
         workflow.begin(HostResetMode::Everything).unwrap();
         // Request cancellation only after the first file was really removed.
         let result = workflow.apply_files_cancellable(HostResetMode::Everything, &|| {
-            fs.stat(Path::new("/srv/msc2/servers/a")).is_err()
+            fs.stat(Path::new("/srv/msc/servers/a")).is_err()
         });
         assert_eq!(result, Err(HostResetError::Cancelled));
-        assert!(fs.stat(Path::new("/srv/msc2/servers/b")).is_ok());
-        assert!(fs.stat(Path::new("/agent/config.json")).is_ok());
-        assert_eq!(recover_files(&fs, "/agent/config.json").unwrap(), None);
-        assert!(fs.stat(Path::new("/srv/msc2/servers/b")).is_ok());
+        assert!(fs.stat(Path::new("/srv/msc/servers/b")).is_ok());
+        assert!(fs.stat(Path::new("/engine/config.json")).is_ok());
+        assert_eq!(recover_files(&fs, "/engine/config.json").unwrap(), None);
+        assert!(fs.stat(Path::new("/srv/msc/servers/b")).is_ok());
         let token = workflow.completion_token().unwrap().unwrap();
         assert_eq!(
-            completion_state(&fs, Path::new("/agent/config.json"), &token).as_deref(),
+            completion_state(&fs, Path::new("/engine/config.json"), &token).as_deref(),
             Some("cancelled")
         );
     }
@@ -586,19 +586,19 @@ mod tests {
     #[test]
     fn permission_failure_remains_blocked_until_explicit_retry_or_cancel() {
         let fs = reset_fs();
-        let config = Path::new("/agent/config.json");
-        let workflow = HostResetWorkflow::new(&fs, config, "/srv/msc2/servers").unwrap();
+        let config = Path::new("/engine/config.json");
+        let workflow = HostResetWorkflow::new(&fs, config, "/srv/msc/servers").unwrap();
         workflow.begin(HostResetMode::Everything).unwrap();
-        fs.set_remove_denied("/srv/msc2/servers/a", true);
+        fs.set_remove_denied("/srv/msc/servers/a", true);
         assert!(matches!(
             workflow.apply_files(HostResetMode::Everything),
             Err(HostResetError::Io(_))
         ));
         assert_eq!(status(&fs, config).unwrap().state, "blocked");
         assert!(fs.stat(config).is_ok());
-        fs.set_remove_denied("/srv/msc2/servers/a", false);
+        fs.set_remove_denied("/srv/msc/servers/a", false);
         assert!(recover_files(&fs, config).is_err());
-        assert!(fs.stat(Path::new("/srv/msc2/servers/b")).is_ok());
+        assert!(fs.stat(Path::new("/srv/msc/servers/b")).is_ok());
         cancel_pending(&fs, config, None).unwrap();
         assert_eq!(recover_files(&fs, config).unwrap(), None);
         workflow.begin(HostResetMode::Everything).unwrap();
@@ -619,13 +619,13 @@ mod tests {
     #[test]
     fn identity_finalization_resumes_without_repeating_tree_deletion() {
         let fs = reset_fs();
-        let config = Path::new("/agent/config.json");
-        let workflow = HostResetWorkflow::new(&fs, config, "/srv/msc2/servers").unwrap();
+        let config = Path::new("/engine/config.json");
+        let workflow = HostResetWorkflow::new(&fs, config, "/srv/msc/servers").unwrap();
         workflow.begin(HostResetMode::Everything).unwrap();
         workflow.apply_files(HostResetMode::Everything).unwrap();
         assert!(cancel_pending(&fs, config, None).is_err());
         fs.write(
-            Path::new("/srv/msc2/servers/keep"),
+            Path::new("/srv/msc/servers/keep"),
             b"created after deletion",
         )
         .unwrap();
@@ -633,16 +633,16 @@ mod tests {
             recover_files(&fs, config).unwrap(),
             Some(HostResetMode::Everything)
         );
-        assert!(fs.stat(Path::new("/srv/msc2/servers/keep")).is_ok());
+        assert!(fs.stat(Path::new("/srv/msc/servers/keep")).is_ok());
     }
     #[test]
     fn authorized_operation_cancellation_is_durable_before_worker_observes_it() {
         use crate::operations::{
             HOST_RESET_OPERATION_TYPE, LifecycleOperationError, LifecycleOperations,
         };
-        let fs = reset_fs().with_dir("/agent/reset-operation-journal");
-        let config = Path::new("/agent/config.json");
-        let operations = LifecycleOperations::new(&fs, "/agent/reset-operation-journal")
+        let fs = reset_fs().with_dir("/engine/reset-operation-journal");
+        let config = Path::new("/engine/config.json");
+        let operations = LifecycleOperations::new(&fs, "/engine/reset-operation-journal")
             .with_host_reset_config(config.into());
         let id = operations
             .begin_running_for_credential(
@@ -652,7 +652,7 @@ mod tests {
                 Some("owner".into()),
             )
             .unwrap();
-        let workflow = HostResetWorkflow::new(&fs, config, "/srv/msc2/servers").unwrap();
+        let workflow = HostResetWorkflow::new(&fs, config, "/srv/msc/servers").unwrap();
         workflow
             .begin_for_operation(HostResetMode::Everything, Some(id.as_str().into()))
             .unwrap();
@@ -665,7 +665,7 @@ mod tests {
             .request_cancel_authorized(&id, "cancel", "owner", &["admin".into()], true)
             .unwrap();
         assert_eq!(recover_files(&fs, config).unwrap(), None);
-        assert!(fs.stat(Path::new("/srv/msc2/servers/a")).is_ok());
+        assert!(fs.stat(Path::new("/srv/msc/servers/a")).is_ok());
         assert!(fs.stat(config).is_ok());
     }
 }

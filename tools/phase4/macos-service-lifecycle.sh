@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RUN_ID="$(/bin/date +%Y%m%d%H%M%S)-$$"
-RUN_DIR="/private/tmp/msc2-macos-service-lifecycle.${RUN_ID}"
+RUN_DIR="/private/tmp/msc-macos-service-lifecycle.${RUN_ID}"
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 KEEP_ARTIFACTS=0
 TCC_DIR=""
@@ -20,16 +20,16 @@ MACOS_ROOT_SERVICE="com.msc2.agent.root.${RUN_ID}"
 MACOS_ROOT_ACCOUNT="credential-root-v1"
 MACOS_SECRET_STORE_DIR="${RUN_DIR}/state/secrets"
 MACOS_DATA_DIR="${RUN_DIR}/state/data"
-EVIDENCE_DIR="${ROOT}/docs/msc2/lifecycle/credential-evidence"
+EVIDENCE_DIR="${ROOT}/docs/msc/lifecycle/credential-evidence"
 EVIDENCE_FILE="${EVIDENCE_DIR}/macos-${RUN_ID}.json"
 
 usage() {
   cat <<USAGE
 Usage: $0 --server-dir <path> [--user <installing-user>] [--tcc-dir <path>] [--keep-artifacts]
 
-Builds the Phase 4 agent, installs it as a root-owned LaunchDaemon with
+Builds the Phase 4 engine, installs it as a root-owned LaunchDaemon with
 UserName set to the installing user, imports the given Paper server through
-the public CLI/API path, starts it, proves the agent and Java server survive
+the public CLI/API path, starts it, proves the engine and Java server survive
 with no clients connected, runs the P4.4 LaunchDaemon keychain/TCC check, then
 stops the server and uninstalls the LaunchDaemon cleanly.
 USAGE
@@ -113,7 +113,7 @@ if [ ! -f "${SERVER_DIR}/server.properties" ]; then
 fi
 
 if [ -z "${TCC_DIR}" ]; then
-  TCC_DIR="$(user_home "${TARGET_USER}")/Documents/MSC2LaunchDaemonTccCheck"
+  TCC_DIR="$(user_home "${TARGET_USER}")/Documents/MSCLaunchDaemonTccCheck"
 fi
 
 require_tool cargo
@@ -170,7 +170,7 @@ trap cleanup EXIT
 
 (
   cd "${ROOT}"
-  cargo build -p msc-agent >/dev/null
+  cargo build -p msc-engine >/dev/null
 )
 
 # `cargo build` produces an unsigned binary (re-linking strips any
@@ -283,13 +283,13 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy through LaunchDaemon")
+raise SystemExit("engine did not become healthy through LaunchDaemon")
 PY
 
 curl --fail --silent --show-error -H "Authorization: Bearer ${TOKEN}" "${BASE_URL}/v1/status" >/dev/null
-AGENT_PID_BEFORE_RESTART="$(/bin/launchctl print "system/${LABEL}" | /usr/bin/awk '/pid = / {print $3; exit}')"
-if [ -z "${AGENT_PID_BEFORE_RESTART}" ]; then
-  echo "could not determine LaunchDaemon agent pid before credential restart proof" >&2
+ENGINE_PID_BEFORE_RESTART="$(/bin/launchctl print "system/${LABEL}" | /usr/bin/awk '/pid = / {print $3; exit}')"
+if [ -z "${ENGINE_PID_BEFORE_RESTART}" ]; then
+  echo "could not determine LaunchDaemon engine pid before credential restart proof" >&2
   exit 1
 fi
 
@@ -338,17 +338,17 @@ while time.time() < deadline:
                 raise SystemExit(0)
     except (urllib.error.URLError, TimeoutError):
         time.sleep(0.25)
-raise SystemExit("agent did not become healthy after LaunchDaemon credential restart")
+raise SystemExit("engine did not become healthy after LaunchDaemon credential restart")
 PY
 curl --fail --silent --show-error -H "Authorization: Bearer ${TOKEN}" "${BASE_URL}/v1/status" >/dev/null
-AGENT_PID_AFTER_RESTART="$(/bin/launchctl print "system/${LABEL}" | /usr/bin/awk '/pid = / {print $3; exit}')"
-if [ -z "${AGENT_PID_AFTER_RESTART}" ] || [ "${AGENT_PID_AFTER_RESTART}" = "${AGENT_PID_BEFORE_RESTART}" ]; then
-  echo "LaunchDaemon restart did not produce a new agent pid" >&2
+ENGINE_PID_AFTER_RESTART="$(/bin/launchctl print "system/${LABEL}" | /usr/bin/awk '/pid = / {print $3; exit}')"
+if [ -z "${ENGINE_PID_AFTER_RESTART}" ] || [ "${ENGINE_PID_AFTER_RESTART}" = "${ENGINE_PID_BEFORE_RESTART}" ]; then
+  echo "LaunchDaemon restart did not produce a new engine pid" >&2
   exit 1
 fi
 
 /bin/mkdir -p "${EVIDENCE_DIR}"
-python3 - "${EVIDENCE_FILE}" "${RUN_DIR}" "${RUN_ID}" "${LABEL}" "${AGENT_PID_BEFORE_RESTART}" "${AGENT_PID_AFTER_RESTART}" <<'PY'
+python3 - "${EVIDENCE_FILE}" "${RUN_DIR}" "${RUN_ID}" "${LABEL}" "${ENGINE_PID_BEFORE_RESTART}" "${ENGINE_PID_AFTER_RESTART}" <<'PY'
 import datetime
 import json
 import sys
@@ -370,7 +370,7 @@ record = {
     "restartedActualServiceProcess": True,
     "result": "passed",
     "runId": run_id,
-    "schema": "msc2.phase4.credential-evidence.v1",
+    "schema": "msc.phase4.credential-evidence.v1",
     "script": "tools/phase4/macos-service-lifecycle.sh",
     "serviceManager": "launchd",
     "serviceName": label,
@@ -472,10 +472,10 @@ while time.time() < deadline:
 raise SystemExit("console tail never observed the sent command")
 PY
 
-AGENT_PID="$(/bin/launchctl print "system/${LABEL}" | /usr/bin/awk '/pid = / {print $3; exit}')"
+ENGINE_PID="$(/bin/launchctl print "system/${LABEL}" | /usr/bin/awk '/pid = / {print $3; exit}')"
 SERVER_PID="$(/usr/sbin/lsof -nP -iTCP:"${SERVER_PORT}" -sTCP:LISTEN -t 2>/dev/null | /usr/bin/head -n 1 || true)"
-if [ -z "${AGENT_PID}" ]; then
-  echo "could not determine LaunchDaemon agent pid" >&2
+if [ -z "${ENGINE_PID}" ]; then
+  echo "could not determine LaunchDaemon engine pid" >&2
   exit 1
 fi
 if [ -z "${SERVER_PID}" ]; then
@@ -484,7 +484,7 @@ if [ -z "${SERVER_PID}" ]; then
 fi
 
 /bin/sleep 2
-/bin/kill -0 "${AGENT_PID}"
+/bin/kill -0 "${ENGINE_PID}"
 /bin/kill -0 "${SERVER_PID}"
 
 curl --fail --silent --show-error -H "Authorization: Bearer ${TOKEN}" "${BASE_URL}/v1/status" >/dev/null
@@ -529,7 +529,7 @@ while time.time() < deadline:
     except (urllib.error.URLError, TimeoutError):
         raise SystemExit(0)
     time.sleep(0.25)
-raise SystemExit("agent still answered health after LaunchDaemon uninstall")
+raise SystemExit("engine still answered health after LaunchDaemon uninstall")
 PY
 
 echo "macOS LaunchDaemon lifecycle check passed"

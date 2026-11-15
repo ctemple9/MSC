@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/schema/2/capabilities.json",
   "identifier": "default",
-  "description": "Minimal capability set for the MSC 2 client shell",
+  "description": "Minimal capability set for the MSC client shell",
   "windows": ["main"],
   "permissions": [
     "core:default",

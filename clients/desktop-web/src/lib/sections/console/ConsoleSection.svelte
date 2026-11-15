@@ -60,7 +60,7 @@
   <ScreenHeader
     eyebrow="Live server"
     title="Console"
-    description="The console is bounded per host, searchable locally, and reconnects from the agent's tail without losing the selected-server context."
+    description="The console is bounded per host, searchable locally, and reconnects from the engine's tail without losing the selected-server context."
     status={paused ? 'Paused' : 'Live'}
     statusTone={paused ? 'warning' : 'positive'}
     actionLabel="Clear local view"
@@ -100,7 +100,7 @@
           </div>{/each}{:else}<StatePanel
           kind="empty"
           title="No matching lines"
-          message="The local view is empty; reconnecting will request a bounded tail from the agent."
+          message="The local view is empty; reconnecting will request a bounded tail from the engine."
         />{/if}
     </div>
     <div class="inline-form" style="margin-top: .8rem">

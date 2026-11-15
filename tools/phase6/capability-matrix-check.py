@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """D-023 client capability matrix checker (P6.8).
 
-Used as (part of) the Verify command for docs/msc2/rolling-plan.md's P6.8
-step. Checks docs/msc2/client-capability-matrix.csv, the matrix
-docs/msc2/msc2-decisions.md D-023 requires ("Full client capability, tracked
+Used as (part of) the Verify command for docs/msc/rolling-plan.md's P6.8
+step. Checks docs/msc/client-capability-matrix.csv, the matrix
+docs/msc/msc-decisions.md D-023 requires ("Full client capability, tracked
 by an explicit matrix") and rolling-plan.md's Phase 6 header calls "the
 overdue D-023 matrix", against the two things it must stay true to:
 
   1. Shape: the header is exact, every row has all nine fields, every status
-     cell (agent/desktop/cli) is one of D-023's own three values
+     cell (engine/desktop/cli) is one of D-023's own three values
      (Implemented, Planned, Intentional exception), and an Intentional
      exception cell names the D-0xx decision that approved it (D-023: "An
      Intentional exception requires owner approval and becomes its own
      decision entry").
-  2. Coverage against docs/msc2/api-contract/openapi.json and
-     docs/msc2/api-contract/websocket-v1.json: every (method, path) in the
+  2. Coverage against docs/msc/api-contract/openapi.json and
+     docs/msc/api-contract/websocket-v1.json: every (method, path) in the
      real contract has exactly one row in the matrix -- no operation the
      contract defines is silently untracked, and no row in the matrix names
      an operation the contract doesn't (or no longer) define.
@@ -40,22 +40,22 @@ HEADER = [
     "operation_id",
     "msc1_capability",
     "permission_category",
-    "agent_status",
+    "engine_status",
     "desktop_status",
     "cli_status",
     "notes",
 ]
 
 STATUS_VALUES = {"Implemented", "Planned", "Intentional exception"}
-STATUS_COLUMNS = ["agent_status", "desktop_status", "cli_status"]
+STATUS_COLUMNS = ["engine_status", "desktop_status", "cli_status"]
 # operation_id is blank for the two WS channels (no OpenAPI operationId concept
 # applies to them) and notes is blank whenever a row has nothing to add --
 # both legitimately optional, unlike every other column.
 REQUIRED_NONBLANK = [c for c in HEADER if c not in ("operation_id", "notes")]
 DECISION_RE = re.compile(r"D-\d{3}")
 
-OPENAPI_PATH = "docs/msc2/api-contract/openapi.json"
-WEBSOCKET_PATH = "docs/msc2/api-contract/websocket-v1.json"
+OPENAPI_PATH = "docs/msc/api-contract/openapi.json"
+WEBSOCKET_PATH = "docs/msc/api-contract/websocket-v1.json"
 
 
 def contract_operations(openapi_path=OPENAPI_PATH, websocket_path=WEBSOCKET_PATH):

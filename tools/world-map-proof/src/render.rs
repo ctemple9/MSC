@@ -1476,7 +1476,7 @@ fn render_tile_in_dimension(
         "birch grass tint: {:?}, foliage tint: {:?}",
         textures.birch_grass_tint, textures.birch_foliage_tint
     )?;
-    // The tile-session protocol reserves stdout for replies to the agent.
+    // The tile-session protocol reserves stdout for replies to the engine.
     eprintln!(
         "render: {} solid faces, {} water faces, {} textures, {} fallback faces, {} log blocks",
         solid.indices.len() / 6,

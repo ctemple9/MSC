@@ -4,7 +4,7 @@
   // notification toggles, and the headless-script generator are left out --
   // real oracle fields (crates/msc-domain/src/app_config_schema.rs already
   // carries `notes`, `auto_restart_on_crash`, `notification_prefs`) but with
-  // no HTTP route anywhere in docs/msc2/api-contract/openapi.json to read or
+  // no HTTP route anywhere in docs/msc/api-contract/openapi.json to read or
   // write them, unlike the identity/RAM/EULA/delete fields below which are
   // all real, wired routes. Not silently dropped -- see this step's rolling
   // plan entry.
@@ -16,8 +16,8 @@
   //
   // Memory (RAM) is a real route (`/v1/config/ram`) but, like every route
   // this tab touches besides rename/eula/delete, it has no serverId
-  // parameter -- crates/msc-agent/src/routes/versions.rs's
-  // get_ram_config/set_ram_config always act on whichever server the agent
+  // parameter -- crates/msc-engine/src/routes/versions.rs's
+  // get_ram_config/set_ram_config always act on whichever server the engine
   // currently considers active. Editing a card that isn't the active one
   // would silently read/write the WRONG server's RAM, so this block is
   // gated on `isActive` and offers the same "Set as Active" action
@@ -219,7 +219,7 @@
         api,
         serverEditorPaths.ram,
         // Send the complete pair so an automatic save never reaches the
-        // agent as an empty partial update when both fields were edited.
+        // engine as an empty partial update when both fields were edited.
         { minRamGB, maxRamGB },
       );
       notice = result.restartRequired
@@ -347,7 +347,7 @@
   {#if notice}<p class="notice" role="status">{notice}</p>{/if}
 
   <section class="zone">
-    <p class="msc2-type-overline">Identity</p>
+    <p class="msc-type-overline">Identity</p>
     <Card padding="0">
       <div class="row">
         <span class="name">Display Name</span>
@@ -381,14 +381,14 @@
   </section>
 
   <section class="zone">
-    <p class="msc2-type-overline">Memory</p>
+    <p class="msc-type-overline">Memory</p>
     {#if !isActive}
       <Card>
         <div class="notice-row">
           <div class="notice-text">
             <span class="name">Set as active to edit memory</span>
             <p class="hint">
-              RAM allocation is only editable for the currently active server, since the agent
+              RAM allocation is only editable for the currently active server, since the engine
               doesn't expose a way to target another one directly.
             </p>
           </div>
@@ -433,7 +433,7 @@
   </section>
 
   <section class="zone">
-    <p class="msc2-type-overline">Ports</p>
+    <p class="msc-type-overline">Ports</p>
     {#if !isActive}
       <Card>
         <div class="notice-row">
@@ -489,7 +489,7 @@
 
   {#if !isJava}
     <section class="zone">
-      <p class="msc2-type-overline">Connection Transport</p>
+      <p class="msc-type-overline">Connection Transport</p>
       <Card padding="0">
         <div class="transport-row">
           <div class="transport-copy">
@@ -519,7 +519,7 @@
   {/if}
 
   <section class="zone">
-    <p class="msc2-type-overline">Storage</p>
+    <p class="msc-type-overline">Storage</p>
     <Card padding="0">
       <div class="row">
         <span class="name">Server Folder Size</span>
@@ -532,7 +532,7 @@
 
   {#if isJava}
     <section class="zone">
-      <p class="msc2-type-overline">EULA</p>
+      <p class="msc-type-overline">EULA</p>
       <Card padding="0">
         <div class="row">
           <div class="eula-info">
@@ -560,7 +560,7 @@
 
   {#if canControl}
     <section class="zone danger">
-      <p class="msc2-type-overline">Danger Zone</p>
+      <p class="msc-type-overline">Danger Zone</p>
       {#if !confirmingDelete}
         <div class="danger-row">
           <span class="hint"
@@ -573,7 +573,7 @@
       {:else}
         <div class="danger-row">
           <span class="hint"
-            >Delete "{server.name}" and remove it from the controller? The agent refuses this while
+            >Delete "{server.name}" and remove it from the controller? The engine refuses this while
             running.</span
           >
           <div class="danger-actions">
@@ -599,7 +599,7 @@
   .notice {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .zone {
     display: flex;
@@ -625,17 +625,17 @@
     padding: 11px 14px;
   }
   .row.bordered {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .dir {
     font-size: 12px;
-    font-family: var(--msc2-font-mono, monospace);
-    color: var(--msc2-text-tertiary);
+    font-family: var(--msc-font-mono, monospace);
+    color: var(--msc-text-tertiary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -654,12 +654,12 @@
   }
   .unit {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .storage-value {
     font-size: 12px;
-    font-family: var(--msc2-font-mono, monospace);
-    color: var(--msc2-text-secondary);
+    font-family: var(--msc-font-mono, monospace);
+    color: var(--msc-text-secondary);
   }
   .transport-row {
     display: flex;
@@ -677,7 +677,7 @@
   .hint {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .memory-status {
     min-height: 16px;

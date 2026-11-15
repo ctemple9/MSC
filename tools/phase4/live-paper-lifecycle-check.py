@@ -66,7 +66,7 @@ def wait_for_health(base_url: str, log_path: Path) -> None:
                     return
         except (urllib.error.URLError, TimeoutError):
             time.sleep(0.25)
-    raise fail(f"agent did not become healthy; recent log:\n{tail_text(log_path)}")
+    raise fail(f"engine did not become healthy; recent log:\n{tail_text(log_path)}")
 
 
 def tail_text(path: Path, lines: int = 40) -> str:
@@ -95,7 +95,7 @@ def run_cli_json(msc_bin: Path, base_url: str, args: list[str], token: str) -> A
     return json.loads(output)
 
 
-def start_agent(
+def start_engine(
     repo_root: Path,
     msc_bin: Path,
     base_url: str,
@@ -128,7 +128,7 @@ def start_agent(
     return proc
 
 
-def stop_agent(proc: subprocess.Popen[str]) -> None:
+def stop_engine(proc: subprocess.Popen[str]) -> None:
     if proc.poll() is not None:
         return
     proc.terminate()
@@ -284,8 +284,8 @@ def wait_for_websocket_line(
     raise fail(f"websocket never observed {needle!r}")
 
 
-def build_agent(repo_root: Path) -> Path:
-    subprocess.run(["cargo", "build", "-p", "msc-agent"], cwd=repo_root, check=True)
+def build_engine(repo_root: Path) -> Path:
+    subprocess.run(["cargo", "build", "-p", "msc-engine"], cwd=repo_root, check=True)
     msc_bin = repo_root / "target" / "debug" / "msc"
     if not msc_bin.exists():
         raise fail(f"expected built CLI at {msc_bin}")
@@ -307,16 +307,16 @@ def main() -> int:
     if not (server_dir / "server.properties").is_file():
         raise fail(f"server directory is missing server.properties: {server_dir}")
 
-    msc_bin = build_agent(repo_root)
+    msc_bin = build_engine(repo_root)
 
-    with tempfile.TemporaryDirectory(prefix="msc2-phase4-live-paper-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="msc-phase4-live-paper-") as temp_dir:
         temp_root = Path(temp_dir)
         journal_dir = temp_root / "journal"
         journal_dir.mkdir()
         log_path = temp_root / "agent.log"
         server_name = f"Phase4 Live Paper {int(time.time())}"
 
-        agent = start_agent(repo_root, msc_bin, args.base_url, journal_dir, log_path)
+        engine = start_engine(repo_root, msc_bin, args.base_url, journal_dir, log_path)
         try:
             token = run_cli(msc_bin, args.base_url, ["token", "print", "--test"], TOKEN).strip()
             if token != TOKEN:
@@ -435,7 +435,7 @@ def main() -> int:
                 require_pid=False,
             )
         finally:
-            stop_agent(agent)
+            stop_engine(engine)
 
     print("live Paper lifecycle check passed")
     return 0

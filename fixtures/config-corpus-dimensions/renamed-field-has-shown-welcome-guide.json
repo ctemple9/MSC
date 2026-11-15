@@ -7,7 +7,7 @@
     "line": 636
   },
   "input": {
-    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc2-port-plan.md line 187, first sub-item) -- the one concrete renamed-field case MSC 1 actually has",
+    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc-port-plan.md line 187, first sub-item) -- the one concrete renamed-field case MSC 1 actually has",
     "description": "An old config on disk still carries the wire key \"has_shown_welcome_guide\" -- the property itself was renamed to hasShownHandbook in Swift, but `case hasShownHandbook = \"has_shown_welcome_guide\"` keeps decoding the old wire name so existing installs don't lose the flag."
   },
   "expected": {

@@ -33,7 +33,7 @@ export const tourServerContext = writable<TourServerContext | null>(null);
 export const tourServerCreated = writable(false);
 
 /**
- * MSC 2 doesn't yet cover every screen the oracle's tour walks through (no
+ * MSC doesn't yet cover every screen the oracle's tour walks through (no
  * AddServerWizardView port, no Packs tab -- see tourAnchors.ts). Keep only
  * steps that either need no anchor (welcome/done) or point at a real one in
  * this build, so the guided tour never spotlights UI that doesn't exist.
@@ -81,7 +81,7 @@ export type FirstLaunchState = {
 
 export type FirstLaunchStage = 'setup' | 'tour' | 'complete';
 
-/** The presentation sequence is client-owned; the step text and ordering are agent data. */
+/** The presentation sequence is client-owned; the step text and ordering are engine data. */
 export function firstLaunchStage(state: FirstLaunchState): FirstLaunchStage {
   if (!state.setupComplete) return 'setup';
   return state.tourComplete ? 'complete' : 'tour';

@@ -385,7 +385,7 @@
     try {
       const detail =
         profiles[slot.id] ?? (await api?.get<WorldSlotWithProfile>(worldPaths.profile(slot.id)));
-      if (!detail) throw new Error('Connect to an agent to load world settings.');
+      if (!detail) throw new Error('Connect to an engine to load world settings.');
       if (editingSlot?.id !== slot.id) return;
       editingProfile = detail;
       editingValues = profileToWorldSettings(detail.profile, detail.slot);
@@ -413,7 +413,7 @@
   }
 
   function notifyActiveWorldProfileChanged(): void {
-    window.dispatchEvent(new Event('msc2:active-world-profile-changed'));
+    window.dispatchEvent(new Event('msc:active-world-profile-changed'));
   }
 
   function profileStatusLabel(value: string): string {
@@ -527,7 +527,8 @@
         },
       );
       if (!isCurrent()) return;
-      if (!result.operationId) throw new Error('The agent did not return an activation operation.');
+      if (!result.operationId)
+        throw new Error('The engine did not return an activation operation.');
       // Retry status reads without resubmitting activation: losing the connection
       // must not report failure or start a second world swap.
       while (isCurrent()) {
@@ -770,7 +771,7 @@
     <section class="zone">
       <div class="section-header">
         <div class="overline">
-          <span class="msc2-type-overline">World Slots</span>
+          <span class="msc-type-overline">World Slots</span>
         </div>
         <div class="header-actions">
           {#if selectedSlot?.isActive}
@@ -819,7 +820,7 @@
           <p>
             Elapsed {elapsedLabel(activationClock - activation.startedAt)}
             {#if activation.connectionError}
-              · Last agent contact {elapsedLabel(activationClock - activation.lastContactAt)} ago
+              · Last engine contact {elapsedLabel(activationClock - activation.lastContactAt)} ago
             {/if}
           </p>
           {#if activation.connectionError}
@@ -891,7 +892,7 @@
     <section class="zone">
       <div class="section-header">
         <div class="overline">
-          <span class="msc2-type-overline">{isBedrock ? 'World Packs' : 'Datapacks'}</span>
+          <span class="msc-type-overline">{isBedrock ? 'World Packs' : 'Datapacks'}</span>
         </div>
         {#if !isBedrock}
           <Button
@@ -1294,7 +1295,7 @@
         {#if editingNotice}<p class="edit-status" role="status">{editingNotice}</p>{/if}
         {#if editingNotice && editingProfile}
           <p class="edit-detail">
-            The agent read back the saved profile. Creation-only values stay locked after
+            The engine read back the saved profile. Creation-only values stay locked after
             generation; use Replace World or create a new slot when the terrain itself must change.
           </p>
         {/if}
@@ -1321,7 +1322,7 @@
     margin: 0 0 12px;
   }
   .section-summary {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .section-action {
@@ -1338,7 +1339,7 @@
     gap: 10px;
     width: 100px;
     flex: 0 0 100px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .pack-panel-actions {
@@ -1377,7 +1378,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .header-actions {
     display: flex;
@@ -1391,7 +1392,7 @@
     gap: 6px;
     width: 100%;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .activation-stage {
     display: flex;
@@ -1401,7 +1402,7 @@
   }
   .activation-progress p {
     margin: 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .activation-progress progress {
     display: block;
@@ -1410,33 +1411,33 @@
     appearance: none;
     border: 0;
     border-radius: 2px;
-    background: var(--msc2-tier-content);
+    background: var(--msc-tier-content);
   }
   .activation-progress progress::-webkit-progress-bar {
-    background: var(--msc2-tier-content);
+    background: var(--msc-tier-content);
     border-radius: 2px;
   }
   .activation-progress progress::-webkit-progress-value {
-    background: var(--msc2-text-secondary);
+    background: var(--msc-text-secondary);
     border-radius: 2px;
   }
   .activation-progress progress::-moz-progress-bar {
-    background: var(--msc2-text-secondary);
+    background: var(--msc-text-secondary);
     border-radius: 2px;
   }
   .activation-progress .activation-connection {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .notice {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .ownership {
     margin: 0;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .edit-body,
   .edit-message {
@@ -1453,10 +1454,10 @@
   }
   .edit-status,
   .edit-detail {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .edit-error {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .edit-footer,
   .confirmation-actions {
@@ -1469,9 +1470,9 @@
     flex-direction: column;
     gap: 7px;
     padding: 10px 12px;
-    border: 1px solid var(--msc2-hairline-strong);
+    border: 1px solid var(--msc-hairline-strong);
     border-radius: 8px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
     line-height: 1.45;
   }
@@ -1479,7 +1480,7 @@
     margin: 0;
   }
   .confirmation-title {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 600;
   }
   .grid {
@@ -1507,18 +1508,18 @@
     background: rgba(255, 255, 255, 0.04);
   }
   .pack-row-link:focus-visible {
-    outline: 2px solid var(--msc2-selection);
+    outline: 2px solid var(--msc-selection);
     outline-offset: 4px;
   }
   .pack-affordance {
     display: inline-flex;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin-left: 2px;
   }
   .pack-selected {
-    border-radius: var(--msc2-radius-2);
+    border-radius: var(--msc-radius-2);
     background: rgba(59, 130, 246, 0.06);
-    box-shadow: inset 0 0 0 1.5px var(--msc2-selection);
+    box-shadow: inset 0 0 0 1.5px var(--msc-selection);
   }
 
   .pack-row {
@@ -1537,15 +1538,15 @@
   }
   .pack-info.disabled .pack-name,
   .pack-info.disabled .pack-version {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     text-decoration: line-through;
   }
   .pack-version {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .pack-name {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 13px;
     font-weight: 500;
   }

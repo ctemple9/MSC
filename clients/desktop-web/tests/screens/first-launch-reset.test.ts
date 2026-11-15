@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import appSource from '../../src/App.svelte?raw';
 import gateSource from '../../src/lib/help/FirstLaunchGate.svelte?raw';
 import introSource from '../../src/lib/help/SetupIntro.svelte?raw';
-import setupSource from '../../src/lib/sections/setup/AgentSetupSection.svelte?raw';
+import setupSource from '../../src/lib/sections/setup/EngineSetupSection.svelte?raw';
 import orchestrationSource from '../../src/lib/hosts/orchestration.ts?raw';
 
 describe('first-launch reset recovery', () => {
@@ -19,7 +19,7 @@ describe('first-launch reset recovery', () => {
     expect(orchestrationSource).toContain('await options.initializeClient();');
   });
 
-  it('keeps first launch agent-owned and never creates a server during recovery', () => {
+  it('keeps first launch engine-owned and never creates a server during recovery', () => {
     expect(gateSource).toContain("'/v1/config/host-setup'");
     expect(introSource).toContain("'/v1/config/host-setup/complete'");
     expect(gateSource).toContain("'/v1/guides/onboarding'");

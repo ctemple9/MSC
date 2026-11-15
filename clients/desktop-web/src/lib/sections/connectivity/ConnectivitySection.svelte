@@ -96,7 +96,7 @@
   <ScreenHeader
     eyebrow="Reachability"
     title="Networking"
-    description="Diagnostics distinguish local listening, public reachability, helper state, and the join address instead of promising a connection the agent did not prove."
+    description="Diagnostics distinguish local listening, public reachability, helper state, and the join address instead of promising a connection the engine did not prove."
     status={connectivity.status}
     statusTone={connectivity.severity === 'ok' ? 'positive' : 'warning'}
     actionLabel="Run diagnostics"
@@ -135,7 +135,7 @@
   <div class="screen-grid">
     <section class="screen-card">
       <h3>Playit</h3>
-      <p>{playit.note ?? 'Managed helper state is reported by the agent.'}</p>
+      <p>{playit.note ?? 'Managed helper state is reported by the engine.'}</p>
       <StatusBadge
         status={playit.isRunning ? 'Running' : 'Stopped'}
         tone={playit.isRunning ? 'positive' : 'neutral'}

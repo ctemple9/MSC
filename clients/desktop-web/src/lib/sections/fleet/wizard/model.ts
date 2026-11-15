@@ -227,7 +227,7 @@ export interface WizardDraft {
    *  picker; see `BEDROCK_VERSION_NOTE`'s own doc comment for why. */
   bedrockVersion: string;
   /** `AddServerWizardView.swift`'s `bedrockMaxPlayers`; sent as a number,
-   *  matching `ServerCreateRequestDTO.maxPlayers` and the agent's own
+   *  matching `ServerCreateRequestDTO.maxPlayers` and the engine's own
    *  `run_create_bedrock_server` range check (1-10000, default 10). */
   bedrockMaxPlayers: number;
   /** `AddServerWizardView.swift`'s `enablePlayit` -- Network step's
@@ -390,7 +390,7 @@ export type PendingAddOn =
     };
 
 /** Simple Voice Chat's published files and Modrinth listing all carry one of
- * these stable name fragments. This is only a creation hint; the agent still
+ * these stable name fragments. This is only a creation hint; the engine still
  * checks the real plugins/ and mods/ directories before provisioning voice. */
 export function isSimpleVoiceChatName(value: string | undefined): boolean {
   const name = value?.toLowerCase() ?? '';
@@ -459,7 +459,7 @@ export function javaSelectionKey(draft: WizardDraft): string {
 
 /**
  * `GET /v1/versions/create?serverType=bedrock` (`versions_for_create` in
- * `crates/msc-agent/src/routes/versions.rs`) always resolves to
+ * `crates/msc-engine/src/routes/versions.rs`) always resolves to
  * `bedrock_versions_response(None, None)` for this query regardless of any
  * state -- it never looks at the active server, because there isn't one yet
  * during Configure. The response is a compile-time constant:
@@ -637,7 +637,7 @@ export function canCreateServer(displayName: string): boolean {
  * real `POST /v1/servers/create` body from the accumulated draft.
  *
  * `worldSourceMode: 'backupZip'` is deliberately **not** represented here --
- * `run_create_server`'s own `NewServerRequest` (`crates/msc-agent/src/routes/
+ * `run_create_server`'s own `NewServerRequest` (`crates/msc-engine/src/routes/
  * servers.rs`) always provisions `WorldSource::Fresh` no matter what this
  * body contains, since `ServerCreateRequestDTO` carries no world-source
  * field at all (confirmed against the frozen contract: `worldName`/
@@ -1003,7 +1003,7 @@ export function importDisplayNameFromPath(sourcePath: string): string {
  * and this path's own Network step (`NetworkStep.svelte`, reused unchanged
  * per this step's own plan text) collects `draft.enablePlayit` exactly like
  * Fresh does -- but `import_raw`'s own `RawImportOverrides`
- * (`crates/msc-agent/src/routes/servers.rs`) only carries `port`/
+ * (`crates/msc-engine/src/routes/servers.rs`) only carries `port`/
  * `maxPlayers`/`activeWorldName`/`eulaAccepted`; `body.enable_playit` has no
  * reader anywhere in the import route (`import`/`import_raw`/
  * `run_raw_import`, confirmed by reading all three directly), unlike the

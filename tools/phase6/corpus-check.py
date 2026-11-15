@@ -2,7 +2,7 @@
 """Phase 6 world/backup corpus checker (P6.2).
 
 Gates P6.3's evidence collection, and later exercise-mode steps, against
-`docs/msc2/worlds/phase6-scope.md`'s evidence requirements: this fails
+`docs/msc/worlds/phase6-scope.md`'s evidence requirements: this fails
 loudly, not silently, when the real MSC 1 corpus that note demands isn't
 actually there yet.
 
@@ -394,7 +394,7 @@ def check_private_root_smoke(private_root: str | None) -> str:
     through the public Phase 6 smoke where size permits" leg. When a
     private root is supplied, this actually runs
     `phase6-gate-smoke.sh --private-corpus <root>` (P6.35) -- the real
-    agent driven, over nothing but its own CLI/HTTP surface, through a
+    engine driven, over nothing but its own CLI/HTTP surface, through a
     bounded server import using the copied server's real configured world
     folder name, a bounded staged-upload world export/import round trip,
     activation, a manual backup, and a restore, all against whichever real

@@ -34,7 +34,7 @@ require_tool stat
 require_tool sudo
 require_tool systemd-creds
 
-RUN_DIR="$(mktemp -d /tmp/msc2-linux-credential-helper.XXXXXX)"
+RUN_DIR="$(mktemp -d /tmp/msc-linux-credential-helper.XXXXXX)"
 # mktemp -d makes RUN_DIR mode 0700 owned by root (this whole script runs
 # under sudo). The unprivileged TARGET_USER needs to traverse into it to
 # reach the socket below; only the STORE_DIR subdirectory needs to stay
@@ -63,7 +63,7 @@ trap cleanup EXIT
 
 (
   cd "${ROOT}"
-  cargo build -p msc-agent >/dev/null
+  cargo build -p msc-engine >/dev/null
 )
 
 MSC_BIN="${ROOT}/target/debug/msc"

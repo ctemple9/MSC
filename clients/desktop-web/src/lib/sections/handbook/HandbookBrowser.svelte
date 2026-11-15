@@ -1,6 +1,6 @@
 <script lang="ts">
   // MSC 1 ServerHandbookView.swift, rebuilt to the S0 disciplined system
-  // (docs/msc2/antiAIslop.md). The oracle's per-category colored icon tiles
+  // (docs/msc/antiAIslop.md). The oracle's per-category colored icon tiles
   // and hero banner image are dropped -- category is a neutral Badge, and
   // navigation is a plain grouped list, matching rule #6/#9's fix.
   import { onMount, tick } from 'svelte';
@@ -22,7 +22,7 @@
   export let canGoBack = false;
 
   let search = '';
-  const favoritesKey = 'msc2.handbook.favorites.v1';
+  const favoritesKey = 'msc.handbook.favorites.v1';
   const defaultFavorites = [
     'handbook.first-server',
     'handbook.first-modded-server',
@@ -130,15 +130,15 @@
   <div class="welcome-banner">
     <h2>You don’t need to read all of this right now.</h2>
     <p>
-      Come back when you want to learn how something works in MSC 2. Start with a guide in
-      Favorites, or find a topic when you need it.
+      Come back when you want to learn how something works in MSC. Start with a guide in Favorites,
+      or find a topic when you need it.
     </p>
   </div>
   <div class="browser-columns">
     <aside class="topics">
       <Field placeholder="Search topics…" bind:value={search} />
       <div class="topic-list" role="tree" aria-label="Handbook topics">
-        <p class="group-label msc2-type-overline">Favorites</p>
+        <p class="group-label msc-type-overline">Favorites</p>
         {#if favoriteTopics.length > 0}
           {#each favoriteTopics as item (item.helpId)}
             <button
@@ -152,10 +152,10 @@
             >
           {/each}
         {:else if !search.trim()}
-          <p class="no-results msc2-type-meta">Save topics you use often.</p>
+          <p class="no-results msc-type-meta">Save topics you use often.</p>
         {/if}
         {#each groups as group (group.slug)}
-          <p class="group-label msc2-type-overline">{group.label}</p>
+          <p class="group-label msc-type-overline">{group.label}</p>
           {#each group.topics as item (item.helpId)}
             <button
               type="button"
@@ -169,7 +169,7 @@
           {/each}
         {/each}
         {#if groups.length === 0}
-          <p class="no-results msc2-type-meta">No topics match “{search}”.</p>
+          <p class="no-results msc-type-meta">No topics match “{search}”.</p>
         {/if}
       </div>
     </aside>
@@ -178,53 +178,53 @@
       {#if topic}
         {#if categoryLabel}<Badge>{categoryLabel}</Badge>{/if}
         <div class="reader-heading">
-          <h3 class="msc2-type-page">{topic.title}</h3>
+          <h3 class="msc-type-page">{topic.title}</h3>
           <Button size="sm" variant="secondary" disabled={!canGoBack} onclick={onBack}>Back</Button>
         </div>
         {#if topic.subtitle}
           <p
-            class="subtitle msc2-type-body"
+            class="subtitle msc-type-body"
             class:overview-subtitle={topic.helpId === 'handbook.overview'}
           >
             {topic.subtitle}
           </p>
         {/if}
-        {#if topic.analogy}<p class="analogy msc2-type-body">{topic.analogy}</p>{/if}
-        <div class="markdown msc2-type-body" data-safe-markdown="true">
+        {#if topic.analogy}<p class="analogy msc-type-body">{topic.analogy}</p>{/if}
+        <div class="markdown msc-type-body" data-safe-markdown="true">
           {@html renderMarkdown(topic.body)}
         </div>
         {#each topic.sections ?? [] as block, blockIndex (blockIndex)}
           {#if block.type === 'body'}
-            <div class="markdown msc2-type-body" data-safe-markdown="true">
+            <div class="markdown msc-type-body" data-safe-markdown="true">
               {@html renderMarkdown(block.markdown)}
             </div>
           {:else if block.type === 'bulletList'}
-            <div class="markdown msc2-type-body" data-safe-markdown="true">
+            <div class="markdown msc-type-body" data-safe-markdown="true">
               {@html renderMarkdown(block.items.map((item) => `- ${item}`).join('\n'))}
             </div>
           {:else if block.type === 'callout'}
             <div class="callout">
-              <p class="callout-label msc2-type-overline">{block.style}</p>
-              <p class="callout-text msc2-type-body">{block.text}</p>
+              <p class="callout-label msc-type-overline">{block.style}</p>
+              <p class="callout-text msc-type-body">{block.text}</p>
             </div>
           {:else if block.type === 'inApp'}
             <div class="callout">
-              <p class="callout-label msc2-type-overline">In this app</p>
-              <div class="markdown msc2-type-body" data-safe-markdown="true">
+              <p class="callout-label msc-type-overline">In this app</p>
+              <div class="markdown msc-type-body" data-safe-markdown="true">
                 {@html renderMarkdown(block.items.map((item) => `- ${item}`).join('\n'))}
               </div>
             </div>
           {:else if block.type === 'advanced'}
             <details class="advanced">
-              <summary class="msc2-type-overline">Advanced details</summary>
-              <div class="markdown msc2-type-body" data-safe-markdown="true">
+              <summary class="msc-type-overline">Advanced details</summary>
+              <div class="markdown msc-type-body" data-safe-markdown="true">
                 {@html renderMarkdown(block.markdown)}
               </div>
             </details>
           {:else if block.type === 'checklist'}
             <div class="checklist">
-              <p class="checklist-phase msc2-type-section">{block.phase}</p>
-              <ol class="checklist-steps msc2-type-body" start={block.steps[0]?.number}>
+              <p class="checklist-phase msc-type-section">{block.phase}</p>
+              <ol class="checklist-steps msc-type-body" start={block.steps[0]?.number}>
                 {#each block.steps as step (step.number)}
                   <li data-safe-markdown="true">
                     <strong>{step.title}</strong> — {@html renderMarkdown(step.detail)}
@@ -234,7 +234,7 @@
             </div>
           {:else if block.type === 'table'}
             <div class="table-wrap">
-              <table class="guide-table msc2-type-body">
+              <table class="guide-table msc-type-body">
                 <thead>
                   <tr>
                     {#each block.headers as header (header)}<th>{header}</th>{/each}
@@ -252,7 +252,7 @@
           {/if}
         {/each}
         {#if topic.relatedIds.length}
-          <p class="msc2-type-overline related-label">Related topics</p>
+          <p class="msc-type-overline related-label">Related topics</p>
           <div class="related-topics">
             {#each topic.relatedIds as relatedId (relatedId)}
               {@const relatedTitle =
@@ -272,7 +272,7 @@
           >
             Previous topic
           </Button>
-          <span class="progress msc2-type-meta">
+          <span class="progress msc-type-meta">
             {currentIndex >= 0 ? currentIndex + 1 : 1} / {HANDBOOK_TOPIC_ORDER.length}
           </span>
           <Button
@@ -286,8 +286,8 @@
         </div>
       {:else}
         <EmptyState
-          title="That topic is not available on this agent"
-          message={`The link is preserved so a newer agent can provide it later. (${topicId})`}
+          title="That topic is not available on this engine"
+          message={`The link is preserved so a newer engine can provide it later. (${topicId})`}
         />
       {/if}
     </article>
@@ -319,17 +319,17 @@
   .welcome-banner {
     padding: 1px 0 16px;
     margin-bottom: 18px;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .welcome-banner h2 {
     margin: 0 0 5px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 18px;
     font-weight: 600;
   }
   .welcome-banner p {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 13px;
     line-height: 1.5;
   }
@@ -372,18 +372,18 @@
     border-radius: 6px;
     border: none;
     background: transparent;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font: inherit;
     font-size: 13px;
     cursor: pointer;
   }
   .topic-row:hover {
-    background: var(--msc2-hairline-subtle);
-    color: var(--msc2-text-primary);
+    background: var(--msc-hairline-subtle);
+    color: var(--msc-text-primary);
   }
   .topic-row.selected {
-    background: var(--msc2-neutral-elevated);
-    color: var(--msc2-text-primary);
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .no-results {
@@ -412,19 +412,19 @@
     margin: 2px 0 0;
   }
   .subtitle {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     margin: 0;
   }
   .overview-subtitle {
     font-style: italic;
   }
   .analogy {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-style: italic;
     margin: 0;
   }
   .markdown {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     line-height: 1.6;
   }
   .markdown :global(p) {
@@ -436,7 +436,7 @@
   .markdown :global(h1),
   .markdown :global(h2),
   .markdown :global(h3) {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .markdown :global(h2) {
@@ -445,18 +445,18 @@
     line-height: 1.3;
   }
   .markdown :global(a) {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     text-decoration: underline;
   }
   .markdown :global(strong) {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .markdown :global(code) {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 0.9em;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-hairline-subtle);
+    color: var(--msc-text-primary);
+    background: var(--msc-hairline-subtle);
     padding: 0.1em 0.35em;
     border-radius: 4px;
   }
@@ -470,15 +470,15 @@
   .callout,
   .checklist,
   .advanced {
-    border: 1px solid var(--msc2-hairline);
-    border-radius: var(--msc2-radius-2);
+    border: 1px solid var(--msc-hairline);
+    border-radius: var(--msc-radius-2);
     padding: 12px 14px;
   }
   .callout-label {
     margin: 0 0 4px;
   }
   .callout-text {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     margin: 0;
     line-height: 1.6;
   }
@@ -488,19 +488,19 @@
   .checklist-steps {
     margin: 0;
     padding-left: 1.2rem;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     line-height: 1.6;
   }
   .checklist-steps li {
     margin-bottom: 6px;
   }
   .checklist-steps strong {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
   }
   .advanced summary {
     cursor: pointer;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .advanced .markdown {
     margin-top: 10px;
@@ -517,11 +517,11 @@
   .guide-table td {
     text-align: left;
     padding: 6px 10px;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
-    color: var(--msc2-text-secondary);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
+    color: var(--msc-text-secondary);
   }
   .guide-table th {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-weight: 500;
     font-size: 11px;
     text-transform: uppercase;
@@ -536,18 +536,18 @@
     gap: 6px;
   }
   .related-pill {
-    border: 1px solid var(--msc2-hairline);
+    border: 1px solid var(--msc-hairline);
     border-radius: 999px;
     padding: 4px 11px;
     background: transparent;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font: inherit;
     font-size: 12px;
     cursor: pointer;
   }
   .related-pill:hover {
-    color: var(--msc2-text-primary);
-    background: var(--msc2-hairline-subtle);
+    color: var(--msc-text-primary);
+    background: var(--msc-hairline-subtle);
   }
   .reader-footer {
     display: flex;
@@ -555,7 +555,7 @@
     justify-content: space-between;
     margin-top: 6px;
     padding-top: 10px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   @media (max-width: 560px) {
     .browser-columns {

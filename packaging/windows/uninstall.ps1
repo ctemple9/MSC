@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 function Fail([string]$Message) {
-    Write-Error "msc 2 Windows headless uninstaller: $Message"
+    Write-Error "MSC Windows headless uninstaller: $Message"
     exit 1
 }
 
@@ -26,10 +26,10 @@ if ($Scope -eq 'Machine') {
     if (-not $env:ProgramFiles) {
         Fail 'ProgramFiles is not set'
     }
-    $installDirectory = Join-Path $env:ProgramFiles 'MSC2\bin'
+    $installDirectory = Join-Path $env:ProgramFiles 'MSC\bin'
     $environmentTarget = [EnvironmentVariableTarget]::Machine
 } else {
-    $installDirectory = Join-Path $env:LOCALAPPDATA 'MSC2\bin'
+    $installDirectory = Join-Path $env:LOCALAPPDATA 'MSC\bin'
     $environmentTarget = [EnvironmentVariableTarget]::User
 }
 
@@ -42,7 +42,7 @@ if (-not (Test-Path -LiteralPath $ownershipMarker -PathType Leaf)) {
     if (Test-Path -LiteralPath $installedBinary) {
         Fail "refusing to remove an executable without MSC ownership marker: $installedBinary"
     }
-    Write-Output "No MSC 2 $Scope headless command installation was found."
+    Write-Output "No MSC $Scope headless command installation was found."
     exit 0
 }
 if ((Get-Content -LiteralPath $ownershipMarker -Raw).Trim() -ne 'msc2-headless-archive') {
@@ -80,7 +80,7 @@ if (Test-Path -LiteralPath $installDirectory -PathType Container) {
 }
 
 Write-Output @"
-MSC 2 Windows headless command removed for the $Scope PATH.
+MSC Windows headless command removed for the $Scope PATH.
 $pathChange
 Refresh PATH or open a new PowerShell or Command Prompt window before using
 the changed command discovery state.

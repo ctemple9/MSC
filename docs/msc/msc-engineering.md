@@ -1,0 +1,946 @@
+# MSC — Engineering Specification
+
+> Owner amendment (2026-10-06, D-042): modded map repair/import and private Minecraft client capture are retired. The standard Java and Bedrock saved-terrain maps remain supported. Earlier repair-plan or capture acceptance requirements are withdrawn rather than satisfied.
+
+**Revision:** 1.11 · **Date:** 2026-10-30 · **Owner:** Cameron Temple
+**Baseline:** MSC 1 at commit `fccd61f0ed743086f1f5db6bef58e228a36010f3`
+
+**Companion documents:**
+- `msc-product.md` — what MSC is, in plain language, for anyone
+- `MSC-VISION.md` — index, revision state, and precedence rules for this document set
+- `msc-decisions.md` — the decision register: what was decided, by whom, why, and what was rejected
+- `msc-port-plan.md` — execution sequencing and the fixture inventory (separate on purpose; it changes, this does not)
+
+**How to read this document.** It is written to be picked up cold. Sections 1–4 establish what MSC is and why it is shaped this way. Sections 5–11 are the technical contract. Sections 12–14 describe the state of MSC 1 and the plan for porting it. If you are about to write code, read sections 5, 6, 13, and 14.
+
+**Rule of precedence.** Where this document and `msc-decisions.md` disagree, the decision register wins — it records the reasoning, and this document is downstream of it.
+
+---
+
+## 1. What MSC is
+
+MSC is the control plane for self-hosted Minecraft servers: creation, runtime management, worlds, backups, mods, players, diagnostics, networking, and updates.
+
+Architecturally it is **one engine shared by the desktop app, CLI, and TUI**. All server-management behavior lives in a Rust service. Each client uses that service's API; the TUI uses the host-local access path. No client implements server-management logic; the engine does not serve a browser UI (D-038, D-043).
+
+The defining constraint:
+
+> If an action is available in the MSC desktop interface, it is available through the MSC API and can be performed remotely.
+
+This is not aspirational. It is enforced structurally: there is only one implementation of any action, so a client cannot have a capability the API lacks.
+
+### Why this shape
+
+MSC 1 fused engine and UI. Server-management logic lives inside SwiftUI view models, so running MSC requires running a macOS GUI session. Every limitation follows from that: no Linux host, no true headless mode, no Windows, and a remote client that could only do what someone had hand-exported to the Remote API.
+
+Splitting engine from interface removes all of them at once, and makes client parity a property of the architecture rather than a project that must be repeated.
+
+---
+
+## 2. System architecture
+
+```mermaid
+flowchart TB
+    subgraph clients["Supported clients"]
+        Desktop["MSC Desktop<br/>Tauri shell"]
+        CLI["msc CLI<br/>host-local or SSH shell"]
+        TUI["msc tui<br/>host-local or SSH shell"]
+    end
+
+    Svelte["Svelte frontend<br/>(desktop app)"]
+
+    Desktop --> Svelte
+    Svelte --> API
+    CLI --> API
+    TUI --> API
+
+    API["MSC API<br/>HTTP + WebSocket, versioned"]
+    API --> Engine["MSC Engine<br/>service, scheduler, operation journal"]
+    Engine --> App["Application services<br/>lifecycle · worlds · backups · components · players"]
+    App --> Domain["Domain<br/>models · parsers · policies · diagnostics"]
+    App --> Infra["Infrastructure<br/>filesystem · providers · archives · process supervisor"]
+    Infra --> Platform["Platform adapters<br/>macOS · Windows · Linux"]
+    Platform --> Sidecar["Swift VZ sidecar<br/>(macOS Bedrock only)"]
+    Infra --> Procs["Java / Bedrock processes"]
+    Infra --> Store["Worlds · configs · backups · logs · archives"]
+```
+
+### Component responsibilities
+
+| Component | Owns |
+|---|---|
+| **Domain** | Value types, parsers, compatibility rules, diagnostics policy, version comparison. No I/O. |
+| **Application services** | Workflows: start a server, restore a backup, import a modpack. Orchestrates domain + infrastructure. Owns operation state. |
+| **Infrastructure** | Filesystem repositories, HTTP providers, archive handling, process supervision, metrics collection, config persistence, audit log. |
+| **Platform adapters** | Per-OS implementations behind shared traits: services, secret storage, process enumeration, file reveal. |
+| **Engine** | Process lifetime, dependency assembly, scheduled work, operation recovery on restart, and API hosting. It does not serve a browser UI (D-038). |
+| **API** | Routes, DTOs, WebSocket events, authentication, capability advertisement. |
+| **Clients** | Presentation and request initiation only. |
+
+### The single-owner principle
+
+The host running the engine is the sole owner of all server state: directories, worlds, player data, backups, configuration, archives, logs, metadata, and authentication configuration.
+
+Clients display and request. They never become co-owners. This is what keeps recovery, backup, and conflict behavior comprehensible when three clients are connected at once.
+
+---
+
+## 3. Technology stack
+
+| Layer | Choice | Notes |
+|---|---|---|
+| Engine, service, API, CLI, TUI | **Rust** | One installed command per platform. See D-002 and D-043. |
+| HTTP / WebSocket | `axum` + `tokio` | Replaces MSC 1's hand-written socket server. |
+| CLI parsing | `clap` | Generates shell completions. |
+| Interactive prompts | `inquire` | Fuzzy select, confirm. Phase: after core CLI. |
+| Full-screen terminal client | Rust terminal rendering and input | Implemented with `crossterm`; restored under D-043 and accepted in Phase 22. |
+| Progress | `indicatif` | Downloads, installs. |
+| Desktop shell | **Tauri** | Thin. Loads the Svelte bundle. |
+| Desktop frontend | **Svelte + TypeScript** | Bundled in and loaded by Tauri; the engine does not serve it to browsers (D-038). |
+| Secret storage | `keyring` crate **+ headless fallback** | Keychain / DPAPI behind one trait. **The crate is not sufficient on headless Linux** — see §8. |
+| Hashing | Rust-native | Replaces CryptoKit usage. |
+| Images | `image` crate | Replaces AppKit `NSImage` skin handling. |
+| macOS Bedrock VM | **Swift sidecar service** | `Virtualization.framework`; installed operation is isolated in the privileged helper frozen by D-007/D-025. |
+
+---
+
+## 4. The four run modes
+
+**Desktop mode.** The Tauri application opens. If a local engine is running it attaches; otherwise it offers to install and start the service. The desktop experience feels immediate because the engine is local, but it uses the same API contract as any remote client.
+
+**Service mode.** The engine runs with no window: owns server processes, the API, scheduled work, monitoring, and persistent state.
+
+```
+msc serve
+msc serve --bind 127.0.0.1:48001
+msc serve --bind tailscale
+```
+
+**CLI mode.** Commands run on the engine host, locally or in an SSH login shell. The CLI obtains host-local authorization from the operating-system peer identity and uses the authenticated API without operator-visible tokens (D-040). Remote desktop pairing remains separate.
+
+```
+msc status engine
+msc status
+msc server start "Modded Survival"
+msc command "Modded Survival" "say restarting in 5"
+msc backup create "Modded Survival" --json
+ssh msc-linux msc status
+```
+
+The SSH example runs the command on `msc-linux`; it does not make the CLI a
+remote-host client. Use the Tauri desktop app's separate pairing flow to
+manage another host from a different computer. The CLI has no host, URL, port,
+or bearer-token option.
+
+Human-readable by default; `--json` on everything; meaningful exit codes; colors and spinners disabled automatically when stdout is not a TTY.
+
+The CLI remains the scriptable terminal interface: named one-shot commands,
+automation-friendly output, and interactive confirmations where an action is
+destructive.
+
+**TUI mode.** `msc tui` opens the full-screen, keyboard-driven client on the
+engine host in a local terminal or SSH login shell. It uses the CLI's
+host-local authorization boundary and existing API/WebSocket contracts;
+engine service controls still use the local operating system when the API is
+down. The TUI is supported on macOS, Windows, and Linux. It does not provide
+a direct-remote host, URL, port, or bearer-token mode (D-040, D-043). From the
+repository, run `cargo run -p msc-engine -- tui`.
+
+---
+
+## 5. The API contract
+
+### Source of truth
+
+A versioned **OpenAPI** description plus explicit **WebSocket event schemas** is the single source of truth. It generates the Rust server types and the client types used by the desktop app and CLI. Hand-written client models are not permitted — the old `MSCmacOSTests/iOSModelMirrors.swift` check is historical evidence of the problem, and code generation retires it. The engine does not serve a browser UI; browser-specific routes and sessions are retired under D-038.
+
+### MSC 1's API is the compatibility **baseline**, not the whole of MSC's API
+
+Three distinct things follow from this, and conflating them is a mistake:
+
+1. **Baseline.** Where MSC 1's API already covers a capability, its externally observable behavior is normative. Retained MSC clients must keep working, while the former mobile client remains historical compatibility evidence rather than a shipped target.
+2. **Extension.** MSC's API is a **superset**. MSC 1 has desktop capabilities its Remote API never exposed; the parity work identified these, and MSC must add endpoints for them. The baseline defines what may not break, not what may not be added.
+3. **Correction.** Documented bugs, security weaknesses, and genuinely wrong semantics **may be fixed** rather than preserved forever. A quirk is not a contract simply because it shipped. Corrections are recorded explicitly, versioned per D-010, and never made silently.
+
+Measured baseline surface:
+
+- **49 POST routes**, **38 GET routes**
+- 8 files, 5,652 lines
+- `RemoteAPIServerDTOs.swift` alone is ~55 KB of wire schema, historically exercised daily by MSC 1's former mobile client
+- Existing auth, roles, rate limiting, audit logging, WebSocket support
+
+Route families: `servers/{create,import,delete,rename,eula}` · `settings` · `worlds/{create,rename,replace,repair,activate}` · `components/{install,remove,update,version}` · `backups/{now,restore,config}` · `config/{ram,java-runtime,geyser}` · `users/{create,update,revoke}` · `health/repair` · `playit/*` · `broadcast/*` · `resourcepacks/*` · `watchdog/*` · `command` · `start` · `stop` · `allowlist` · `players/*` · `duckdns`
+
+**Preserved unless deliberately corrected:** field names, optional/default behavior, route meanings, role and permission behavior, rate-limiting intent, request-size limits, 404-vs-405 semantics, audit records, WebSocket authentication and delivery, and the error semantics established by the legacy remote client.
+
+**Not preserved:** hand-written socket parsing, mutable provider-closure storage, `AppViewModel` as provider owner, DTO nesting that exists only for Swift file organization.
+
+### Long-running operations
+
+Modpack installs, Java downloads, world conversions, backup restores, and loader installations take minutes. These return an **operation ID** immediately. Clients subscribe to progress events and may disconnect and reconnect without losing the operation.
+
+Every operation has: an ID, a type, a target, a state (`queued` / `running` / `succeeded` / `failed` / `cancelled`), progress, a human-readable status line, and a result or structured error. Operations survive engine restart via the operation journal (§7).
+
+### Capability discovery
+
+Clients ask the engine what it can do. Capabilities reflect host OS, server type, installed helpers, token permissions, engine version, and server state. One client build controls hosts with different capabilities without assuming feature parity underneath.
+
+### Versioning and skew
+
+Per D-010: the engine supports desktop and CLI clients back a defined number of minor versions, with capability degradation inside that window, clear refusal below it, a new major route namespace for breaking changes, and additive/optional new fields. D-038 retires browser-only routes and sessions; old browser clients and cookies receive no compatibility guarantee, and old cookies cannot authorize retained routes.
+
+**The specific floor value is not yet decided.** An earlier draft asserted N-3; that was an analysis estimate, not a decision. The floor must be set from real update-adoption data across MSC's supported distribution channels once it ships.
+
+### WebSocket channels
+
+Console, status, operation progress, players, notifications, metrics. Console delivery sends a **bounded recent history followed by live events** — avoiding both an empty console on reconnect and unbounded engine memory.
+
+### Operational refinement contracts (P14.1; D-036 proposed)
+
+Phase 14 extends the existing API and WebSocket model without creating a
+parallel client-side implementation of these behaviors.
+
+**Minecraft time.** A preset such as dawn, dusk, or night is a semantic
+same-day operation. The engine reads the runtime's current absolute daytime,
+derives the current Minecraft day, and sends the runtime-specific command for
+the target tick in that same day. A request to change the day is a separate
+explicit operation. A raw numeric `time set` remains absolute, so clients must
+not reinterpret it as a relative shortcut. Capability discovery must expose
+whether this operation is available for the selected Java flavor or Bedrock
+runtime, and the semantics must be identical wherever it is available.
+
+**Console retention.** Polling commands used to collect TPS, player counts, or
+other metrics are internal monitoring traffic. Their output is classified
+before it enters the bounded human console ring and before history or live
+WebSocket delivery. Metrics continue to receive the parsed result. If an
+automatic diagnostic stream is exposed, it is separate and independently
+bounded; enabling it cannot evict human server output. Genuine server replies
+that are not attributable to MSC polling remain human console output.
+
+**Headless installation.** macOS, Windows, and Linux each have a first-class
+headless artifact and a documented command-install path. The installed command
+is `msc` (`msc.exe` on Windows), and the installer owns the PATH entry it adds
+so upgrades are idempotent and uninstall does not remove unrelated commands.
+The management service defaults to `127.0.0.1:48001`; the PATH contract is
+independent of service registration and GUI installation.
+
+The Linux headless archive retains the authenticated HTTP/WebSocket API and
+CLI, so a remote desktop client can manage it. No installation includes an
+engine-served browser UI (D-038). A host can run without a graphical desktop,
+and a remote desktop client can manage it over the API.
+
+**Remote desktop connections.** A Tauri desktop may try configured direct LAN
+or Tailscale addresses and may own an SSH local forward to the host's
+management service. The example local forwarded port is `48002`, but it is a
+client-side choice and must be configurable or automatically moved when busy.
+The tunnel is transport, not authorization: the normal authenticated API and
+per-host credential model still apply. MSC provides no cloud relay and does
+not require Tailscale. Remote setup may perform the narrowly-scoped desktop
+pairing bootstrap: the Tauri shell may invoke only `msc pairing create
+--client-kind desktop --json` through the managed SSH session, then exchange
+the one-use challenge through a temporary loopback forward. The pairing code
+and bearer credential remain in native code; the webview receives only status
+and the stable engine host ID. If the remote command is unavailable, the
+existing manually-created one-use code remains the recovery path. The feature
+cannot install, start, stop, replace, or uninstall the host's operating-system
+service through the management API. A host record's
+identity remains stable when its addresses change, and its secrets stay scoped
+to that host.
+
+### Remote connection failure and security boundaries (P14.16)
+
+The Tauri bridge reports remote failures in five categories so the connection
+screen can tell the user what to repair: **Network** (LAN/Tailscale reachability
+or a busy local forwarding port), **SSH** (host-key identity or tunnel
+lifecycle), **MSC engine** (missing `msc` on the remote PATH, a stopped service,
+or an engine below the supported version floor), **Authentication** (a refused
+SSH credential, expired pairing challenge, or revoked bearer credential), and
+**Minecraft** (a reachable engine reporting a server/runtime failure). The
+category is part of native route/tunnel status where the UI needs to decide
+whether to try another route; an authentication or engine refusal must not be
+silently retried as if the network were down.
+
+On the first explicit “Save and connect”, MSC remembers the SSH host key
+automatically; the setup screen does not display its fingerprint. A previously
+remembered key that changes stops pairing or forwarding. MSC explains the
+change without showing the key and requires an explicit user action before
+trusting the replacement; it never accepts a changed identity automatically.
+Managed forwards bind to `127.0.0.1` on the desktop and target
+`127.0.0.1:48001` on the remote host (with an editable local port such as
+`48002`). The bridge invokes only the fixed
+`msc pairing create --client-kind desktop --json` bootstrap command; it
+is not a general remote shell and it cannot install, start, stop, replace, or
+uninstall the remote operating-system service. SSH is transport only. The
+normal per-host bearer credential and permission checks remain mandatory over
+direct LAN, Tailscale, and forwarded routes.
+
+Passwords are held only for the connection attempt/session, private-key
+contents are never read into ordinary client state, and bearer/pairing values
+stay in native code or the platform secret store. SSH stderr and connection
+errors are bounded and redacted before they reach diagnostics or the UI. MSC
+does not collect hosted telemetry or screenshots. When the user switches
+hosts, an older asynchronous initialization is discarded; a running engine
+operation remains on its original host and is not cancelled by the switch.
+
+The Phase 14 source and acceptance map is maintained in
+`docs/msc/capabilities/phase14-operational-refinements.md`. It is the owning
+checklist for the runtime variants, retained client surfaces, and OS install
+evidence named above; later implementation steps must not silently reduce that
+coverage.
+
+---
+
+## 6. Module boundaries
+
+Dependency boundaries, not a mandate to create every crate on day one. Start with fewer and split as they earn it.
+
+```
+msc-domain
+    server models · flavors · versions · settings schema
+    parsers (console, TPS, crash, mod metadata)
+    diagnostics policy · compatibility rules
+    operation states · capabilities
+    NO I/O
+
+msc-application
+    lifecycle · worlds · backups · imports · updates
+    provisioning · players · packs · notifications
+    owns operation semantics and transaction boundaries
+
+msc-infrastructure
+    filesystem repositories · HTTP providers · archives
+    process supervisor · metrics · config · audit
+    trait definitions for platform capabilities
+
+msc-api
+    routes · DTOs · WebSocket events
+    authentication · permission checks · rate limiting
+
+msc-engine
+    service startup · dependency assembly
+    scheduler · operation recovery · static asset serving
+
+msc-cli
+    host-local commands, including SSH login shells (ships in the same binary)
+
+msc-platform-macos      launchd LaunchDaemons · Keychain · privileged VZ helper client
+msc-platform-windows    Windows Service · DPAPI · Job Objects · firewall
+msc-platform-linux      systemd · secret store · cgroups
+msc-desktop             Tauri shell + shared Svelte frontend
+```
+
+**Direction rule:** dependencies point inward. `msc-domain` depends on nothing. Nothing depends on `msc-api` except `msc-engine`.
+
+---
+
+## 7. State, safety, and the substrate
+
+These properties must exist **before** any domain touches user files. They are Phase 3 of the port for that reason.
+
+**Path safety.** All paths resolve relative to approved server roots. `..`, symlink escapes, and arbitrary host filesystem access are rejected. Advanced local-only filesystem access is a separate, explicitly enabled capability.
+
+**Atomic writes.** Configuration and server files are written to a temporary file and moved into place. Interrupted writes never leave a truncated config.
+
+**Versioned configuration with migrations.** Schema version recorded. Migrations preserve a recovery copy. Unknown fields are retained rather than dropped — MSC 1's `ServerPropertiesModelTests` exists precisely because silently rewriting `server.properties` with only the recognized keys is destructive.
+
+**Secret separation.** Secrets never live in ordinary configuration. `SecretStore` trait with Keychain / DPAPI / Linux implementations.
+
+**Download staging.** Downloads land in a temporary location, are checksum-verified where the provider publishes one, and are moved into active use only after validation. Interrupted downloads are safely retryable. Cached files record origin and version.
+
+**Operation journal.** Every long operation is journaled before it begins. On engine restart, incomplete operations are reconciled and their outcome explained rather than silently forgotten.
+
+**Operation exclusivity.** Only one conflicting operation runs against a server at a time. Starting a backup during a world replacement is refused, not queued silently.
+
+**Audit log.** Commands and administrative actions are attributed to the local GUI, a CLI user, or a named remote token.
+
+---
+
+## 8. Platform abstraction and support matrices
+
+Platform-specific code sits behind explicit traits. Domain models, settings, API behavior, and operation semantics are shared.
+
+| Capability | macOS | Windows | Linux |
+|---|---|---|---|
+| Service | `launchd` **LaunchDaemon** (not LaunchAgent — must run with no user logged in) | Windows Service | `systemd` |
+| Secret storage | Keychain | Credential Manager / DPAPI | **See below — unresolved** |
+| Process supervision | POSIX | Job Objects | POSIX / cgroups |
+| Process enumeration | `libproc` | Win32 | `/proc` |
+| File reveal | Finder | Explorer | configured file manager |
+| Sleep inhibition | `IOPMAssertion` | `SetThreadExecutionState` | `systemd-inhibit` |
+
+**Windows hazards to validate from the substrate phase (D-017):** path separators and length limits, file-locking semantics (Windows will not let you delete an open file), service lifecycle and logout behavior, case-insensitive path comparison.
+
+### Power management — two policies (D-024)
+
+A single "don't sleep while a server runs" rule is insufficient. Remotely **starting a stopped** server requires the host to be awake and reachable *while nothing is running* — the exact case that rule does not cover, and the case the product's own day-in-the-life story depends on.
+
+| Host role | Policy |
+|---|---|
+| **Dedicated / headless host** (remote management enabled) | Prevent sleep **whenever remote management is enabled**, running or not. The machine's job is to be reachable. |
+| **Normal desktop** | Prevent sleep only while servers or critical operations are running. The machine's job is to be a desktop; MSC does not hold it awake for nothing. |
+
+The role is an explicit per-host setting, not inferred.
+
+**MSC detects and warns about incompatible configuration** — clamshell/lid-close suspend, aggressive system sleep timers, hibernation, network interfaces that drop on sleep, and platform power settings that override application inhibition. A warning is shown before a user relies on remote start, not after it fails silently.
+
+Implemented via `IOPMAssertion` (macOS), `SetThreadExecutionState` (Windows), and `systemd-inhibit` (Linux).
+
+### Service identity and privilege boundaries (D-025)
+
+The cross-platform default is settled: the MSC engine runs as the account that
+installed it, owns ordinary server state as that user, and performs routine
+management without escalation. Administrator authorization is reserved for
+installing, changing, updating, or removing protected service definitions and
+their privileged artifacts. The remaining login-Keychain and TCC questions do
+not change that default; their evidence and status remain in
+`docs/msc/substrate/service-identity.md`.
+
+Intel macOS Bedrock has one evidence-backed exception approved on 2026-09-23.
+P15.69 proved that a sidecar descended from the installing-user system
+LaunchDaemon receives `EHOSTUNREACH` when connecting to the VZ NAT guest, while
+the identical signed sidecar succeeds in a foreground session. Installed
+Bedrock therefore uses two daemons with deliberately unequal privileges:
+
+| Process | Identity | Authority |
+|---|---|---|
+| `com.ctemple.msc2.agent` | Installing user (`UserName` is set) | Owns server state, API, operations, policy, and supervision |
+| macOS Bedrock helper | Effective `root` (no plist `UserName`) | Supervises a fixed installing-user VM worker and owns host TCP/UDP relays (P16.71 owner amendment) |
+
+The engine connects to the helper over a local Unix-domain socket carrying the
+narrow Bedrock sidecar protocol. The helper authenticates the peer UID, admits
+only the configured installing user, canonicalizes shared paths into
+root-configured approved Bedrock roots, and exposes no TCP control listener,
+shell, arbitrary command execution, or general filesystem API. The helper
+binary, plist, appliance, configuration, and resource roots are root-owned and
+not user-writable. Its socket lives in a root-owned directory and is accessible
+only to the configured user.
+
+One authenticated session may own one VM. Disconnect and process termination
+tear down that VM and every relay. Guest/shared-folder writes retain the
+installing user's UID/GID ownership. An installed engine fails explicitly when
+the helper is absent, misowned, incompatible, or rejects it; it does not fall
+back to the broken child-process path. Foreground child-process mode remains an
+explicit development facility only. Installation, upgrade, allowlist changes,
+and removal occur inside the existing administrator-authorized transaction;
+ordinary Bedrock start/stop/status does not prompt. The normative protocol,
+path, ownership, lifecycle, and threat-model rules are in
+`docs/msc/bedrock/macos-privileged-helper.md`.
+
+### Linux secret storage — resolved (P3.2)
+
+The `keyring` crate resolves to the freedesktop **Secret Service** on Linux, which is provided by `gnome-keyring` or KWallet — **desktop components that a minimal Debian installation does not have.** Since headless minimal Debian is a primary deployment target (D-011), the crate cannot be the sole answer.
+
+A headless fallback is required. Candidates considered:
+
+| Option | Notes |
+|---|---|
+| **`systemd` credentials** (`LoadCredential=` / `systemd-creds`) | Encrypted at rest against the TPM where available; integrates with the service manager MSC already requires. Preferred candidate. |
+| **Root-owned file with restrictive permissions** | Simple, universal, no dependencies. Weaker at rest; acceptable only with clear documentation of the threat model. |
+| **Secret Service when present, fallback when absent** | Best experience on desktop Linux, but two code paths and two threat models to reason about. |
+
+**Confirmed by Cameron Temple, 2026-08-01 (P3.2): `systemd` credentials, as the real target design.** One code path, no new dependency beyond the service manager D-011 already requires, and it states what it does and does not protect against at rest (TPM2-sealed when available; a root-on-this-machine-can-decrypt host-key fallback otherwise — a machine-scoped secret, the same category as the macOS System-keychain default in D-025; Windows DPAPI is *not* in this category — Credential Manager wraps DPAPI's per-user mode, user-scoped to the installing account, not machine-scoped). It requires `systemd` ≥ 250 for the encrypted-credential directives, so **MSC's Linux minimum is now Debian 12 "bookworm"** (ships 252; Debian 11 ships 247 and does not qualify) — confirmed the same day, amending D-011 rather than building the root-owned-file fallback to also cover older releases.
+
+**P3.11 later found `systemd-creds` doesn't fit `SecretStore`'s live `get`/`set`/`delete` API on any machine without a TPM2 chip** — it requires root for every call outside of unit-start time, not just for the provisioning step this decision already flagged as open. The actual v1 Linux backend shipped (`LinuxSecretStore`) is a file per secret, encrypted with a key the installing user's own account owns — not root — with the privileged `systemd-creds`-backed helper this section describes deferred to Phase 4 as the still-intended real target, not abandoned. Full reasoning, the at-rest threat model, the interaction with P3.1's installing-user identity, the P3.11 finding, and the open re-provisioning question in `docs/msc/substrate/secret-storage.md` (§§1–7 the original decision, §12 the P3.11 finding, §13 the cross-platform comparison).
+
+### Headless is first-class on every platform (D-011)
+
+The Tauri GUI is **optional everywhere** and is never a prerequisite for any capability.
+
+| Platform | Headless requirement |
+|---|---|
+| **macOS** | Engine + CLI installable and runnable with no GUI ever launched. Registered as a **`launchd` LaunchDaemon** — a LaunchAgent requires a login session and is therefore insufficient. **No AppKit or window-server dependency at runtime.** The standalone macOS headless package **includes the Swift VZ sidecar** where Bedrock support is expected. |
+| **Windows** | Engine + CLI installable as a Windows Service without the desktop app. Runs with no user signed in. |
+| **Linux** | Headless archive with engine + CLI and **zero desktop dependencies**. `systemd` unit. Installs on minimal Debian with no X or Wayland present; its API supports remote desktop and CLI clients. |
+
+Two distribution artifacts per platform: an application bundle and a headless package. Headless packages are **verified in CI to link no GUI framework** (§17).
+
+This is not a Linux-only concern — the current MSC deployment is an always-on Mac managed remotely.
+
+### Three separate support matrices (D-022)
+
+"Native Linux Bedrock" must not be read as "every Linux distribution MSC supports is a supported Bedrock host." Bedrock Dedicated Server ships with its own distribution and library expectations, narrower than the set of systems the MSC engine runs on. MSC therefore publishes three matrices:
+
+| Matrix | Scope |
+|---|---|
+| **1. MSC engine** | Where the engine itself is supported. Broad: macOS, Windows, mainstream Linux including minimal Debian. |
+| **2. Java servers** | Where Java Minecraft servers are supported. Essentially wherever a supported JRE runs. |
+| **3. Bedrock runtime** | Per backend: native Linux (specific distributions and library requirements), native Windows, macOS VZ sidecar. |
+
+A host may be a fully supported MSC engine host and Java server host while **not** being a supported Bedrock host. The interface states this plainly rather than failing at runtime.
+
+---
+
+## 9. The macOS Bedrock sidecar
+
+Bedrock Dedicated Server has no macOS build. MSC 1 solves this with `VMBedrockServerBackend.swift` (451 lines) driving `Virtualization.framework`, verified working with a real device joining on 2026-06-30.
+
+**Design.** A `BedrockRuntime` trait with three implementations: native Linux, native Windows, and a macOS implementation that supervises a Swift sidecar binary over a narrow process protocol (JSON lines over stdio, or a unix socket).
+
+**The sidecar protocol must cover:** provision, start, readiness signal, stop, force-stop, crash notification, console stream, command input, shared-directory mapping, and host-directory persistence across VM replacement.
+
+**Sequencing.** Native Linux proves the trait first, then Windows, then the sidecar. Designing the contract around the sidecar would let macOS-specific assumptions leak in.
+
+**UDP relay.** `UDPRelay.swift` exists because of VM addressing. Determine during the Linux implementation whether the relay is a general Bedrock need or a VM-specific one; if the latter, it belongs inside the sidecar.
+
+---
+
+## 10. Authentication and security
+
+**Status warning.** The transport model below is settled. The areas marked *unspecified* are open design work and must be closed before the contract is frozen (D-012).
+
+### Session model — settled
+
+| Client | Mechanism |
+|---|---|
+| **Browser** | Retired by D-038; browser cookies do not authorize retained routes. |
+| **Tauri desktop, local host** | Shell injects a local token; no login screen. |
+| **Tauri desktop, remote host** | *Unspecified — see below.* |
+| **CLI** | Verified host-local OS account; short-lived in-memory API credential. No public direct-remote or token option (D-040). |
+
+One permission check behind supported clients. Browser cookies and their CSRF
+requirements are retired by D-038; bearer-authenticated desktop and CLI
+requests remain supported.
+
+### Unspecified areas that must be designed
+
+Revision 1.0 described only a desktop app controlling its own computer. Multi-host is a day-one requirement (D-013), so a desktop app connecting to *remote* hosts is a first-class case and was not covered.
+
+1. **Local automatic authorization.** How the engine establishes that a request genuinely originates from the same machine, and what prevents another local process from impersonating the desktop shell.
+2. **Remote desktop pairing.** The desktop equivalent of the browser pairing flow, performed once per remote host.
+3. **Per-host credential storage.** One credential per host in the platform secret store, keyed to match the multi-host client model.
+4. **LAN encryption expectations.** Whether plain HTTP is permitted off-loopback at all; how a locally managed TLS certificate is provisioned and trusted across platforms.
+5. **Tailscale posture.** Default position: tailnet membership relaxes nothing. Traffic is already encrypted, but token authentication remains mandatory. Confirm this rather than assume it.
+6. **Browser origin policy.** Superseded by D-038 with the served browser client; it is no longer an open requirement for a supported client.
+
+### Pairing
+
+A local desktop session displays a QR code containing host address, address preference (tailnet vs LAN), engine identity, a short-lived pairing secret, and API version. The desktop app exchanges the pairing secret for a durable credential. Browser pairing and session cookies are retired by D-038.
+
+### Permissions — inherited from MSC 1, not invented
+
+**MSC 1 already has a richer model than "admin/guest," and MSC preserves it** (D-019). Verified in MSC 1:
+
+```
+enum TokenRole { case admin(label: String); case guest(label: String) }
+
+RemoteAPISharedAccessEntry {
+    id, label, token, role,
+    permissions: [String]?,        // per-category custom permissions
+    expiresAtISO8601               // expiry
+}
+
+POST /users        → (label, role, permissions, expiresInDays)
+POST /users/update → (userId, label, role, permissions, expiresInDays)
+POST /users/revoke
+```
+
+Category strings (`players`, `settings`, `worlds`, `mods`) are enforced in the HTTP dispatcher. **Named tokens, per-category permissions, and expiry all exist today.**
+
+MSC's work is to **formalize** this: the category vocabulary becomes part of the versioned API contract rather than ad-hoc strings, and every route declares the capability it requires.
+
+*Open:* the current vocabulary has not been validated against all 87 routes and may need to be finer or coarser.
+
+**What is genuinely deferred to a later release** is human *identity* — per-person accounts, invitations, login, recovery — not permissions, which already exist.
+
+### Network posture
+
+The management API binds to **loopback by default**. LAN, Tailscale, or another
+user-operated private-network binding is opt-in. A remote client may instead
+use an SSH local forward to the engine's loopback-only `127.0.0.1:48001`; the
+desktop owns that tunnel when the guided path is selected.
+
+Two kinds of remote access are configured independently and must never be conflated:
+
+1. **Player access to Minecraft** — LAN, port forwarding, Playit.gg, Geyser, Xbox Broadcast, DuckDNS.
+2. **Administrator access to MSC** — loopback, LAN, Tailscale, another
+   user-operated VPN/overlay, or an SSH tunnel.
+
+**MSC never recommends publicly forwarding the management port.** Router port
+forwarding and public relays carry their own security and trust burden. Playit.gg
+and other player-facing tunnels carry Minecraft traffic, not the admin API.
+
+### Hardening
+
+Per-endpoint request size limits · rate limiting · brute-force resistance · token revocation · expiring pairing codes · strict path validation · audit records for administrative actions · no default exposure on public interfaces.
+
+---
+
+## 11. Migration from MSC 1
+
+Per D-001 and D-009, MSC shares nothing with MSC 1.
+
+**Primary path — transfer package.** MSC 1 already contains a server-transfer feature (`AppViewModel+ServerTransfer.swift`) producing an archive with a manifest, handling sanitization, port-conflict detection, and secret handling. MSC imports that format. Targeting a versioned export artifact is far more stable than reverse-engineering MSC 1's live configuration.
+
+*Constraint:* the MSC 1 transfer-package format becomes a stable interface for the migration period.
+
+**Secondary path — raw directory import.** MSC must adopt a server directory created by any tool, inferring loader, version, worlds, and settings, and clearly labelling what it could not determine. This is required regardless of MSC 1.
+
+**Not supported:** reading MSC 1's `server_config_swift.json` in place, sharing an application-support directory, or two apps managing one server directory concurrently.
+
+---
+
+## 12. MSC 1 audit — findings
+
+Two independent audits (conducted blind, then reconciled) classified all 246 production files. **File-level agreement: 88.6%.** The 28 disagreements were adjudicated individually.
+
+### Disposition summary
+
+| Bucket | Files | Lines | Disposition |
+|---|---:|---:|---|
+| **UI** | ~93–102 | ~36–43 k | Rebuild in Svelte. No engine port. |
+| **Mixed** | ~59–60 | ~31–36 k | **Highest risk.** Symbol-level split required before retirement. |
+| **API / wire contract** | 8–15 | ~5.7–8.4 k | Becomes OpenAPI. Observable behavior normative; implementation replaced. |
+| **Pure / domain** | 29–37 | ~7.3–8.2 k | Translate against language-neutral fixtures. |
+| **I/O orchestration** | 29–35 | ~6.8–8.1 k | Reimplement idiomatically; preserve ordering, validation, rollback, failure semantics. |
+| **Platform** | 11–12 | ~1.9 k | Per-OS adapters behind traits; one Swift sidecar. |
+| **Legacy** | 1 | 658 | **Do not port** (Docker Bedrock backend). |
+
+Per-file dispositions are in `msc-file-inventory-a.csv` and `msc-file-inventory-b.csv` (246 rows each, joinable on `file`).
+
+### Estimated translation corpus
+
+**≈33,000–36,000 lines of engine logic.** Roughly one third of the tree.
+
+**This is not an effort estimate.** It measures preserved behavior only. MSC additionally requires substantial code that does not exist in MSC 1: cross-platform service integration, process ownership across three OSes, operation journaling and recovery, long-operation progress and cancellation, safe remote file streaming, OpenAPI generation, cross-platform secret stores, self-update, native Bedrock runtimes, and Tauri/web client state and reconnect behavior. That new work may well exceed the ported corpus.
+
+### Key structural findings
+
+**The layering in MSC 1 is deliberate and documented.** File headers explicitly record boundaries (*"Pure service — no AppViewModel dependency"*). Only two files outside views and `AppViewModel` extensions carry observable state. This is materially better than assumed and is why translation rather than re-derivation is viable.
+
+**`AppViewModel` is not a namespace.** Measuring distinct symbols each extension uses that are declared in *other* `AppViewModel` files: family mean **27.6**, with `AppViewModel+ServerControls.swift` at **109**. The coupling is real and invisible to a `@Published` reference count. These files require dependency extraction before translation — implicit state replaced by repositories, operation contexts, event sinks, and platform traits.
+
+**Engine behavior hides inside views.** Whole-file classification placed `OverviewChatCardView.swift` in the discard bucket; it contains a complete console chat/advancement/join/leave parser (`parseEntry`, `parseLine` at line 168). Five such files were identified. **A SwiftUI file may not be deleted until it has a symbol-level disposition record.**
+
+**Mixed needs a severity gradient.** `WorldSlotManager.swift` (1,495 lines of portable world logic, ~30 lines of AppKit) and `AppViewModel.swift` (irreducibly entangled, deleted as an engine object) are both "Mixed" and are not the same job. The `difficulty` column in the inventory CSV encodes this.
+
+### The UI deletion test
+
+The two audit inventories (`msc-file-inventory-a.csv`, `msc-file-inventory-b.csv`) are **file-level** dispositions. They are not a symbol ledger and must not be described as one — they identify *which files* need symbol-level review, not *which symbols* inside them must be preserved. Building the actual symbol ledger, one row per parser/policy/workflow found inside a Mixed or UI file, is work that has not been done.
+
+A SwiftUI file containing filesystem or network calls is not automatically Mixed. The question is **whether the behavior belongs to the engine or to the replacement client**:
+
+- Avatar image cropping → client
+- Finder / file-picker presentation → client
+- Server installation detection → **engine**
+- Pairing security and token lifecycle → **engine**
+- Console log parsing → **engine**
+
+---
+
+## 13. Verification guarantees
+
+*This section states what MSC guarantees about correctness. The inventory of fixtures to be written, and when, lives in `msc-port-plan.md` — that is execution, not vision.*
+
+**MSC 1 is the compatibility oracle.** No domain behavior is redesigned from memory. Each ported domain demonstrates parity against fixtures derived from MSC 1's observed behavior before its Swift implementation is considered superseded (D-005). MSC 1 remains runnable and buildable throughout the port for this purpose.
+
+**Parity is measured against expected values, never against Swift implementation details.** A domain is not ported until its fixtures pass and its rollback behavior is explicit.
+
+**Behavioral evidence is captured before translation** (D-018). Two things must exist before a Rust implementation becomes authoritative for user data:
+
+1. MSC 1's 270 existing test methods, freed from inline Swift string literals into language-neutral fixtures.
+2. Characterization tests for the destructive workflows, which **do not exist today**. MSC 1's coverage is strong where failure is cheap — parsing, API contracts — and weak where failure is expensive. The workflows that can destroy a world are the least tested. *This is the single most important finding of the audit process.*
+
+**Fixture strategy differs by kind.** Pure functions use input/output fixtures. I/O workflows require temporary directories, fake providers, process doubles, interruption cases, and rollback assertions — expensive, and not optional.
+
+**Resource efficiency is verified, not asserted** (D-021, §17).
+
+---
+
+## 14. Port strategy
+
+*Principles only. The phase sequence lives in `msc-port-plan.md` and may change without touching this document.*
+
+**Vertical slices, not subsystems.** Each stage cuts through engine, API, and clients together. The failure mode for a rewrite this size is a long stretch with a working engine and no working software — easy to fall into when the specification is organized by subsystem, which the original vision document was.
+
+**Extraction precedes translation, per domain.** Parsers and policies embedded in MSC 1's views and view-model extensions are pulled out in Swift, where the compiler still checks the refactor, ahead of that domain's translation. This is driven by a symbol ledger built during Phase 0 — for which the reconciled audit's file-level inventories are *inputs*, not a substitute. It is not a mechanical rule, and not a blanket gate before all Rust. Client-side concerns legitimately remain in UI code (§12, "The UI deletion test").
+
+**Windows validation starts with the substrate** (D-017), not with the GUI. Windows is why the engine is Rust, but the Windows product arrives late; deferring validation risks discovering path, locking, and service assumptions after most of the engine is written against POSIX semantics.
+
+**UI never gates correctness.** Graphical clients are built against a proven API. Their completion is not a prerequisite for headless engine correctness.
+
+**Highest data-loss domains are ported early**, while the codebase is still small enough to review carefully.
+
+---
+
+## 15. Operational concerns
+
+**Service behavior.** Closing a GUI never stops the engine or a server. Logging out never stops a service-managed server. Per-server reboot policy: do not auto-start · start when MSC starts · restore prior state.
+
+**Duplicate launch prevention.** The engine refuses to launch a server whose directory is already in use, and detects unmanaged Java or Bedrock processes occupying a configured directory or port.
+
+**Forced termination.** Always preceded by a warning about world corruption and an offer of a final graceful attempt.
+
+**Logs.** Application log · per-server session log · server stdout/stderr · operation history · administrative action history · crash and restart history. Retention configurable and bounded.
+
+**Memory discipline.** The engine must stay small when idle. Console buffers, metric history, catalog caches, and task data are all bounded. On an 8 GB host, every megabyte the engine holds is a megabyte Java cannot have.
+
+**Updates.** Four independent categories, never merged into one "Update All": MSC application/agent · Minecraft server runtime · loader · mods/plugins/helpers. Before a significant server update MSC shows current and target versions, determinable compatibility concerns, components that will become incompatible, whether a backup is required, and available rollback material.
+
+---
+
+## 16. Client capability matrix (D-023)
+
+**A single API does not deliver client parity by itself.** It eliminates duplicated *engine* logic; it does not build a client screen. Someone must still implement each surface.
+
+Given that MSC 1's remote-client parity gap was itself a months-long project, this must be tracked rather than assumed.
+
+### The guarantee, stated accurately
+
+> MSC guarantees that **no capability is architecturally unavailable to any client** — the API exposes everything the engine can do, so a client is never blocked by a missing endpoint.
+>
+> It does **not** guarantee that every client has shipped every screen.
+
+### How parity is tracked
+
+The [client capability matrix](client-capability-matrix.csv) lists each API
+operation and its implementation state. Its current columns cover Desktop and
+CLI:
+
+```
+MSC 1 capability → MSC engine operation → Desktop → CLI
+```
+
+Every cell is **Implemented**, **Planned**, or **Intentional exception**.
+
+Phase 22's implementation and acceptance are recorded in the
+[rolling-plan archive](rolling-plan-archive.md). The current matrix does not
+have a TUI column, so it does not claim row-by-row TUI parity. Browser and
+mobile management do not receive capability columns (D-033, D-038, D-043).
+
+Accordingly:
+
+- An **Intentional exception requires owner approval** and a recorded reason. It is a decision entry, not a note in a table.
+- A capability omitted from a supported client must have an explicit reason; it
+  cannot be hidden by the matrix.
+- Valid reasons are limited to capabilities that are meaningless or impossible on the platform.
+- Every exception is reviewed at each release rather than inherited indefinitely.
+
+**Release criterion:** no cell may be blank. An unfilled cell is an untracked parity gap, which is precisely the failure mode MSC exists to prevent.
+
+---
+
+## 17. Resource efficiency requirements (D-021)
+
+The originating motivation for MSC is that an 8 GB machine cannot safely give a large modpack 5–5.5 GB while a graphical desktop environment consumes the rest. That objective must be **measurable**, or it is not a requirement.
+
+| # | Requirement | Verification |
+|---|---|---|
+| 1 | **No GUI dependencies in headless packages.** | CI check on every headless artifact: link no GUI framework on any platform. |
+| 2 | **Bounded memory by construction.** Console buffers, metric history, catalog caches, operation journals, task data. | Bounded-growth assertions per subsystem. No unbounded growth is acceptable in a long-lived engine. |
+| 3 | **Idle-engine benchmark targets.** Resident memory idle with one stopped server, and with one running server, per platform. | Targets set from first measurement, then defended by regression tests. **Not guessed in advance.** |
+| 4 | **Safe Java allocation guidance.** MSC distinguishes Java heap from machine memory and reports installed memory, available memory, configured heap, estimated non-heap overhead, process resident memory, and swap. | Recommends a safe allocation, warns before unsafe ones, permits an informed override. |
+| 5 | **Swap detection and classification.** Healthy unused swap · brief emergency activity · sustained pressure · imminent OOM risk. | Sustained swapping reported as a performance problem, not hidden. |
+| 6 | **Representative acceptance scenario.** An 8 GB minimal-Linux host running a demanding modpack at ~5 GB heap, plus the engine, stays within safe headroom under normal play. | **A release gate, not a demo.** |
+
+Every megabyte the engine holds on an 8 GB host is a megabyte Java cannot have. This section is the reason the project exists; it should be the hardest section to pass.
+
+---
+
+## 18. Educational content (D-026)
+
+MSC 1's teaching material is among its largest assets: a 31-topic Server Handbook across 6 categories, a concept guide, an onboarding tour over the live UI, ~18 files of router port-forwarding guides with brand matching and a troubleshooting decision tree, and contextual help throughout. It is also the clearest example of the duplication MSC removes — all of it is Swift compiled into the macOS app, so the former remote client required a second, separately-written educational surface (`QuickGuideView`, 706 lines). MSC teaches through the Tauri desktop app, CLI, and TUI. The TUI includes the Server Handbook and interactive Router Guide; onboarding is not part of the TUI. The browser presentation is retired by D-038.
+
+**Content is data the engine serves. Clients render it; they never author it.**
+
+### The model
+
+| Content | Form | Owner |
+|---|---|---|
+| Handbook topics, concept explanations | Structured content files, served over the API | Engine |
+| Router guide catalog, router records, step text | Data (JSON) | Engine |
+| Router matcher, fallback resolver, composer, troubleshooting tree | **Executable behavior** — translated to Rust | Engine |
+| Onboarding step content and ordering | Data | Engine |
+| Onboarding *anchoring* to UI elements | Per-client | Client |
+| Rendering, typography, layout | Per-client | Client |
+
+### `helpId` — help follows the data, not the screen
+
+Every explainable thing carries a pointer to its explanation: settings fields, health cards, diagnostics, performance metrics, connection methods, crash-analysis findings.
+
+This extends a pattern that already works. MSC 1's schema-driven settings contract has the engine describe fields and clients render them generically — which is why Bedrock settings reached the former mobile client with **zero mobile-client changes**. Adding `helpId` to that description means a new setting arrives with its explanation already attached, on every supported client, without client work.
+
+```
+SettingFieldDTO {
+    key, label, type, value, constraints,
+    helpId: "settings.difficulty"      // resolved via the API
+}
+```
+
+**This must be in the contract before Phase 2 freezes it.** Retrofitting a help pointer onto every DTO afterwards is materially more expensive than including it from the start.
+
+### The CLI teaches too
+
+```
+msc help topic handbook.networking-basics
+msc help router-search "port forwarding"
+```
+
+Same content, same source. Any surface that can render text can teach — which is the whole point of taking it out of the clients.
+
+### Consequences
+
+- Content is reviewable and diffable in git rather than buried in view code
+- Content updates ship with the engine, not with four separate client releases
+- Localization — currently a declined non-goal — becomes tractable later without touching any client
+- Content must be versioned against the API: a topic may describe a capability an older client does not have
+
+### Open questions
+
+Content format (Markdown with front-matter is the obvious candidate) · embedded in the engine binary vs read from disk (on-disk allows updates without a release; embedded guarantees presence) · whether concept-guide diagrams are assets or generated · how a topic degrades when it describes a feature the connected client lacks.
+
+---
+
+## 19. Open engineering questions
+
+| Question | Blocks | Note |
+|---|---|---|
+| Repository name and location for MSC | Everything | D-020. Create early, even before code. |
+| Do the audit artifacts move into the new repo? | Nothing | Recommended: `docs/`. |
+| Is the D-019 permission-category vocabulary correct across all 87 routes? | Contract freeze | Validate against the full route inventory. |
+| The six unspecified authentication areas (§10) | Contract freeze | Remote desktop pairing is the largest gap. |
+| Idle-engine memory targets (§17) | Release gating | Must be measured, not estimated. |
+| Educational content format; embedded vs on-disk (§18) | Phase 2 contract freeze | `helpId` must exist before DTOs are frozen. |
+| Is `UDPRelay` a general Bedrock need or VM-specific? | Phase 10 | Determine during Linux Bedrock work. |
+| Self-update mechanics for app + engine + sidecar as a set | Phase 11 | macOS/Windows only; Linux defers to the package manager. |
+| Console history bound — lines, bytes, or time? | Phase 4 | Affects reconnect behavior and engine memory. |
+| Does the CLI ship in the engine binary or separately? | Phase 4 | Assumed same binary; confirm against packaging. |
+
+---
+
+## 20. World packs and modpack identity (Phase 15, Proposed; D-030 Approved)
+
+World packs are scoped to a world slot. Java datapacks live with their Java
+world; Bedrock behavior packs are also world-scoped in MSC, even where BDS
+supports shared pack folders. The selected slot determines the pack inventory.
+Activation, duplication, backup, restore, export, and import must preserve that
+slot's pack files and configuration without exposing them in another slot.
+
+Keep edition-specific names, manifests, compatibility checks, and dependency
+rules at the boundary. Java datapacks use Modrinth as the first catalog
+provider. A Bedrock behavior pack may install a linked resource pack only when
+that resource pack is bundled in the same downloaded add-on. Otherwise the
+operation stops before changing the world and explains the missing dependency.
+There is no separate Bedrock resource-pack browser. Client-only packs are out
+of scope. Enable, disable, update, and remove are later controls unless the
+acceptance map demonstrates that one is required for the first usable release.
+
+Imported modpack identity is server-owned metadata: source pack name, provider,
+and imported version when available. It is separate from installed mods and
+other components. Missing source fields remain unavailable; MSC does not guess
+identity from installed files. Ordinary servers have no modpack identity.
+
+The API boundary is engine-owned. World-pack reads and mutations are keyed by
+world-slot ID under the Worlds capability; backup and transfer operations own
+portability. Modpack identity is read from server metadata through the server
+or Components surface. The API remains the only implementation boundary, so
+desktop, browser, and CLI clients do not manipulate pack files directly.
+Concrete routes and DTOs are to be frozen before implementation rather than
+assumed here. The traceability table and source map are maintained in
+`docs/msc/capabilities/phase15-world-packs.md`.
+
+The world-profile ownership boundary is approved under D-030. The remaining
+Phase 15 pack-provider and lifecycle contract in this section remains
+**Proposed**.
+
+---
+
+## 21. 3D world viewer scope (P18.1, Proposed)
+
+### Owner-directed experience and first proof
+
+**Worlds → selected active world → 3D** replaces the Worlds tab content inside
+the MSC window. Exit returns to the same world list and selection. The viewer
+supports 3D navigation, depth cutaway, biome and lighting views, and quality
+controls. Online players walk and turn as 3D models; the roster flies to one
+and can follow them. Standard and modded Java plus BDS, including console
+clients, are the target server families. Saved player coordinates must never
+be presented as current positions.
+
+The first implementation proof is a **4×4-chunk area of a real BDS Overworld
+save**, rendered as textured geometry in the intended Vantage viewer engine.
+It must show cubes, stairs, foliage, glass, and water from actual block states
+and allow camera movement. This advances the visible promise that BDS terrain
+can be explored in 3D. It does not demonstrate live terrain or players. The
+next proof must establish safe reads of a running world and changed terrain.
+The first user-facing vertical slice then connects an active world through
+MSC's authenticated engine to the full Worlds tab, with terrain freshness and
+clean exit. Player movement is added only when a current server feed has been
+demonstrated. Choose each later checkpoint from the preceding result.
+
+### Reuse and system boundaries
+
+| Area | Direction | Unproved boundary |
+|---|---|---|
+| Viewer | Trial Vantage's MIT `@thoughts-on-things/vantage-mc/three` engine and `core` decoder in Svelte; MSC owns the controls and navigation. | Vantage's ready-made UI is React. Pin the package and tile format for the proof. Its native Zig generator reads Java Anvil saves, not BDS. |
+| Geometry | Prefer one versioned manifest/tile/texture format consumed by both Java and Bedrock views. | Vantage publishes a tile decoder, not a general Bedrock tile writer. The proof must encode its geometry and textures, including coordinates, transparency, water and biome tint. Record any format blocker before choosing an MSC-owned format. |
+| Java terrain | Evaluate Vantage's Anvil pipeline on vanilla, Fabric, Forge and NeoForge saves with available assets. | Unknown mod states and missing client assets need counted, visible fallbacks; no single fixture proves every mod. Saved terrain may lag play. |
+| Bedrock terrain | Trial `bedrock-world` read-only render chunk APIs and `bedrock-block-model` state-to-shape resolution. | MSC's current `bedrock_leveldb.rs` handles player records, not chunks. The community `bedrock-render` produces raster tiles. Pack precedence, versions, missing shapes and texture rights still need evidence. |
+| Players | Use one MSC-normalized, dimension-aware feed containing identity, position, yaw, source time and source type. | `/v1/players` has an online roster but no current coordinates. Vantage animates a supplied feed or saved last-known positions. Java vanilla needs a proven server-side adapter; BDS needs one that sees console clients. BDS scripting is a candidate, with version and experimental-permission checks. No client map mod is assumed. |
+| MSC transport | Engine resolves the selected active slot within approved server roots and serves bounded, read-only map resources under Worlds permission. | `WorldsSection.svelte` owns selection. `ApiClient.requestBytes` authenticates binary reads; Vantage's direct URL fetches cannot be assumed to carry MSC credentials. Prove a fetch adapter or authenticated bridge before embedding. |
+
+Terrain and players have separate clocks. Show the last observed terrain save
+or scan time. For an instrumented server, provisional player targets are one
+sample per second, a visible update within two seconds, and removal or an
+explicit stale state after five seconds without a fresh sample. Interpolation
+between samples is visual only. Follow stops or is marked stale when the feed
+stops. Measure these targets on each server type before making release claims.
+
+### Safety and acceptance measurements
+
+- Client requests use server and active-slot IDs, never arbitrary filesystem
+  paths. The engine must not expose inactive archives, another server's map,
+  pack secrets, or unbounded files. The game retains ownership of its save.
+- Use an offline BDS copy for the first geometry proof. Live LevelDB reads and
+  consistent snapshots are unresolved. Microsoft's BDS-only
+  `LevelStorage.saveHold/saveQuery/saveResume` APIs are experimental; measure
+  compatibility and server pause cost before relying on them.
+- The repository's Bedrock fixtures are JSON behavior cases, not a real BDS
+  chunk save. Cameron has supplied private local inputs outside Git:
+  `~/msc-servers/bedrock/juice/worlds/Juice!` (BDS `level.dat` plus LevelDB)
+  and `~/msc-servers/java/modded-sample/modded-sample-ubuntu` (modded Java Anvil).
+  Use a consistent, read-only working copy for the first proof, and keep
+  these worlds and any derived player data out of the repository. Inspect
+  whether the BDS save actually contains every named shape; if it does not,
+  add a separate representative area before claiming shape coverage.
+- For the 4×4-chunk proof, cap meshing at two workers and stop to investigate
+  if added RSS exceeds 512 MiB. Record first-visible time, CPU while baking
+  and idle, bytes transferred, block-model exact/fallback/missing counts,
+  holes, and water/glass behavior. Later live proofs also measure server tick
+  effect. These are experiment guardrails, not published performance targets.
+- The support matrix must include vanilla Java, representative Fabric and
+  Forge/NeoForge saves, and BDS with a console-connected player. Record game
+  version, dimension, terrain age, player sample age, model fallbacks, and
+  whether fly-to/follow reaches the right dimension. Overworld comes first;
+  Nether, End and custom dimensions remain named gaps until demonstrated.
+  Vantage's batch README says it discovers dimensions, while its server
+  protocol document describes one default Overworld: verify each serving mode
+  instead of treating those claims as equivalent.
+- Resolve Java and Bedrock textures from user/server-installed assets where
+  possible. Audit redistribution rights before packaging any game assets.
+  Capability discovery should explain absent terrain or live-position support
+  per active world instead of implying a complete live map from a roster.
+
+**UX check for every later `Verify:`** Name the visible promise advanced, the
+observable proof, and the next checkpoint for a missing part. A decoder pass
+is only a Bedrock terrain dependency. Full acceptance needs the in-window
+entry/exit, both terrain paths, controls, and live Java/BDS player models with
+roster flight/follow together. Revise the approach if it hides a supported
+player, labels saved coordinates live, opens outside MSC, or drops a server
+family.
+
+**Sources inspected 2026-09-29:** [Vantage repository](https://github.com/thoughts-on-things/vantage-mc),
+[viewer package](https://github.com/thoughts-on-things/vantage-mc/blob/main/web/README.md),
+[server protocol](https://github.com/thoughts-on-things/vantage-mc/blob/main/docs/server.md),
+[Bedrock world reader](https://github.com/BE-Community-Dev/bedrock-world),
+[Bedrock block models](https://github.com/BE-Community-Dev/bedrock-block-model),
+[Microsoft BDS scripting](https://learn.microsoft.com/en-us/minecraft/creator/documents/bedrockserver/scripting?view=minecraft-bedrock-stable),
+[experimental save control](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server-admin/levelstorage?view=minecraft-bedrock-experimental).
+
+### Phase 18 integrated disposition (2026-10-02)
+
+The feasibility and provisional guardrails above are retained as historical design inputs. Current implementation/owner observations, saved-terrain and player freshness distinctions, tile residency bounds, measured local costs and deferred compatibility checks are consolidated in [Phase 18 map acceptance](phase18-map-acceptance.md). Live BDS map capture now uses the proven console hold/query/copy/resume boundary against a private snapshot. The configured 512 MiB tile budget is not a measured whole-process RSS limit. Standard dimensions have representative evidence; missing saved Nether chunks and ungenerated ATM10 custom dimensions remain named limits. Cameron directed all Phase 18 steps to Done; independent gate review and exact release-artifact acceptance are not implied.
+
+
+### Server Java selection (D-044, owner amendment 2026-11-03)
+
+A ConfigServer may persist java_path and java_extra_flags. Missing values inherit the corresponding AppConfig defaults for backward compatibility. Creation saves an explicit Java selection; normal starts and installer-based version changes resolve the server selection first. The server editor supplies an explicit serverId query to GET/POST /v1/config/java-runtime; omitting serverId retains host-default access. An empty server executable override restores inheritance, while java explicitly uses PATH. Native terrain renderers are independent executables and do not use this Java setting.

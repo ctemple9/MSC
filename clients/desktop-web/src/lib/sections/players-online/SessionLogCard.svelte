@@ -56,7 +56,7 @@
 <Card>
   <div class="header">
     <div class="overline">
-      <span class="msc2-type-overline">Session Log</span>
+      <span class="msc-type-overline">Session Log</span>
     </div>
     {#if onClear}
       <button type="button" class="clear" disabled={events.length === 0} onclick={onClear}
@@ -121,18 +121,18 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .clear {
     font-size: 12px;
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     background: none;
     border: none;
     cursor: pointer;
     padding: 0;
   }
   .clear:disabled {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     cursor: not-allowed;
   }
   .body {
@@ -142,7 +142,7 @@
     margin: 0;
     padding: 12px 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .days {
     display: flex;
@@ -151,7 +151,7 @@
   .day-header {
     font-size: 11px;
     font-weight: 500;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     padding: 6px 0;
   }
   .event-row {
@@ -159,25 +159,25 @@
     align-items: center;
     gap: 8px;
     padding: 4px 0;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .player {
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .kind {
     font-size: 12px;
-    color: var(--msc2-status-ok);
+    color: var(--msc-status-ok);
   }
   .kind.leave {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .spacer {
     flex: 1;
   }
   .duration {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: rgba(255, 255, 255, 0.05);
     border-radius: 4px;
     padding: 1px 6px;
@@ -185,17 +185,17 @@
   .time {
     font-size: 11px;
     font-variant-numeric: tabular-nums;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .toggle {
     width: 100%;
     margin-top: 6px;
     padding: 8px 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: none;
     border: none;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     cursor: pointer;
   }
 </style>

@@ -28,7 +28,7 @@ done
 cd "${ROOT}"
 echo "== checking recorded evidence and management boundary =="
 python3 tools/phase9/phase9-check.py --evidence
-python3 tools/phase6/capability-matrix-check.py docs/msc2/client-capability-matrix.csv
+python3 tools/phase6/capability-matrix-check.py docs/msc/client-capability-matrix.csv
 
 echo "== exercising synthetic domain and helper behavior =="
 cargo nextest run -p msc-domain \
@@ -52,7 +52,7 @@ cargo nextest run -p msc-application \
   --test xbox_broadcast
 
 echo "== exercising public HTTP and CLI path behavior =="
-cargo nextest run -p msc-agent \
+cargo nextest run -p msc-engine \
   --test playit_routes \
   --test resource_pack_routes \
   --test network_diagnostic_routes \

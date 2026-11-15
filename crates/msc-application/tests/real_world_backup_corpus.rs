@@ -27,7 +27,7 @@
 //! modded-sample's larger corpus too.
 //!
 //! P6.35 note: every check in this file calls straight into
-//! `msc_application`/`msc_infrastructure` — never through the agent's own
+//! `msc_application`/`msc_infrastructure` — never through the engine's own
 //! HTTP/CLI surface. That stays true on purpose (it's what makes this
 //! file fast and dependency-free); it's also why it alone can't stand in
 //! for "drive the real corpus through the public path." That leg is a
@@ -35,7 +35,7 @@
 //! (`--private-corpus <root>`, driven by a *different*, larger private
 //! corpus root than `corpus/worlds`/`corpus/backups` — see
 //! `MSC2_PHASE6_PRIVATE_CORPUS` in `tools/phase6/corpus-check.py`), which
-//! runs a real agent through `server import`, a bounded staged-upload
+//! runs a real engine through `server import`, a bounded staged-upload
 //! `world export`/`world import` round trip, activation, a manual
 //! backup, and a restore against whichever real Java world sorts first
 //! under that root — hashing the real source files it touches before and
@@ -64,7 +64,7 @@ struct TempRoot {
 impl TempRoot {
     fn new(label: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "msc2-real-world-backup-corpus-{label}-{}-{}",
+            "msc-real-world-backup-corpus-{label}-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)

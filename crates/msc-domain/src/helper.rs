@@ -38,7 +38,7 @@ impl HelperSnapshot {
             player_address: None,
         }
     }
-    pub fn after_agent_restart() -> Self {
+    pub fn after_engine_restart() -> Self {
         Self {
             status: HelperStatus::UnknownUntilReconciled,
             player_address: None,
@@ -85,7 +85,7 @@ impl FirstStartTransportState {
 
 /// The server-side portion of MSC 1's `Initiate` workflow.
 ///
-/// The client owns the setup sheet, but the agent owns the facts that make a
+/// The client owns the setup sheet, but the engine owns the facts that make a
 /// first run different from an ordinary start: which pass is active, whether
 /// the Minecraft process has announced readiness, and whether every enabled
 /// transport has reached a terminal outcome. Keeping this as a small state

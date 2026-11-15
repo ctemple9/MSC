@@ -1,8 +1,8 @@
 //! Hand-written coverage of `capability.rs` against its written
-//! specification, `docs/msc2/api-contract/capability-model.md` (P2.6) and
+//! specification, `docs/msc/api-contract/capability-model.md` (P2.6) and
 //! D-019's nine-category permission vocabulary (P2.1).
 //!
-//! Greenfield MSC 2 construction, not a port (per P2.10's own framing in
+//! Greenfield MSC construction, not a port (per P2.10's own framing in
 //! `rolling-plan.md`) — MSC 1 has no equivalent route, so there is no
 //! fixture to extract; this suite checks the type against the contract
 //! document directly.

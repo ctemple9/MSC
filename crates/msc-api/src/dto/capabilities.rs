@@ -10,7 +10,7 @@ use std::collections::BTreeMap;
 
 use super::ErrorDto;
 
-/// `msc2-engineering.md` §8's first support matrix ("MSC agent host").
+/// `msc-engineering.md` §8's first support matrix ("MSC engine host").
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HostOsDto {
@@ -47,7 +47,7 @@ pub enum BedrockBackendDto {
 }
 
 /// Additive disclosure of the currently selected Bedrock runtime. The state
-/// is intentionally a string so a newer agent can add a state without making
+/// is intentionally a string so a newer engine can add a state without making
 /// an older client unable to decode the rest of the response.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -139,7 +139,7 @@ pub struct HelpersDto {
     pub playit: bool,
     pub duckdns: bool,
     pub geyser: bool,
-    /// Optional so a client can stay compatible with agents built before the
+    /// Optional so a client can stay compatible with engines built before the
     /// first-launch Tailscale probe existed.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tailscale: Option<bool>,
@@ -161,7 +161,7 @@ pub struct MeResponseDto {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CapabilitiesDto {
-    /// The running agent build's own semver string. Real this phase — a
+    /// The running engine build's own semver string. Real this phase — a
     /// compile-time constant, not a placeholder.
     pub agent_version: String,
     pub api_major: u32,
@@ -247,7 +247,7 @@ pub struct WorldSettingsCapabilitiesDto {
     pub fields: BTreeMap<String, WorldSettingCapabilityDto>,
     pub third_party: ThirdPartyWorldConfigBoundaryDto,
     /// Whether semantic same-day time presets are available for this
-    /// selected runtime. Optional for decoding older agents.
+    /// selected runtime. Optional for decoding older engines.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub relative_time: Option<RelativeTimeCapabilityDto>,
 }

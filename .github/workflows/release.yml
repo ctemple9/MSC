@@ -108,31 +108,31 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          agent_version="$(awk -F'"' '/^[[:space:]]*version[[:space:]]*=/ { print $2; exit }' crates/msc-agent/Cargo.toml)"
+          engine_version="$(awk -F'"' '/^[[:space:]]*version[[:space:]]*=/ { print $2; exit }' crates/msc-engine/Cargo.toml)"
           package_version="$(node -p "require('./clients/desktop-web/package.json').version")"
           tauri_version="$(node -p "require('./clients/desktop-web/src-tauri/tauri.conf.json').version")"
           shell_version="$(awk -F'"' '/^[[:space:]]*version[[:space:]]*=/ { print $2; exit }' clients/desktop-web/src-tauri/Cargo.toml)"
           bundle_version="$(sed -n "s/^[[:space:]]*version: '\([^']*\)',$/\1/p" clients/desktop-web/src/lib/bundle-identity.ts | head -n 1)"
-          test -n "$agent_version"
-          test "$agent_version" = "$package_version"
-          test "$agent_version" = "$tauri_version"
-          test "$agent_version" = "$shell_version"
-          test "$agent_version" = "$bundle_version"
+          test -n "$engine_version"
+          test "$engine_version" = "$package_version"
+          test "$engine_version" = "$tauri_version"
+          test "$engine_version" = "$shell_version"
+          test "$engine_version" = "$bundle_version"
           test "${#MSC2_RELEASE_PUBLIC_KEY_HEX}" -eq 64
           [[ "$MSC2_RELEASE_PUBLIC_KEY_HEX" =~ ^[0-9A-Fa-f]{64}$ ]]
 
           if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
-            test "${GITHUB_REF_NAME}" = "v${agent_version}" || {
-              echo "tag ${GITHUB_REF_NAME} does not match source version v${agent_version}" >&2
+            test "${GITHUB_REF_NAME}" = "v${engine_version}" || {
+              echo "tag ${GITHUB_REF_NAME} does not match source version v${engine_version}" >&2
               exit 1
             }
           fi
 
-          echo "RELEASE_VERSION=$agent_version" >> "$GITHUB_ENV"
-          echo "release version: $agent_version"
+          echo "RELEASE_VERSION=$engine_version" >> "$GITHUB_ENV"
+          echo "release version: $engine_version"
 
-      - name: Build release agent and CLI
-        run: cargo --locked build --release --target "${{ matrix.rust-target }}" -p msc-agent
+      - name: Build release engine and CLI
+        run: cargo --locked build --release --target "${{ matrix.rust-target }}" -p msc-engine
 
       # macOS hosted runners can drop Apple's HTTP/3 ticket requests. Blocking
       # QUIC makes stapler use HTTPS over TCP; signing checks remain required.
@@ -166,8 +166,8 @@ jobs:
             fi
           done
 
-          keychain_path="$RUNNER_TEMP/msc2-signing.keychain-db"
-          certificate_path="$RUNNER_TEMP/msc2-signing-certificate.p12"
+          keychain_path="$RUNNER_TEMP/msc-signing.keychain-db"
+          certificate_path="$RUNNER_TEMP/msc-signing-certificate.p12"
           api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
           printf '%s' "$APPLE_CERTIFICATE" | /usr/bin/base64 -D > "$certificate_path"
           printf '%s' "$APPLE_API_KEY_P8_BASE64" | /usr/bin/base64 -D > "$api_key_path"
@@ -196,26 +196,26 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          compiler_root="$RUNNER_TEMP/msc2-renderer-compiler"
+          compiler_root="$RUNNER_TEMP/msc-renderer-compiler"
           python3 -m pip install --disable-pip-version-check --no-deps --only-binary=:all: --upgrade --target "$compiler_root" ziglang==0.16.0
           echo "MSC2_ZIG_BIN=$compiler_root/ziglang/zig" >> "$GITHUB_ENV"
 
-      - name: Stage the matching Tauri agent payload
+      - name: Stage the matching Tauri engine payload
         if: matrix.platform != 'windows-x86_64'
         working-directory: clients/desktop-web
-        run: npm run prepare:agent:release -- --target=${{ matrix.rust-target }}
+        run: npm run prepare:engine:release -- --target=${{ matrix.rust-target }}
 
-      - name: Stage the matching Tauri agent payload on Windows
+      - name: Stage the matching Tauri engine payload on Windows
         if: matrix.platform == 'windows-x86_64'
         shell: pwsh
-        run: ./tools/release/stage-windows-agent.ps1 -WorkspaceRoot $env:GITHUB_WORKSPACE -TargetTriple "${{ matrix.rust-target }}"
+        run: ./tools/release/stage-windows-engine.ps1 -WorkspaceRoot $env:GITHUB_WORKSPACE -TargetTriple "${{ matrix.rust-target }}"
 
       - name: Sign bundled macOS helpers
         if: startsWith(matrix.platform, 'macos-')
         shell: bash
         env:
           APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
-        run: bash tools/release/sign-macos-agent-resources.sh "${{ matrix.platform }}"
+        run: bash tools/release/sign-macos-engine-resources.sh "${{ matrix.platform }}"
 
       - name: Prepare the Windows bundle icon
         if: matrix.platform == 'windows-x86_64'
@@ -281,7 +281,7 @@ jobs:
           bundle_dir="clients/desktop-web/src-tauri/target/release/bundle/dmg"
           dmg="$(find "$bundle_dir" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
           test -n "$dmg" || { echo "Tauri disk image is missing" >&2; exit 1; }
-          mount_dir="$RUNNER_TEMP/msc2-release-dmg"
+          mount_dir="$RUNNER_TEMP/msc-release-dmg"
           mkdir -p "$mount_dir"
           trap 'hdiutil detach "$mount_dir" -quiet 2>/dev/null || true' EXIT
           hdiutil attach -readonly -nobrowse -mountpoint "$mount_dir" "$dmg" >/dev/null
@@ -355,13 +355,13 @@ jobs:
               bundle_dir="clients/desktop-web/src-tauri/target/release/bundle/$installer_extension"
               installer="$(find "$bundle_dir" -maxdepth 1 -type f -name "*.$installer_extension" -print -quit)"
               test -n "$installer" || { echo "no Tauri installer found in $bundle_dir" >&2; exit 1; }
-              cp "$installer" "target/release-artifacts/msc2-${RELEASE_VERSION}-${{ matrix.platform }}.$installer_extension"
+              cp "$installer" "target/release-artifacts/msc-${RELEASE_VERSION}-${{ matrix.platform }}.$installer_extension"
             done
           else
             bundle_dir="clients/desktop-web/src-tauri/target/release/bundle/${{ matrix.installer-extension }}"
             installer="$(find "$bundle_dir" -maxdepth 1 -type f -name "*.${{ matrix.installer-extension }}" -print -quit)"
             test -n "$installer" || { echo "no Tauri installer found in $bundle_dir" >&2; exit 1; }
-            cp "$installer" "target/release-artifacts/msc2-${RELEASE_VERSION}-${{ matrix.platform }}.${{ matrix.installer-extension }}"
+            cp "$installer" "target/release-artifacts/msc-${RELEASE_VERSION}-${{ matrix.platform }}.${{ matrix.installer-extension }}"
           fi
 
       - name: Record macOS signing evidence
@@ -370,7 +370,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           cat > target/release-artifacts/MACOS-SIGNING-NOTICE.txt <<EOF
-          MSC 2 beta candidate ${RELEASE_VERSION}
+          MSC beta candidate ${RELEASE_VERSION}
           Platform: ${{ matrix.platform }}
 
           The macOS desktop app is Developer ID signed and notarized by Apple.
@@ -384,7 +384,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           cat > target/release-artifacts/UNSIGNED-BETA-NOTICE.txt <<EOF
-          MSC 2 beta candidate ${RELEASE_VERSION}
+          MSC beta candidate ${RELEASE_VERSION}
           Platform: ${{ matrix.platform }}
 
           This candidate has no release code signing or publisher identity.
@@ -467,11 +467,11 @@ jobs:
         run: |
           set -Eeuo pipefail
           release_version="${GITHUB_REF_NAME#v}"
-          if [[ -f "docs/msc2/release/v${release_version}.md" ]]; then
-            cp "docs/msc2/release/v${release_version}.md" target/release-assets/RELEASE-NOTES.md
+          if [[ -f "docs/msc/release/v${release_version}.md" ]]; then
+            cp "docs/msc/release/v${release_version}.md" target/release-assets/RELEASE-NOTES.md
           else
           cat > target/release-assets/RELEASE-NOTES.md <<EOF
-          # MSC 2 ${GITHUB_REF_NAME}
+          # MSC ${GITHUB_REF_NAME}
 
           This prerelease contains Intel and Apple Silicon macOS installers and
           headless archives plus x86_64 Windows and Linux artifacts. Verify the
@@ -525,7 +525,7 @@ jobs:
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
         with:
           tag_name: ${{ github.ref_name }}
-          name: MSC 2 ${{ github.ref_name }}
+          name: MSC ${{ github.ref_name }}
           prerelease: true
           draft: false
           generate_release_notes: false

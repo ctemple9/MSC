@@ -1,6 +1,6 @@
 # Third-party notices
 
-Apache-2.0 in [`LICENSE`](LICENSE) covers MSC 2's original code and
+Apache-2.0 in [`LICENSE`](LICENSE) covers MSC's original code and
 contributions. It does not relicense third-party dependencies, Minecraft
 server software, or bundled runtime material. Each component keeps its own
 copyright and license terms.
@@ -29,7 +29,7 @@ not cover these files. Recover and publish the matching source, package
 notices, and build provenance before treating a new public distribution of
 these appliance files as cleared.
 
-The tracked `sidecar/bedrock/Resources/init` script is MSC 2 original code and
+The tracked `sidecar/bedrock/Resources/init` script is MSC original code and
 is covered by Apache-2.0. The compressed initramfs also contains system
 libraries and certificate data that are not independently tracked as source.
 
@@ -42,10 +42,10 @@ included with the binary as `VANTAGE-LICENSE.txt`. MSC stages the platform
 binary from that pinned release after checking the archive SHA-256. Minecraft
 server or client files, assets, and textures are not bundled with Vantage.
 
-MSC 2 can download or interact with software maintained by other projects,
+MSC can download or interact with software maintained by other projects,
 including Paper, Purpur, Fabric, NeoForge, MinecraftForge, Geyser, Floodgate,
 Chunker, Xboxbroadcast, Adoptium Temurin, and the Minecraft Java and Bedrock
-server distributions. Those projects retain their own terms. MSC 2's mention
+server distributions. Those projects retain their own terms. MSC's mention
 or integration does not grant rights to their software or trademarks. Obtain
 each download from its documented provider and follow that provider's terms.
 

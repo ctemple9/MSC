@@ -8,7 +8,7 @@
   // instead of SwiftUI's four-rect dim layer. When the card is hidden, its
   // actions appear in TopBar so they remain reachable without covering controls.
   //
-  // docs/msc2/antiAIslop.md: no colored icon-in-circle for the welcome/done
+  // docs/msc/antiAIslop.md: no colored icon-in-circle for the welcome/done
   // cards, no accent-colored glow ring (a plain white ring reads the
   // highlight without spending the accent budget), buttons are the shared
   // Button component (solid neutral fill, no gradient/capsule).
@@ -147,7 +147,7 @@
   // Choose Path describes the selection cards, but Continue is the actual
   // action that advances this card, so spotlight that real control instead.
   // Review Your Settings is a deliberate pause rather than a spotlight: its
-  // oracle anchor has no one-to-one MSC 2 element, and the user needs the
+  // oracle anchor has no one-to-one MSC element, and the user needs the
   // unobstructed sheet to inspect the accumulated choices.
   $: spotlightAnchor =
     step?.id === 'choose-path'
@@ -324,7 +324,7 @@
   .spotlight {
     position: fixed;
     border: 2px solid rgba(255, 255, 255, 0.85);
-    border-radius: var(--msc2-radius-2);
+    border-radius: var(--msc-radius-2);
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.72);
     pointer-events: none;
     transition:
@@ -348,19 +348,19 @@
     width: min(420px, calc(100vw - 48px));
     box-sizing: border-box;
     padding: 28px;
-    border-radius: var(--msc2-radius-3);
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline);
+    border-radius: var(--msc-radius-3);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline);
     text-align: center;
   }
   .anchored-card {
     position: fixed;
     box-sizing: border-box;
     padding: 16px;
-    border-radius: var(--msc2-radius-2);
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline);
-    box-shadow: var(--msc2-shadow-float);
+    border-radius: var(--msc-radius-2);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline);
+    box-shadow: var(--msc-shadow-float);
     transition:
       top 200ms ease,
       left 200ms ease;
@@ -372,7 +372,7 @@
   h3 {
     margin: 0 0 8px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   h2 {
     font-size: 19px;
@@ -384,7 +384,7 @@
     margin: 0;
     font-size: 13px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .actions {
     display: flex;
@@ -405,18 +405,18 @@
   .hint {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .progress {
     height: 3px;
     margin-bottom: 10px;
     border-radius: 2px;
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
     overflow: hidden;
   }
   .progress span {
     display: block;
     height: 100%;
-    background: var(--msc2-text-primary);
+    background: var(--msc-text-primary);
   }
 </style>

@@ -12,7 +12,7 @@
 //! field this code doesn't recognize survives a read-modify-write round
 //! trip instead of being silently dropped on save — unlike `AppConfig`
 //! itself, whose synthesized `Decodable` drops unrecognized keys.
-//! `msc2-engineering.md` §7 names exactly this failure mode for
+//! `msc-engineering.md` §7 names exactly this failure mode for
 //! `server.properties`; this primitive generalizes the fix to any
 //! versioned config.
 //!
@@ -372,7 +372,7 @@ pub fn save_app_config(
     save_config(fs, path, &value)
 }
 
-/// Durable application-data root for production agent state. Tests may
+/// Durable application-data root for production engine state. Tests may
 /// inject their own paths, but the service default must never be the OS
 /// temporary directory because server/config state is intended to survive
 /// process and machine restarts.
@@ -602,7 +602,7 @@ pub fn restore_servers_from_backup(
 }
 
 /// The `SecretStore` key MSC 1's legacy top-level `remote_api_token`
-/// plaintext migrates to — matches `docs/msc2/substrate/secret-storage.md`
+/// plaintext migrates to — matches `docs/msc/substrate/secret-storage.md`
 /// §9 and `KeychainManager.shared.writeRemoteAPIToken` (`ConfigManager
 /// .swift`'s `init`, lines 77-82).
 pub const LEGACY_OWNER_TOKEN_SECRET_KEY: &str = "remote-api.owner-token";
@@ -632,7 +632,7 @@ pub struct SecretMigrationOutcome {
 /// out of `config`, writes any non-blank value to `secrets`, and returns
 /// `config` rewritten with both keys removed.
 ///
-/// A pure adapter over `config`, per `docs/msc2/config-migration
+/// A pure adapter over `config`, per `docs/msc/config-migration
 /// /legacy-secret-transition.md`: it never discovers or opens MSC 1's
 /// application-support path itself, and there is no guest-token
 /// counterpart to migrate — `remote_api_token` is the only credential MSC

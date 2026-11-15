@@ -373,7 +373,7 @@ fn refuses_unverified_archives_before_staging() {
         msc_infrastructure::bedrock_distribution::BedrockDistributionError::UnverifiedArchive
     ));
     assert_eq!(
-        fixture("msc2-net-new-unverified-archive-is-not-runnable")["expected"]["staged"],
+        fixture("msc-net-new-unverified-archive-is-not-runnable")["expected"]["staged"],
         false
     );
 }
@@ -414,7 +414,7 @@ fn checksum_mismatch_and_corrupt_zip_leave_staging_empty() {
             .is_err()
     );
     assert_eq!(
-        fixture("msc2-net-new-corrupt-archive-rejected")["expected"]["runnable"],
+        fixture("msc-net-new-corrupt-archive-rejected")["expected"]["runnable"],
         false
     );
 }
@@ -528,7 +528,7 @@ fn downgrade_requires_a_successful_safety_backup() {
     ));
     assert_eq!(fs.read(&server.join("bedrock_server")).unwrap(), b"current");
     assert_eq!(
-        fixture("msc2-net-new-failed-update-rolls-back-atomically")["expected"]["old_installation_intact"],
+        fixture("msc-net-new-failed-update-rolls-back-atomically")["expected"]["old_installation_intact"],
         true
     );
 }

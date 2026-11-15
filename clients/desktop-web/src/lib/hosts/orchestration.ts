@@ -3,7 +3,7 @@ import {
   loadTauriDesktopCredentialBridge,
   type RemoteDesktopPairingResult,
 } from '../auth/desktop';
-import type { AgentReadiness } from '../platform';
+import type { EngineReadiness } from '../platform';
 import { forgetSavedRemoteHost, saveRemoteHost } from './saved';
 import { HostConnectionManager, formatConnectionFailure } from './connection';
 import { HostStore } from './registry';
@@ -26,7 +26,7 @@ interface HostOrchestrationOptions {
   readonly selectedHostId: () => HostId;
   readonly selectHostId: (id: HostId) => void;
   readonly desktopShell: () => boolean;
-  readonly agentReadiness: () => AgentReadiness;
+  readonly engineReadiness: () => EngineReadiness;
   readonly setShellMessage: (message: string) => void;
   readonly clearLoadedSections: () => void;
   readonly refreshHosts: () => void;
@@ -81,7 +81,7 @@ export class HostConnectionOrchestrator {
     }
     await options.initializeClient(generation);
     if (!this.isCurrent(generation)) return;
-    if (options.agentReadiness() === 'ready' && activeOperation) {
+    if (options.engineReadiness() === 'ready' && activeOperation) {
       options.setShellMessage(
         `Switched hosts. ${activeOperation.statusLine ?? activeOperation.type} continues on ${previousHostId}; returning to that host will restore its progress.`,
       );
@@ -111,8 +111,8 @@ export class HostConnectionOrchestrator {
         ssh: input.ssh,
         managementPort: input.managementPort,
         localForwardedPort: input.localForwardedPort,
-        ...(input.manualTunnel && input.manualAgentAddress
-          ? { manualAgentAddress: input.manualAgentAddress }
+        ...(input.manualTunnel && input.manualEngineAddress
+          ? { manualEngineAddress: input.manualEngineAddress }
           : {}),
       });
       options.store.updateHost(repaired);
@@ -173,8 +173,8 @@ export class HostConnectionOrchestrator {
       ssh: input.ssh,
       managementPort: input.managementPort,
       localForwardedPort: input.localForwardedPort,
-      ...(input.manualTunnel && input.manualAgentAddress
-        ? { manualAgentAddress: input.manualAgentAddress }
+      ...(input.manualTunnel && input.manualEngineAddress
+        ? { manualEngineAddress: input.manualEngineAddress }
         : {}),
     });
     const existing = options.store.listHosts().find((registered) => registered.id === host.id);
@@ -233,8 +233,8 @@ export class HostConnectionOrchestrator {
         ? {}
         : { localForwardedPort: previousHost.localForwardedPort }),
       tryDirectFirst: previousHost.tryDirectFirst,
-      ...(previousHost.manualAgentAddress
-        ? { manualAgentAddress: previousHost.manualAgentAddress }
+      ...(previousHost.manualEngineAddress
+        ? { manualEngineAddress: previousHost.manualEngineAddress }
         : {}),
     };
     options.store.removeHost(previousHost.id);
@@ -265,7 +265,7 @@ export class HostConnectionOrchestrator {
       !this.options.desktopShell() ||
       this.options.selectedHostId() === this.options.localHostId
     ) {
-      throw new Error('The local agent cannot be removed from this desktop.');
+      throw new Error('The local engine cannot be removed from this desktop.');
     }
     await this.removeRemoteHost(this.options.selectedHostId());
   }
@@ -275,7 +275,7 @@ export class HostConnectionOrchestrator {
       !this.options.desktopShell() ||
       this.options.selectedHostId() === this.options.localHostId
     ) {
-      throw new Error('The local agent is already selected on this desktop.');
+      throw new Error('The local engine is already selected on this desktop.');
     }
     await this.switchHost(this.options.localHostId);
   }

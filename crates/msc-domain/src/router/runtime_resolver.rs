@@ -3,10 +3,10 @@
 //! guides. Resolves dynamic tokens against the selected server's live
 //! context" (the file's own doc comment).
 //!
-//! Two independent pieces, both already adjudicated agent-owned in the
-//! symbol ledger (`msc2-symbol-ledger.csv`, two rows for this file:
+//! Two independent pieces, both already adjudicated engine-owned in the
+//! symbol ledger (`msc-symbol-ledger.csv`, two rows for this file:
 //! `makeRecommendedProtocol`, and the `resolve`/`resolveGuide`/`resolveBestMatch`/
-//! `resolveItem`/`resolveText` family — the latter corrected to agent during
+//! `resolveItem`/`resolveText` family — the latter corrected to engine during
 //! Codex's P0.27 review):
 //!
 //! - `RouterPortForwardGuideRuntimeContext.makeRecommendedProtocol` (ported

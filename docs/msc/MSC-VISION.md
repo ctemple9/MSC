@@ -1,0 +1,152 @@
+# MSC — Vision Set
+
+> Owner amendment (2026-10-06, D-042): modded map repair/import and private Minecraft client capture are retired. The standard Java and Bedrock saved-terrain maps remain supported. Earlier repair-plan or capture acceptance requirements are withdrawn rather than satisfied.
+
+**Set revision:** 2.0 · **Date:** 2026-10-30
+**Owner:** Cameron Temple
+**Baseline:** MSC 1 at commit `fccd61f0ed743086f1f5db6bef58e228a36010f3` (246 production Swift files, 97,357 lines)
+
+This is the entry point. The five documents below are **one controlled set** and are meant to be read together. If you are returning to MSC with no memory of the project, read this page, then `msc-decisions.md`.
+
+---
+
+## The set
+
+| Document | Revision | Contains | Changes |
+|---|---|---|---|
+| **`MSC-VISION.md`** (this file) | 2.0 | Index, revision state, owner-confirmed requirements, precedence rules | Rarely |
+| **`msc-product.md`** | 1.9 | What MSC is in plain language: purpose, audience, experience, guarantees, non-goals | Rarely |
+| **`msc-engineering.md`** | 1.11 | Architecture, API contract, module boundaries, platform matrices, security, verification guarantees, resource requirements | Occasionally |
+| **`msc-decisions.md`** | 1.26 | Numbered decision register with origin, approval, rationale, rejected alternatives | Append-only |
+| **`msc-port-plan.md`** | 1.9 | Execution sequencing and the fixture inventory | **Often — deliberately separated** |
+
+**Why the port plan is separate.** The vision defines the destination and its guarantees; the port plan defines a route. Routes change. Keeping them apart means a rescheduled phase never forces an edit to the vision.
+
+---
+
+## Precedence during conflict
+
+**Approval status outranks document.** An **Approved** requirement always beats a **Proposed** one, whichever file each lives in. A proposal cannot override an owner-approved requirement merely by appearing in the decision register.
+
+Within the same approval status:
+
+1. **`msc-decisions.md` wins.** It records reasoning and approval state; the other documents are downstream of it.
+2. **`msc-engineering.md` wins over `msc-product.md`** on any technical claim.
+3. **`msc-product.md` wins over `msc-engineering.md`** on intent, audience, and what MSC is *for*.
+4. **`msc-port-plan.md` never wins.** If it conflicts with anything, the port plan is wrong.
+5. **`~/Desktop/msc.md`** — the original vision written with Codex — is **superseded on architecture**, but remains a valid source of *owner intent*: several requirements in this set (headless everywhere, resource efficiency, the memory objective) originate there and are approved on that basis.
+
+Any conflict discovered between documents is a defect. Fix it by adding or amending a decision entry, then propagating.
+
+---
+
+## Approval state
+
+Decisions carry `Origin`, `Approved by`, and `Approval date`. Two statuses matter:
+
+- **Approved** — the owner personally confirmed it. Do not reopen without evidence of the kind named in its *Revisit if* clause.
+- **Proposed** — analysis-derived recommendation, documented and reasonable, **not owner-confirmed**. Safe to build against provisionally; must be approved before it constrains anything expensive.
+
+### Owner-confirmed requirements
+
+Everything below was decided by the owner directly, not inferred.
+
+| # | Requirement | Entry |
+|---|---|---|
+| 1 | MSC runs on macOS, Windows, and Linux, including **native Windows**. This is the requirement that determines the engine language. | D-002 |
+| 2 | The engine is **Rust**; the desktop interface is one Svelte frontend shipped in a Tauri shell. The engine exposes an API and does not serve a browser UI. | D-002, D-003, D-038 |
+| 3 | MSC has **no supported mobile or browser management client**. Tauri desktop, headless CLI, and the host-local full-screen TUI are supported. Optional Tailscale enables remote desktop access. | D-033, D-038, D-043 |
+| 4 | MSC is a **completely separate app and project**. It never touches MSC 1. Migration is by **import only**. | D-001, D-009 |
+| 5 | Version skew is handled by a **supported-version floor with capability degradation**, and a clear refusal below it. *(The specific N-3 value is proposed, not approved.)* | D-010 |
+| 6 | On desktop, the **app installs and manages the engine**; headless installs separately. | D-011 |
+| 7 | Browser sessions use an **httpOnly cookie**; the desktop shell injects a **local token**. *(The rest of the auth design is proposed.)* | D-012 |
+| 8 | The client is **multi-host from day one** — state keyed by host, minimal switcher in v1. | D-013 |
+| 9 | **Minecraft 1.20** is the version floor. | D-014 |
+| 10 | The remaining **v1 non-goals** are no third-party plugin API, no per-person identity yet, no TempleTech-hosted backend, no proxy/network orchestration, and no Android. D-043 removes the former full-screen terminal non-goal; the scriptable CLI remains supported. | D-015, D-043 |
+| 11 | **Complete headless mode on every platform** — macOS, Windows, and Linux — with the GUI optional everywhere. *(From `msc.md`.)* | D-011 |
+| 12 | **Resource efficiency is a requirement**, not an aspiration. *(Founding motivation, from `msc.md`. Specific benchmark values remain proposed.)* | D-021 |
+| 13 | **Supported-client capability is tracked explicitly** across desktop, CLI, and TUI; mobile and browser management are not targets. *(The matrix as tracking mechanism remains proposed.)* | D-023, D-033, D-038, D-043 |
+| 14 | **MSC teaches in every supported interface.** The Server Handbook and Router Guide are available in desktop and TUI; CLI help remains available through its supported commands. *(From `msc.md`. Serving content as data rather than client code is the proposed mechanism.)* | D-026, D-038, D-043 |
+| 15 | The served browser client is retired. The engine does not serve a browser UI or accept browser sessions; D-043 restores a host-local TUI alongside desktop and CLI. | D-038, D-043 |
+
+### Awaiting approval
+
+These are load-bearing but not yet owner-confirmed. Review them before they constrain expensive work.
+
+| Entry | Subject | Why it matters |
+|---|---|---|
+| D-005 | MSC 1 is the compatibility oracle | Determines whether behavior is ported or redesigned |
+| D-006 | MSC 1's API as compatibility **baseline** — superset allowed, bugs may be corrected | Determines the shape of everything downstream |
+| D-007 | macOS Bedrock stays a Swift sidecar | Affects packaging on macOS |
+| D-008 | The Docker Bedrock backend is not ported | Removes 658 lines from scope |
+| D-012 | The six unspecified authentication areas | **Largest open design gap** |
+| D-016–D-018 | Port strategy, Windows timing, evidence-before-translation | Shape the whole schedule |
+| D-019 | Formalizing MSC 1's existing permission model | Corrects a factual error in revision 1.0 |
+| D-021 | The specific memory *targets* (the requirement itself is approved) | Must be measured, not estimated |
+| D-022 | Separate MSC / Java / Bedrock support matrices | Prevents an unsupportable promise |
+| D-023 | The matrix *mechanism* (supported-client capability is approved) | Prevents capability gaps across retained clients |
+| D-024 | Power management: two policies by host role | Remote-starting a stopped server needs the host awake |
+| D-020 | Repository name and location | **Open, blocks everything** |
+| D-025 | **Service identity and privilege boundaries** | **Open.** Blocks the substrate and the D-012 local-auth design |
+| D-026 | Educational content as served data; `helpId` on every explainable thing | **Must land before Phase 2 freezes the contract** |
+
+---
+
+## The shortest possible summary
+
+MSC extracts MSC's engine into a cross-platform Rust service that runs with or without a screen. The Tauri desktop app, headless CLI, and host-local TUI are supported control surfaces. The engine exposes an authenticated API and does not serve a browser interface. Optional Tailscale can provide remote desktop access; ordinary local use does not require it.
+
+**It is not a blank-slate rewrite.** MSC 1 is the executable specification. Two independent audits agreed at file level on **88.6%** of 246 files, and identified roughly **33,000–36,000 lines** of engine behavior to translate — about one third of the tree. That figure measures preserved behavior only; the genuinely new work (cross-platform services, operation journaling, secret stores, native Bedrock runtimes, client state) may exceed it.
+
+---
+
+## Known gaps in this revision
+
+Recorded honestly so they aren't mistaken for completeness.
+
+1. **Authentication is incomplete.** Six areas are unspecified — most importantly how a desktop app pairs with *remote* hosts, which multi-host (D-013) makes a first-class case. `msc-engineering.md` §10.
+2. **The permission-category vocabulary is unvalidated** against all 87 routes. D-019.
+3. **Linux secret storage is unresolved.** The `keyring` crate resolves to the freedesktop Secret Service, which minimal Debian does not have. A headless fallback — `systemd` credentials or protected root-owned storage — must be chosen. `msc-engineering.md` §8.
+4. **The symbol ledger does not exist.** The two audit CSVs are file-level *inputs* to it; they say which files to open, not which symbols must survive. Building it is a Phase 0 deliverable.
+5. **Service identity is undesigned.** Which account runs the engine, who owns server directories, when escalation is permitted, machine-scoped secret storage, macOS TCC consent without a GUI, and how updates cross the privilege boundary. MSC 1 never faced this — it is a user-session app. D-025, `msc-engineering.md` §8.
+6. **Idle-engine memory targets do not exist.** They must be measured, not estimated. D-021.
+7. **The MSC repository does not exist.** D-020.
+8. **The capability matrix is defined but unpopulated.** D-023.
+9. **The version-skew floor is undecided.** An earlier draft asserted N-3; that was an estimate. Set it from real update-adoption data. D-010.
+
+---
+
+## Supporting artifacts
+
+Not part of the controlled set; evidence behind it. Currently in `~/Desktop/`.
+
+| File | Contains |
+|---|---|
+| `msc.md` | The original vision, written with Codex. Superseded on architecture. |
+| `msc-audit-independent-a.md` | Claude's independent portability audit |
+| `msc-audit-independent-b.md` | Codex's independent portability audit |
+| `msc-audit-reconciliation.md` | Disagreements re-tested against the code, with verdicts |
+| `msc-audit-comparison.md` | Codex's comparison of both audits |
+| `msc-audit-exact-diff.md` | File-level confusion matrix; 88.6% agreement; 28 adjudicated files |
+| `msc-file-inventory-a.csv` | 246-row per-file disposition |
+| `msc-file-inventory-b.csv` | 246-row per-file disposition |
+
+The two CSVs join on `file`. They are **file-level inputs to the future symbol ledger**, not the ledger itself — they say which files to open, not which symbols inside them must survive. Building the ledger is a Phase 0 deliverable (D-016).
+
+---
+
+## Revision history
+
+| Rev | Date | Change |
+|---|---|---|
+| 2.0 | 2026-10-30 | Recorded Phase 22 TUI acceptance and updated the supported-interface and teaching-content statements. |
+| 1.9 | 2026-10-26 | Added D-043: restored the host-local full-screen TUI as an incremental Phase 22 client. |
+| 1.8 | 2026-09-28 | Added D-038: retired the served browser client; current supported clients are Tauri desktop and CLI. |
+| 1.7 | 2026-09-07 | Added D-034: the full-screen terminal client is retired; the retained terminal surface is the scriptable headless CLI. |
+| 1.6 | 2026-09-07 | Amended D-033: native mobile and supported mobile management are both out of v1; retained clients are Tauri desktop, desktop browser, and headless CLI, with optional Tailscale remote access. |
+| 1.5 | 2026-09-07 | Recorded D-033: the native mobile client is retired from MSC; the responsive browser remains a desktop/browser implementation detail. |
+| 1.0 | 2026-07-29 | Initial three-document set. |
+| 1.4 | 2026-07-30 | Added D-026 and `msc-engineering.md` §18: MSC 1's teaching material — 31 handbook topics, the concept guide, ~18 router-guide files, contextual help — had no home in MSC's architecture. Content becomes engine-served data with a `helpId` on every explainable thing, reaching all four interfaces including the CLI. Must land before the Phase 2 contract freeze. |
+| 1.3 | 2026-07-29 | Third Codex review: symbol-ledger contradiction removed set-wide; Phase 0 reduced to baseline + harness + ledger with per-domain characterization moved next to each translation; cross-platform tests moved out of MSC 1 characterization; product permissions corrected to name scoped tokens; D-024 (power management) and D-025 (service identity, Open) added; wording polished — graphical desktop environment, unmeasured memory figure removed, drift claim softened. |
+| 1.2 | 2026-07-29 | Second Codex review: owner-origin requirements promoted to Approved (headless everywhere, resource efficiency, full mobile capability); N-3 and mechanical-gate contradictions removed; API restated as baseline + extension + correction; symbol-ledger overclaim corrected; LaunchDaemon and headless sidecar specified; Linux secret storage opened as a named gap; macOS desktop example corrected; Phase 0 split from cross-platform acceptance tests; Windows added to the Phase 4 exit criteria; precedence now ranks approval status above document. |
+| 1.1 | 2026-07-29 | Codex review incorporated: approval state separated from analysis; tri-platform headless; auth gaps named; MSC 1 permission model corrected; "no cloud" principle restated; execution split into `msc-port-plan.md`; extraction rule relaxed; resource efficiency, support matrices, and capability matrix added; this index created. |

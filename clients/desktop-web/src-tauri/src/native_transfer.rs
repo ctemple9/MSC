@@ -1,8 +1,8 @@
 //! A picker grants one host/purpose-bound source. File bytes stay in Rust,
-//! including when speaking the older agent's chunk protocol.
+//! including when speaking the older engine's chunk protocol.
 use crate::{
-    canonical_base_url, credential_key, desktop_secret_store, ensure_current_local_agent_service,
-    relative_request_url, StoredDesktopCredential, LOCAL_AGENT_ORIGIN,
+    canonical_base_url, credential_key, desktop_secret_store, ensure_current_local_engine_service,
+    relative_request_url, StoredDesktopCredential, LOCAL_ENGINE_ORIGIN,
 };
 use futures_util::{stream, FutureExt, StreamExt};
 use reqwest::{header, Client, Method, Response};
@@ -298,7 +298,7 @@ pub(crate) enum Transport {
     #[cfg(unix)]
     LocalCopy,
     LegacyChunks,
-    LegacyBufferedAgent,
+    LegacyBufferedEngine,
 }
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -908,8 +908,8 @@ impl Context {
                 "Stored host authorization is invalid.",
             ));
         }
-        if record.base_url == LOCAL_AGENT_ORIGIN {
-            ensure_current_local_agent_service()
+        if record.base_url == LOCAL_ENGINE_ORIGIN {
+            ensure_current_local_engine_service()
                 .map_err(|e| UploadError::new("service_unavailable", e))?;
         }
         if manager().generation(&host) != generation {
@@ -917,7 +917,7 @@ impl Context {
         }
         Ok(Self {
             #[cfg(unix)]
-            local_candidate: record.base_url == LOCAL_AGENT_ORIGIN
+            local_candidate: record.base_url == LOCAL_ENGINE_ORIGIN
                 && store
                     .get(crate::LOCAL_HOST_ID_KEY)
                     .ok()
@@ -982,7 +982,7 @@ impl Context {
                 if matches!(status.as_u16(), 401 | 403) {
                     "authentication"
                 } else {
-                    "agent_refused"
+                    "engine_refused"
                 },
                 message.replace(&self.record.token, "[redacted]"),
             ));
@@ -1122,7 +1122,7 @@ async fn perform(
         .await?;
     if caps.api_major != 1 {
         return Err(UploadError::new(
-            "incompatible_agent",
+            "incompatible_engine",
             "The host's API version does not support this client.",
         ));
     }
@@ -1146,7 +1146,7 @@ async fn perform(
             .as_ref()
             .is_some_and(|p| p.protocol == 1 && p.stream_upload && p.server_archive)
     {
-        return Err(UploadError::new("incompatible_agent", "This host cannot receive selected server sources. Update the agent or use its existing agent-local path workflow."));
+        return Err(UploadError::new("incompatible_engine", "This host cannot receive selected server sources. Update the engine or use its existing engine-local path workflow."));
     }
     let source = if source.selected.directory {
         #[cfg(unix)]
@@ -1186,20 +1186,20 @@ async fn perform(
             .is_some_and(|p| !p.creation_context)
     {
         return Err(UploadError::new(
-            "incompatible_agent",
-            "Update the agent to select source files before server creation.",
+            "incompatible_engine",
+            "Update the engine to select source files before server creation.",
         ));
     }
     let transport = match caps.native_transfers {
         Some(protocol) if protocol.protocol == 1 && protocol.stream_upload => Transport::Stream,
         Some(_) => {
             return Err(UploadError::new(
-                "incompatible_agent",
+                "incompatible_engine",
                 "Native uploads are unavailable or use an unsupported protocol on this host.",
             ))
         }
         None if source.selected.binding.purpose.chunks() => Transport::LegacyChunks,
-        None => Transport::LegacyBufferedAgent,
+        None => Transport::LegacyBufferedEngine,
     };
     attempt.transport = Some(transport);
     operation.progress("preparing", 0, Some(transport), true);
@@ -1275,7 +1275,7 @@ async fn perform(
         && binding.purpose != Purpose::ModpackArchive
         && slot.max_chunk_bytes.is_none()
     {
-        return Err(UploadError::new("incompatible_agent", "This older agent cannot confirm chunked world support. Update the agent before importing this file."));
+        return Err(UploadError::new("incompatible_engine", "This older engine cannot confirm chunked world support. Update the engine before importing this file."));
     }
     #[cfg(unix)]
     if matches!(transport, Transport::Stream)
@@ -1294,7 +1294,7 @@ async fn perform(
             {
                 return Err(UploadError::new(
                     "integrity_mismatch",
-                    "The local agent returned an invalid verified receipt.",
+                    "The local engine returned an invalid verified receipt.",
                 ));
             }
             return Ok(UploadResult {
@@ -1308,7 +1308,7 @@ async fn perform(
         }
     }
     if source.folder_snapshot.is_some() && !source.generated_archive {
-        return Err(UploadError::new("local_handoff", "The selected local folder could not be handed to its original agent. No archive or upload fallback was started."));
+        return Err(UploadError::new("local_handoff", "The selected local folder could not be handed to its original engine. No archive or upload fallback was started."));
     }
     let hash = Arc::new(Mutex::new(Sha256::new()));
     let mut file = tokio::fs::File::from_std(source.file.try_clone().map_err(|_| {

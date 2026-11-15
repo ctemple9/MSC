@@ -231,14 +231,14 @@
   .link {
     flex-shrink: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: transparent;
     border: none;
     padding: 0;
     cursor: pointer;
   }
   .link:hover {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .prompt {
     display: flex;
@@ -249,7 +249,7 @@
     margin: 0;
     font-size: 11px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .prompt-row {
     display: flex;
@@ -269,14 +269,14 @@
     gap: 8px;
     padding: 20px 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .spinner {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: 2px solid var(--msc2-hairline);
-    border-top-color: var(--msc2-text-secondary);
+    border: 2px solid var(--msc-hairline);
+    border-top-color: var(--msc-text-secondary);
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin {
@@ -300,7 +300,7 @@
     cursor: pointer;
   }
   .avatar-trigger:focus-visible {
-    outline: 2px solid var(--msc2-hairline-field-focus);
+    outline: 2px solid var(--msc-hairline-field-focus);
     outline-offset: 3px;
     border-radius: 4px;
   }
@@ -315,7 +315,7 @@
   .name {
     margin: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .error-state {
     display: flex;
@@ -327,7 +327,7 @@
     margin: 0;
     font-size: 11px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .actions {
     display: flex;

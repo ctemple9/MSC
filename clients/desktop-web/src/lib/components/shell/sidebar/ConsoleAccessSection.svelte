@@ -1,8 +1,8 @@
 <script lang="ts">
   // Shown in the sidebar under "Services" (renamed from "Console Access" --
   // Xbox Broadcast's own MSC 1 name -- once this became a general panel).
-  // MSC2's own external-services quick control -- the two helper processes
-  // the agent manages that are not the Minecraft server process itself
+  // MSC's own external-services quick control -- the two helper processes
+  // the engine manages that are not the Minecraft server process itself
   // (crates/msc-infrastructure/src/helper_process.rs's HelperKey has
   // exactly two call sites: "xbox-broadcast" and "playit").
   // Xbox Broadcast started here as a port of MSC 1 SidebarView.swift's
@@ -70,7 +70,7 @@
   }
 
   onMount(() => {
-    // Helper startup is asynchronous and is owned by the agent, so the first
+    // Helper startup is asynchronous and is owned by the engine, so the first
     // read after the Minecraft process starts can still be stale. This keeps
     // the sidebar's Start/Stop labels reconciled without a manual refresh.
     refreshTimer = setInterval(() => void load(), 1000);
@@ -115,7 +115,7 @@
 <div class="console-access">
   <div class="service">
     <div class="service-header">
-      <p class="msc2-type-overline">playit.gg</p>
+      <p class="msc-type-overline">playit.gg</p>
       <Button
         variant="secondary"
         size="sm"
@@ -133,7 +133,7 @@
   {#if showXboxBroadcast}
     <div class="service">
       <div class="service-header">
-        <p class="msc2-type-overline">Xbox Broadcast</p>
+        <p class="msc-type-overline">Xbox Broadcast</p>
         {#if showBroadcastControls}
           <Button
             variant="secondary"
@@ -165,7 +165,7 @@
     flex-direction: column;
     gap: 2px;
   }
-  .service :global(.msc2-type-overline) {
+  .service :global(.msc-type-overline) {
     line-height: 1;
     margin: 0;
   }
@@ -178,12 +178,12 @@
   .hint {
     margin: 0;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     line-height: 1.5;
   }
   .notice {
     margin: 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

@@ -19,10 +19,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CLIENT = ROOT / "clients" / "desktop-web"
-MATRIX = ROOT / "docs/msc2/client-capability-matrix.csv"
-OPENAPI = ROOT / "docs/msc2/api-contract/openapi.json"
-WEBSOCKET = ROOT / "docs/msc2/api-contract/websocket-v1.json"
-EVIDENCE = ROOT / "docs/msc2/clients/phase12-gate.md"
+MATRIX = ROOT / "docs/msc/client-capability-matrix.csv"
+OPENAPI = ROOT / "docs/msc/api-contract/openapi.json"
+WEBSOCKET = ROOT / "docs/msc/api-contract/websocket-v1.json"
+EVIDENCE = ROOT / "docs/msc/clients/phase12-gate.md"
 
 ALLOWED_DESKTOP_PLANNED = {
     ("POST", "/v1/broadcast/download-jar"),
@@ -87,7 +87,7 @@ def check_matrix() -> list[str]:
     required_columns = {
         "method",
         "path",
-        "agent_status",
+        "engine_status",
         "desktop_status",
         "cli_status",
         "notes",
@@ -99,7 +99,7 @@ def check_matrix() -> list[str]:
         for column in (
             "method",
             "path",
-            "agent_status",
+            "engine_status",
             "desktop_status",
             "cli_status",
         ):
@@ -138,7 +138,7 @@ def run_checker(relative: str, *args: str) -> None:
 
 def check_shared_boundaries() -> list[str]:
     require_fragments(
-        "docs/msc2/clients/phase12-gate.md",
+        "docs/msc/clients/phase12-gate.md",
         (
             "ContentView.swift",
             "DetailsView.swift",
@@ -171,7 +171,7 @@ def check_shared_boundaries() -> list[str]:
 
 def check_evidence_paths() -> list[str]:
     require_fragments(
-        "docs/msc2/clients/phase12-gate.md",
+        "docs/msc/clients/phase12-gate.md",
         (
             "phase12-gate.md",
             "antiAIslop.md",
@@ -201,11 +201,11 @@ def check_evidence_paths() -> list[str]:
     )
     require_fragments(
         "clients/desktop-web/tests/screens/settings-reset.test.ts",
-        ("Reset this client", "RESET AGENT", "host/reset"),
+        ("Reset this client", "RESET ENGINE", "host/reset"),
     )
     require_fragments(
         "clients/desktop-web/tests/screens/help.test.ts",
-        ("agent Markdown", "guided tour", "Handbook"),
+        ("engine Markdown", "guided tour", "Handbook"),
     )
     require_fragments(
         ".github/workflows/ci.yml",
@@ -218,7 +218,7 @@ def check_evidence_paths() -> list[str]:
         ),
     )
     require_fragments(
-        "docs/msc2/clients/evidence/tri-platform-ci.md",
+        "docs/msc/clients/evidence/tri-platform-ci.md",
         ("one production Svelte bundle", "native WebKitGTK", "Playwright"),
     )
     return ["host/auth/help/onboarding/reset and tri-platform/headless evidence paths present"]
@@ -226,7 +226,7 @@ def check_evidence_paths() -> list[str]:
 
 def check_renderings() -> list[str]:
     require_fragments(
-        "docs/msc2/renderings/README.md",
+        "docs/msc/renderings/README.md",
         (
             "status-card.html",
             "buttons-and-type.html",
@@ -237,7 +237,7 @@ def check_renderings() -> list[str]:
         ),
     )
     require_fragments(
-        "docs/msc2/antiAIslop.md",
+        "docs/msc/antiAIslop.md",
         (
             "Color budget 70/20/10",
             "No glassmorphism",

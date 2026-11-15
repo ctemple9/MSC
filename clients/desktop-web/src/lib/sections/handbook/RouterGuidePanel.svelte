@@ -79,7 +79,7 @@
 
 {#snippet guideRow(guide: RouterGuideSummary, last: boolean, onSelect: () => void)}
   <button type="button" class="guide-row" class:last onclick={onSelect}>
-    <span class="msc2-type-card">{guide.displayName}</span>
+    <span class="msc-type-card">{guide.displayName}</span>
     <span class="chevron" aria-hidden="true">›</span>
   </button>
 {/snippet}
@@ -102,26 +102,26 @@
   {:else if catalog.guides.length === 0}
     <EmptyState
       title="Router guides are unavailable"
-      message="This agent has not served the router catalog yet."
+      message="This engine has not served the router catalog yet."
     />
   {:else}
-    <p class="msc2-type-overline">Step 1 of 3 — Find your router</p>
-    <p class="msc2-type-body muted">
+    <p class="msc-type-overline">Step 1 of 3 — Find your router</p>
+    <p class="msc-type-body muted">
       Search across supported providers, routers, and mesh systems, or browse the inventory below.
     </p>
 
     <Field placeholder="Search by provider, brand, model, or product line…" bind:value={query} />
 
     <button type="button" class="generic-card" onclick={openGenericGuide}>
-      <span class="msc2-type-card">I don't know my router</span>
-      <span class="msc2-type-meta"
+      <span class="msc-type-card">I don't know my router</span>
+      <span class="msc-type-meta"
         >Open the generic guide and continue with the broadest supported path.</span
       >
     </button>
 
     {#if query.trim()}
       {#if !searchResult}
-        <p class="msc2-type-meta">Searching…</p>
+        <p class="msc-type-meta">Searching…</p>
       {:else if searchResult.candidates.length === 0}
         {#if searchResult.suggestedFallbackGuide}
           {@const fallback = searchResult.suggestedFallbackGuide}
@@ -142,14 +142,14 @@
         <div class="results">
           {#if !searchResult.matchedDirectGuide && searchResult.suggestedFallbackGuide}
             {@const fallback = searchResult.suggestedFallbackGuide}
-            <p class="msc2-type-meta banner">
+            <p class="msc-type-meta banner">
               No specific guide for this family yet — showing the closest match.
             </p>
             <Card padding="0">
               {@render guideRow(fallback, true, () => openGuide(fallback.id))}
             </Card>
           {/if}
-          <p class="msc2-type-overline">
+          <p class="msc-type-overline">
             {searchResult.isAmbiguous ? 'Closest available guides' : 'Results'}
           </p>
           <Card padding="0">
@@ -166,7 +166,7 @@
     {:else}
       {#each groups as group (group.slug)}
         <div class="group">
-          <p class="msc2-type-overline">{group.label}</p>
+          <p class="msc-type-overline">{group.label}</p>
           <Card padding="0">
             {#each group.guides as guide, index (guide.id)}
               {@render guideRow(guide, index === group.guides.length - 1, () =>
@@ -183,16 +183,16 @@
 <style>
   /* Router Guide runs a size step above the shared type scale -- the owner's
      own visual-review call, this component only. */
-  .panel :global(.msc2-type-overline) {
+  .panel :global(.msc-type-overline) {
     font-size: 11px;
   }
-  .panel :global(.msc2-type-body),
-  .panel :global(.msc2-type-card) {
+  .panel :global(.msc-type-body),
+  .panel :global(.msc-type-card) {
     font-size: 15px;
   }
-  .panel :global(.msc2-type-meta) {
+  .panel :global(.msc-type-meta) {
     font-size: 13px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .panel {
     display: flex;
@@ -200,7 +200,7 @@
     gap: 12px;
   }
   .muted {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .generic-card {
     display: flex;
@@ -208,15 +208,15 @@
     gap: 3px;
     text-align: left;
     padding: 12px 14px;
-    border: 1px solid var(--msc2-hairline);
-    border-radius: var(--msc2-radius-2);
+    border: 1px solid var(--msc-hairline);
+    border-radius: var(--msc-radius-2);
     background: transparent;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     cursor: pointer;
   }
   .generic-card:hover {
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
   }
   .results,
   .group {
@@ -225,7 +225,7 @@
     gap: 8px;
   }
   .banner {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .guide-row {
     display: flex;
@@ -235,9 +235,9 @@
     width: 100%;
     padding: 11px 14px;
     border: none;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
     background: transparent;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     text-align: left;
     cursor: pointer;
@@ -246,10 +246,10 @@
     border-bottom: none;
   }
   .guide-row:hover {
-    background: var(--msc2-hairline-subtle);
+    background: var(--msc-hairline-subtle);
   }
   .guide-row .chevron {
     flex: none;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

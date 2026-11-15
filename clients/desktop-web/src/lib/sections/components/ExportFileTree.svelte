@@ -48,14 +48,14 @@
     cursor: pointer;
     padding: 7px 0;
     font-size: 12px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   summary span {
     font-weight: 500;
   }
   small {
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     margin-left: 10px;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
@@ -63,7 +63,7 @@
   details > :global(ul) {
     margin-left: 15px;
     padding-left: 9px;
-    border-left: 1px solid var(--msc2-hairline-subtle);
+    border-left: 1px solid var(--msc-hairline-subtle);
   }
   .file {
     display: flex;
@@ -72,7 +72,7 @@
     gap: 12px;
     padding: 6px 0 6px 15px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .file span {
     overflow: hidden;

@@ -4,7 +4,7 @@ members = [
     "crates/msc-domain",
     "crates/msc-application",
     "crates/msc-api",
-    "crates/msc-agent",
+    "crates/msc-engine",
     "crates/msc-infrastructure",
     "crates/msc-platform-macos",
     "crates/msc-platform-windows",

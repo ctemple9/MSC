@@ -23,7 +23,7 @@
 // P7.37: two file-based control signals, read relative to the process's
 // own working directory -- which is always the server's own directory
 // (`ProcessSpawnRequest::working_directory`, confirmed against
-// `crates/msc-agent/src/routes/lifecycle.rs`), so the smoke script can
+// `crates/msc-engine/src/routes/lifecycle.rs`), so the smoke script can
 // drop one in before `server start` without any production wiring:
 //
 //   smoke-plugin-failure.txt  -- one plugin name per line. Printed as a

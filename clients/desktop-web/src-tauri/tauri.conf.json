@@ -1,11 +1,11 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "MSC 2",
+  "productName": "Minecraft Server Controller",
   "version": "0.1.44",
   "identifier": "com.ctemple.msc2",
   "build": {
-    "beforeDevCommand": "npm run build && npm run prepare:agent && npm run dev",
-    "beforeBuildCommand": "npm run build && npm run prepare:agent:release",
+    "beforeDevCommand": "npm run build && npm run prepare:engine && npm run dev",
+    "beforeBuildCommand": "npm run build && npm run prepare:engine:release",
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../dist"
   },
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "MSC 2",
+        "title": "Minecraft Server Controller",
         "width": 1600,
         "height": 900,
         "minWidth": 320,

@@ -2,7 +2,7 @@
 """API baseline schema-depth checker (P0.23).
 
 Used as the Verify command for every P0.23a-P0.23s route-family step in
-docs/msc2/rolling-plan.md. Checks two things a flat path count can't:
+docs/msc/rolling-plan.md. Checks two things a flat path count can't:
   1. only the paths that actually belong to a given route family are counted
   2. every matched operation's `responses` nests down to a real
      content -> application/json -> schema, not a stub {}
@@ -30,10 +30,10 @@ import argparse
 import json
 import sys
 
-OPENAPI_PATH = "docs/msc2/api-baseline/openapi.json"
+OPENAPI_PATH = "docs/msc/api-baseline/openapi.json"
 
 # Families whose sub-route count MSC 1's own route-family list
-# (msc2-engineering.md §5) gives exactly. The five `*`-wildcard families
+# (msc-engineering.md §5) gives exactly. The five `*`-wildcard families
 # (playit, broadcast, resourcepacks, watchdog, players) are deliberately
 # absent here -- for those, only "count > 0" is checked, since MSC 1's docs
 # don't state a sub-route count and asserting a guessed one would repeat

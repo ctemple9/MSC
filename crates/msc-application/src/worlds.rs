@@ -3,7 +3,7 @@
 //! world-slot model, before any world-mutation route becomes reachable for
 //! that server.
 //!
-//! Implements the rule `docs/msc2/worlds/phase6-scope.md` (P6.1) fixed for
+//! Implements the rule `docs/msc/worlds/phase6-scope.md` (P6.1) fixed for
 //! the three starting states raw/transfer import can produce — live world
 //! folders only, `world_slots/` only, or both together — reusing
 //! `WorldSlotManager`'s own active-slot resolution chain
@@ -444,7 +444,7 @@ fn live_folders_proven_identical_to_archive(
     zip_path: &Path,
     live_folders: &[String],
 ) -> bool {
-    let scratch = std::env::temp_dir().join(format!("msc2-world-reconcile-{}", Uuid::new_v4()));
+    let scratch = std::env::temp_dir().join(format!("msc-world-reconcile-{}", Uuid::new_v4()));
     let result = (|| -> io::Result<bool> {
         fs::create_dir_all(&scratch)?;
         archive::extract_zip(zip_path, &scratch).map_err(io::Error::other)?;
@@ -600,7 +600,7 @@ pub fn reconcile_imported_worlds(
 // (name trimming/empty checks, the active-slot delete refusal) — the
 // same "pure port plus its own orchestration guard, one layer" shape
 // P6.11 already established for reconciliation, per
-// `docs/msc2/worlds/phase6-scope.md`'s own module-boundary note that
+// `docs/msc/worlds/phase6-scope.md`'s own module-boundary note that
 // `msc-infrastructure` stays as ignorant of caller-level policy as
 // `WorldSlotManager` is.
 //
@@ -1170,7 +1170,7 @@ pub fn copy_slot_into_existing(
 /// "file already exists"
 /// (`fixtures/world-mutations/export-slot-zip-overwrites-destination.json`).
 /// `destination_path` is a caller-resolved staged-download path
-/// (`docs/msc2/worlds/phase6-api.md`'s bounded staging convention), not
+/// (`docs/msc/worlds/phase6-api.md`'s bounded staging convention), not
 /// an arbitrary host path this function accepts unchecked.
 pub fn export_slot_zip(
     fs: &dyn FileSystem,
@@ -1329,7 +1329,7 @@ pub fn import_zip_as_new_slot(
         world_store::profile_value(&detected_profile(&slot, server_type, &parsed_metadata))
     });
     // The sidecar profile is copied as raw JSON when present, preserving
-    // fields from a newer agent. A normal world ZIP has no profile sidecar,
+    // fields from a newer engine. A normal world ZIP has no profile sidecar,
     // so imported level.dat values receive explicit detected/unknown state.
     if let Err(e) = world_store::save_profile_value(fs, server_dir, &slot, &profile) {
         let _ = fs.remove(&dir);
@@ -1377,7 +1377,7 @@ pub fn set_slot_thumbnail(
 // move phase before each batch of renames. Recovery rolls back partial
 // moves, or finishes a fully installed world and its metadata commit.
 // An ambiguous or missing folder leaves the transaction in place for
-// repair; the agent keeps world mutation unavailable meanwhile.
+// repair; the engine keeps world mutation unavailable meanwhile.
 // =====================================================================
 /// `ServerPropertiesManager.readProperties`/
 /// `BedrockPropertiesManager.readRawProperties`'s shared parse shape —
@@ -1413,7 +1413,7 @@ pub(crate) fn write_properties_map(
     path: &Path,
     props: &BTreeMap<String, String>,
 ) -> io::Result<()> {
-    let mut out = String::from("# Modified via MSC 2\n");
+    let mut out = String::from("# Modified via MSC\n");
     for (key, value) in props {
         out.push_str(&format!("{key}={value}\n"));
     }
@@ -2569,7 +2569,7 @@ pub enum WorldReplaceRecovery {
     RecoveredToNewWorld,
 }
 
-/// Call once per server on agent startup, before any world-replace route
+/// Call once per server on engine startup, before any world-replace route
 /// is reachable for it — the same "before routes are reachable" timing
 /// [`reconcile_interrupted_activation`]/`reconcile_interrupted_restore`
 /// already establish. The durable swap manifest lists every folder and

@@ -1,9 +1,9 @@
 <script lang="ts">
   // MSC 1 ServerHandbookView.swift /
   // RouterPortForwardGuideSheet.swift, rebuilt to the S0 disciplined system
-  // (docs/msc2/antiAIslop.md) as one screen with a segmented switcher, since
-  // MSC 2 has a single "Handbook" tab rather than three separate windows.
-  // Content is served by the agent's help contract (GET /v1/help/*,
+  // (docs/msc/antiAIslop.md) as one screen with a segmented switcher, since
+  // MSC has a single "Handbook" tab rather than three separate windows.
+  // Content is served by the engine's help contract (GET /v1/help/*,
   // /v1/guides/*) -- this file carries presentation only, no hardcoded
   // divergent prose.
   import { onMount } from 'svelte';
@@ -154,13 +154,13 @@
 
 <div class="help-screen">
   {#if !loaded}
-    <p class="msc2-type-meta" role="status">Loading guide content…</p>
+    <p class="msc-type-meta" role="status">Loading guide content…</p>
   {:else}
     <section class="zone" class:handbook-view={activeView === 'handbook'}>
       <div class="section-header">
         <div class="overline">
           <Icon name="note" size={13} />
-          <span class="msc2-type-overline">Guides</span>
+          <span class="msc-type-overline">Guides</span>
         </div>
         <SegmentedControl
           options={viewOptions}
@@ -185,7 +185,7 @@
           <div class="onboarding-panel">
             <div class="overline">
               <Icon name="seal-check" size={13} />
-              <span class="msc2-type-overline">Onboarding</span>
+              <span class="msc-type-overline">Onboarding</span>
             </div>
             {#if launchStage === 'setup'}
               <SetupIntro
@@ -197,10 +197,10 @@
             {:else if launchStage === 'tour'}
               {@const step = tourSteps[tourIndex]}
               {#if step}
-                <h3 class="msc2-type-section">{step.title}</h3>
-                <p class="msc2-type-body muted">{step.body}</p>
+                <h3 class="msc-type-section">{step.title}</h3>
+                <p class="msc-type-body muted">{step.body}</p>
                 {#if !step.hideCard}
-                  <div class="tour-card msc2-type-meta">{step.actionLabel ?? 'Continue'}</div>
+                  <div class="tour-card msc-type-meta">{step.actionLabel ?? 'Continue'}</div>
                 {/if}
                 <div class="onboarding-actions">
                   <Button size="sm" variant="secondary" onclick={skipTour}
@@ -216,14 +216,14 @@
                 </div>
               {/if}
             {:else}
-              <p class="msc2-type-body muted">
+              <p class="msc-type-body muted">
                 The guided server creation flow is here whenever you need it.
               </p>
               <Button size="sm" variant="secondary" onclick={restartTour}>Restart the guide</Button>
             {/if}
           </div>
         {:else}
-          <p class="msc2-type-meta" role="status">Onboarding is not available on this agent.</p>
+          <p class="msc-type-meta" role="status">Onboarding is not available on this engine.</p>
         {/if}
       </Card>
     </section>
@@ -273,10 +273,10 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .muted {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     margin: 0 0 10px;
   }
   .onboarding-actions {
@@ -291,9 +291,9 @@
   .tour-card {
     margin: 0 0 10px;
     padding: 10px 12px;
-    border: 1px dashed var(--msc2-hairline);
-    border-radius: var(--msc2-radius-2);
-    color: var(--msc2-text-secondary);
+    border: 1px dashed var(--msc-hairline);
+    border-radius: var(--msc-radius-2);
+    color: var(--msc-text-secondary);
   }
   h3 {
     margin: 0 0 4px;

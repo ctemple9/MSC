@@ -3,7 +3,7 @@
   "case": "corrupt-slot-metadata-tolerated-but-one-valid",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "loadSlots(forServerDir:) per-entry tolerance feeding State 2 resolution — see docs/msc2/worlds/phase6-scope.md §\"MSC 1's own active-slot resolution\" and §\"State 2 — world_slots only\"",
+    "test": "loadSlots(forServerDir:) per-entry tolerance feeding State 2 resolution — see docs/msc/worlds/phase6-scope.md §\"MSC 1's own active-slot resolution\" and §\"State 2 — world_slots only\"",
     "line": 305
   },
   "input": {

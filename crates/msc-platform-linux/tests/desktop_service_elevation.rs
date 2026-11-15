@@ -153,12 +153,12 @@ fn desktop_install_repair_and_uninstall_use_only_the_fake_privileged_boundary() 
     fs::set_permissions(&helper, fs::Permissions::from_mode(0o755))
         .expect("make fake helper executable");
     let binary = staged.join("msc");
-    fs::write(&binary, b"fake agent executable").expect("write staged agent marker");
+    fs::write(&binary, b"fake engine executable").expect("write staged engine marker");
     fs::set_permissions(&binary, fs::Permissions::from_mode(0o755))
-        .expect("make staged agent executable");
+        .expect("make staged engine executable");
 
     let request = ServiceInstallRequest::new(
-        service::DESKTOP_AGENT_SERVICE_NAME,
+        service::DESKTOP_ENGINE_SERVICE_NAME,
         &binary,
         &data,
         logs.join("agent.log"),
@@ -203,7 +203,7 @@ fn desktop_install_repair_and_uninstall_use_only_the_fake_privileged_boundary() 
         assert_eq!(report.state, ServiceState::Running);
         assert_eq!(report.pid, Some(4321));
         let unit = fs::read_to_string(
-            unit_root.join(format!("{}.service", service::DESKTOP_AGENT_SERVICE_NAME)),
+            unit_root.join(format!("{}.service", service::DESKTOP_ENGINE_SERVICE_NAME)),
         )
         .expect("read temporary MSC unit");
         assert!(unit.contains(&format!("User={user}\nGroup={user}\n")));
@@ -222,7 +222,7 @@ fn desktop_install_repair_and_uninstall_use_only_the_fake_privileged_boundary() 
     assert_eq!(uninstalled.state, ServiceState::NotInstalled);
     assert!(
         !unit_root
-            .join(format!("{}.service", service::DESKTOP_AGENT_SERVICE_NAME))
+            .join(format!("{}.service", service::DESKTOP_ENGINE_SERVICE_NAME))
             .exists()
     );
     let authorization_calls = runner.calls.lock().expect("fake authorization lock");

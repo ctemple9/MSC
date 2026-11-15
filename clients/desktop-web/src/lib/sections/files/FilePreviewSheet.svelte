@@ -29,7 +29,7 @@
     loading = true;
     error = undefined;
     if (!api) {
-      error = 'Connect to an agent to preview files.';
+      error = 'Connect to an engine to preview files.';
       loading = false;
       return;
     }
@@ -63,20 +63,20 @@
   .status {
     margin: 0 0 10px;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .status.error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .status.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .content {
     margin: 0;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 12px;
     line-height: 1.6;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     white-space: pre-wrap;
     word-break: break-word;
     max-height: 60vh;

@@ -175,7 +175,7 @@
     stagedUploadId: string,
     scoped?: ScreenApi,
   ): Promise<void> {
-    if (!api) throw new Error('Modpack inspection needs a connected agent.');
+    if (!api) throw new Error('Modpack inspection needs a connected engine.');
     const inspection = await mutate<Schema['ModpackInspectionResultDTO']>(
       scoped ?? draft.uploadApi ?? sourceApi(pendingModpackSource, api),
       addonPaths.inspectPack,
@@ -231,7 +231,7 @@
     }
     if (lower.endsWith('.zip')) {
       // Server archives can contain hundreds of megabytes of mods and
-      // libraries. Inspect them through the agent's path-based scan instead
+      // libraries. Inspect them through the engine's path-based scan instead
       // of first loading and uploading the entire archive as a modpack.
       await scanServerPath(path, true);
       return;
@@ -345,7 +345,7 @@
         try {
           await discardUpload(scoped, pending);
         } catch {
-          scanError += ' Agent cleanup could not be confirmed.';
+          scanError += ' Background Service cleanup could not be confirmed.';
           reportTransferFailure(scoped, scanError);
         }
       }
@@ -493,7 +493,7 @@
             target="_blank"
             rel="noreferrer"
             onclick={(event) => void openCurseForgeConsole(event)}>CurseForge API Console</a
-          >. The key is saved securely on this agent and is never shown again.
+          >. The key is saved securely on this engine and is never shown again.
         </p>
         <div class="key-control">
           <Field
@@ -648,13 +648,13 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p {
     margin: 0;
     font-size: 12.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .dropzone {
@@ -663,8 +663,8 @@
     align-items: center;
     gap: 12px;
     padding: 44px 20px;
-    background: var(--msc2-tier-chrome);
-    border: 1.5px dashed var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1.5px dashed var(--msc-hairline-subtle);
     border-radius: 12px;
   }
   .dropzone.targeted {
@@ -675,7 +675,7 @@
     margin: 0;
     font-size: 13.5px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     text-align: center;
   }
 
@@ -691,7 +691,7 @@
     flex-direction: column;
     gap: 8px;
     padding: 12px 14px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 10px;
   }
   .curseforge-setup {
@@ -699,21 +699,21 @@
     flex-direction: column;
     gap: 8px;
     padding: 10px 0;
-    border-top: 1px solid var(--msc2-hairline-subtle);
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .key-explain,
   .key-notice {
     margin: 0;
     font-size: 11px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .key-explain a {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .key-notice {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .key-control {
     position: relative;
@@ -733,14 +733,14 @@
     place-items: center;
     border: 0;
     background: transparent;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     cursor: pointer;
   }
   .visibility-toggle:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .visibility-toggle:focus-visible {
-    outline: 2px solid var(--msc2-hairline);
+    outline: 2px solid var(--msc-hairline);
     outline-offset: 2px;
     border-radius: 3px;
   }
@@ -755,9 +755,9 @@
     width: 100%;
     box-sizing: border-box;
     padding: 8px 10px;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 7px;
     font: inherit;
     font-size: 11.5px;
@@ -767,7 +767,7 @@
     flex-direction: column;
     max-height: 180px;
     overflow: auto;
-    border: 1px solid var(--msc2-hairline-subtle);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 7px;
   }
   .file-row {
@@ -775,19 +775,19 @@
     justify-content: space-between;
     gap: 10px;
     padding: 6px 9px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
     font-size: 10.5px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .file-row:first-child {
     border-top: none;
   }
   .file-row.client-only {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .file-note {
     flex-shrink: 0;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .row {
     display: flex;
@@ -796,12 +796,12 @@
   }
   .label {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .value {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     text-align: right;
   }
   .warnings {
@@ -809,15 +809,15 @@
     padding-left: 18px;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .disclosure {
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .disclosure summary {
     cursor: pointer;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
 
   .status {
@@ -835,11 +835,11 @@
     margin: 0;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     text-align: center;
   }
   .hint.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .hidden-input {
     position: absolute;

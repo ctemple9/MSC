@@ -41,7 +41,7 @@ impl PowerBackend for LinuxPowerBackend {
     fn activate(&self, reason: &PowerPolicyReason) -> Result<Self::Handle, PowerError> {
         let child = Command::new(&self.inhibit_path)
             .arg("--what=sleep")
-            .arg("--who=MSC2")
+            .arg("--who=MSC")
             .arg("--mode=block")
             .arg(format!("--why={}", reason.human_label()))
             .arg("/bin/sh")
@@ -72,7 +72,7 @@ impl PowerBackend for LinuxPowerBackend {
 
 pub fn dry_run_action(reason: &PowerPolicyReason) -> String {
     format!(
-        "systemd-inhibit --what=sleep --who=MSC2 --mode=block --why='{}' /bin/sh -c '{}'",
+        "systemd-inhibit --what=sleep --who=MSC --mode=block --why='{}' /bin/sh -c '{}'",
         reason.human_label(),
         HOLD_SCRIPT
     )

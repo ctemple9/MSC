@@ -30,14 +30,14 @@ impl Drop for OwnedHandle {
     }
 }
 
-/// Returns the account SID from the agent process token, not an environment
+/// Returns the account SID from the engine process token, not an environment
 /// variable or installer-supplied name.
 pub fn service_sid() -> Result<String, String> {
     let mut token = ptr::null_mut();
     // SAFETY: token is a valid output pointer and GetCurrentProcess is a valid
     // pseudo-handle for this process.
     if unsafe { OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token) } == 0 {
-        return Err(last_error("opening agent process token"));
+        return Err(last_error("opening engine process token"));
     }
     token_user_sid(OwnedHandle(token))
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """v1 API contract checker (P2.8).
 
-Used as the Verify command for docs/msc2/rolling-plan.md's P2.8 step. Checks
+Used as the Verify command for docs/msc/rolling-plan.md's P2.8 step. Checks
 the four things that step's own "What" promises about
-docs/msc2/api-contract/openapi.json, the file assembled from the P0.23/P0.30/
+docs/msc/api-contract/openapi.json, the file assembled from the P0.23/P0.30/
 P0.32 baseline plus P2.1/P2.2/P2.4/P2.5/P2.6's designs:
 
   1. every route sits under /v1/
@@ -13,14 +13,14 @@ P0.32 baseline plus P2.1/P2.2/P2.4/P2.5/P2.6's designs:
   4. the total route count matches baseline (88, per P0.23's --total) plus
      the five routes P2.8 added (POST /v1/operations, GET /v1/operations/{id},
      POST /v1/operations/{id}/cancel, GET /v1/capabilities,
-     GET /v1/help/{helpId}) plus the thirteen P6.8 adds (docs/msc2/worlds/
+     GET /v1/help/{helpId}) plus the thirteen P6.8 adds (docs/msc/worlds/
      phase6-api.md SS3): POST /v1/worlds/{update,delete,duplicate,copy,
      import,export,rename-active-world,convert}, GET /v1/worlds/{slotId}/
      thumbnail, POST /v1/backups/delete, POST /v1/staged-uploads,
      PUT /v1/staged-uploads/{id}, GET /v1/staged-downloads/{id}, plus
      P6.34's POST /v1/worlds/replace-active-world, plus P7.9's
-     POST /v1/java-runtimes/install (docs/msc2/families/phase7-api.md,
-     D-006 addendum -- MSC 2 installs Java itself)
+     POST /v1/java-runtimes/install (docs/msc/families/phase7-api.md,
+     D-006 addendum -- MSC installs Java itself)
 
 Also checks that every non-2xx response resolves to ErrorDTO (P2.4 SS5-6's
 envelope unification), not the baseline's split Error/typed-DTO pattern.
@@ -32,7 +32,7 @@ import argparse
 import json
 import sys
 
-CONTRACT_PATH = "docs/msc2/api-contract/openapi.json"
+CONTRACT_PATH = "docs/msc/api-contract/openapi.json"
 EXPECTED_TOTAL = 141  # The contract currently contains 139 operations before P12.20a; the historical additive breakdown in this comment predates later route additions. + 2 P12.20a (POST /v1/playit/setup and POST /v1/playit/reset)
 
 # helpid-contract.md SS4's table: schema -> field(s) that must carry helpId.

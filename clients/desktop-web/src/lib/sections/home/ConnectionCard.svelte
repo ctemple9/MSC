@@ -1,6 +1,6 @@
 <script lang="ts">
   // MSC 1 OverviewConnectionCardView, ported to the S0 disciplined card —
-  // no gradient rails. The agent reports
+  // no gradient rails. The engine reports
   // the host's best-effort LAN address through
   // ServerDTO.hostAddress. If discovery is unavailable, the Local column
   // keeps the honest fallback rather than fabricating an address.
@@ -163,7 +163,7 @@
 <Card padding="14px 16px">
   <div class="header">
     <div class="overline">
-      <span class="msc2-type-overline">Connection Info</span>
+      <span class="msc-type-overline">Connection Info</span>
     </div>
     <div class="header-actions">
       <SegmentedControl
@@ -274,7 +274,7 @@
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .overline {
     display: flex;
@@ -291,16 +291,16 @@
     align-items: center;
     justify-content: center;
     padding: 2px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     background: transparent;
     border: none;
     cursor: pointer;
   }
   .visibility-toggle:hover {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .visibility-toggle:focus-visible {
-    outline: 2px solid var(--msc2-hairline);
+    outline: 2px solid var(--msc-hairline);
     outline-offset: 2px;
     border-radius: 3px;
   }
@@ -337,7 +337,7 @@
     font-weight: 600;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .platform-label.muted {
     opacity: 0.6;
@@ -346,7 +346,7 @@
     margin-left: auto;
     font-size: 9px;
     font-weight: 600;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: rgba(255, 255, 255, 0.08);
     padding: 2px 6px;
     border-radius: 20px;
@@ -356,29 +356,29 @@
     font-weight: 600;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin-top: 4px;
   }
   .value {
     margin: 2px 0 6px;
     font-size: 13px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .value.mono {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
   }
   .muted-value {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 11px;
   }
   .unavailable {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .unavailable-hint {
     margin: 2px 0 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 </style>

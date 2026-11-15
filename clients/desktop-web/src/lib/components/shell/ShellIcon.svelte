@@ -1,6 +1,6 @@
 <script lang="ts">
   // One restrained, neutral line-icon set for shell chrome and actions only —
-  // never on informational elements (docs/msc2/antiAIslop.md #6, #7).
+  // never on informational elements (docs/msc/antiAIslop.md #6, #7).
   export let name:
     | 'sidebar'
     | 'console'

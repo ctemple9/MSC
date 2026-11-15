@@ -43,7 +43,7 @@ const DEFAULT_INTERVAL_MS = 100;
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 /**
- * Waits for the agent to report the state requested by a lifecycle action.
+ * Waits for the engine to report the state requested by a lifecycle action.
  * Start and stop are asynchronous, so the first status response can still
  * describe the previous process state.
  */

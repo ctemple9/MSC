@@ -10,7 +10,7 @@
 //! `scanServerDirectory`/`detectJavaFlavor` (read-only) and
 //! `importExistingServer` (mutating), per the fixtures and behavior
 //! write-up P5.18 produced in `fixtures/raw-server-import/` and
-//! `docs/msc2/config-migration/raw-import-behavior.md`. `importExistingServer`
+//! `docs/msc/config-migration/raw-import-behavior.md`. `importExistingServer`
 //! itself has no fixture oracle (P5.18 scoped fixtures to the read-only
 //! half only) — its own doc comment below cites the exact MSC 1 source
 //! lines this step read directly instead.
@@ -293,7 +293,7 @@ fn fnv1a64(bytes: &[u8]) -> u64 {
 // unwrap `AddServerWizardView.performScan` runs before calling
 // `scanServerDirectory` (`AddServerWizardView.swift:2132-2201`). Oracle
 // evidence is `fixtures/raw-server-import/` (P5.18) and
-// `docs/msc2/config-migration/raw-import-behavior.md`; line numbers below
+// `docs/msc/config-migration/raw-import-behavior.md`; line numbers below
 // were re-confirmed directly against MSC 1 source while writing this.
 // =====================================================================
 
@@ -1418,7 +1418,7 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), RawImportError> {
 /// "easier to diff" reason its own comment gives). Best-effort, matching
 /// source's `try?`: a write failure here is silently a no-op.
 fn write_properties_file(path: &Path, props: &HashMap<String, String>) {
-    let mut out = String::from("# Modified via MSC 2\n");
+    let mut out = String::from("# Modified via MSC\n");
     let mut keys: Vec<&String> = props.keys().collect();
     keys.sort();
     for key in keys {

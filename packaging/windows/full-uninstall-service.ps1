@@ -10,7 +10,7 @@ do {
     if ($stopped) { break }
     Start-Sleep -Milliseconds 250
 } while ((Get-Date) -lt $deadline)
-if (-not $stopped) { throw 'Agent did not stop; data was retained.' }
+if (-not $stopped) { throw 'Engine did not stop; data was retained.' }
 & sc.exe delete com.ctemple.msc2.agent
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 # Deletion may wait for a service-management window's open handles. Do not
@@ -23,7 +23,7 @@ do {
     Start-Sleep -Milliseconds 250
 } while ((Get-Date) -lt $deadline)
 if ($LASTEXITCODE -ne 1060) {
-    throw 'The agent service is pending deletion. Close service-management windows or restart Windows, then retry full removal. Data and metadata were retained.'
+    throw 'The engine service is pending deletion. Close service-management windows or restart Windows, then retry full removal. Data and metadata were retained.'
 }
 $metadata = 'C:\ProgramData\MSC2\Services\com.ctemple.msc2.agent.metadata'
 if (Test-Path -LiteralPath $metadata) { Remove-Item -LiteralPath $metadata -Force }

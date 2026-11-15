@@ -89,7 +89,7 @@ export function assessCoordinatedRelease(release: CoordinatedRelease): UpdateDis
   if (!kinds.has('desktop') || !kinds.has('agent')) {
     return {
       kind: 'refused',
-      message: 'A coordinated release must include both desktop and agent.',
+      message: 'A coordinated release must include both desktop and engine.',
     };
   }
   const appleSiliconMac = release.target === 'aarch64-apple-darwin';

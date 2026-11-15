@@ -1,4 +1,4 @@
-//! Cross-platform service-management contract for the agent.
+//! Cross-platform service-management contract for the engine.
 //!
 //! P4.21 defines the shared model the platform crates will implement in the
 //! next steps. The CLI can already describe the install/start/stop/status

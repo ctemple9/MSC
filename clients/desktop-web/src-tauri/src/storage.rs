@@ -193,7 +193,7 @@ fn discover_local(host: &str, client_data: &Path) -> Result<Manifest, String> {
             _ => continue,
         };
         if let Some(path) = entry.path {
-            // Machine service payload is agent-owned even when uninstall's
+            // Machine service payload is engine-owned even when uninstall's
             // broad discovery reports it alongside Windows client paths.
             if path.to_string_lossy().contains("ProgramData") {
                 continue;
@@ -219,7 +219,7 @@ fn discover_local(host: &str, client_data: &Path) -> Result<Manifest, String> {
         issues,
     })
 }
-// A stopped/uninspectable agent must not hide this user's desktop footprint.
+// A stopped/uninspectable engine must not hide this user's desktop footprint.
 fn independent_discovery() -> Result<native::Preview, String> {
     let home = std::env::var_os("HOME")
         .or_else(|| std::env::var_os("USERPROFILE"))
@@ -275,8 +275,8 @@ fn independent_discovery() -> Result<native::Preview, String> {
         inventory,
         request,
         installations,
-        agent_data_dir: crate::agent_data_directory()?,
-        agent_running: false,
+        engine_data_dir: crate::engine_data_directory()?,
+        engine_running: false,
     })
 }
 
@@ -327,7 +327,7 @@ fn package_roots(found: &native::Preview) -> Result<Vec<PathBuf>, String> {
                 return Err("Invalid installed MSI identity".into());
             }
             let script = format!(
-                r"$ErrorActionPreference='Stop'; foreach ($base in @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall')) {{ $p=Get-ItemProperty -LiteralPath ($base+'\{product}') -ErrorAction SilentlyContinue; if ($p.DisplayName -eq 'MSC 2' -and $p.WindowsInstaller -eq 1) {{ $p.InstallLocation }} }}"
+                r"$ErrorActionPreference='Stop'; foreach ($base in @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall')) {{ $p=Get-ItemProperty -LiteralPath ($base+'\{product}') -ErrorAction SilentlyContinue; if ($p.DisplayName -eq 'MSC' -and $p.WindowsInstaller -eq 1) {{ $p.InstallLocation }} }}"
             );
             let locations = native::capture(
                 "powershell.exe",
@@ -375,7 +375,7 @@ pub async fn storage_local(
     let cache = root(&app)?;
     tauri::async_runtime::spawn_blocking(move || {
         let id = local_id(&cache);
-        let agent = desktop_secret_store()?
+        let engine = desktop_secret_store()?
             .get(LOCAL_HOST_ID_KEY)
             .map_err(|e| e.to_string())?;
         let mut state = local_state(&id).lock().map_err(|e| e.to_string())?;
@@ -404,7 +404,7 @@ pub async fn storage_local(
         let historical = current.is_none();
         Ok(LocalFootprint {
             local_id: id.clone(),
-            agent_host_id: agent,
+            agent_host_id: engine,
             snapshot: current
                 .map(|snapshot| snapshot.as_ref().clone())
                 .or_else(|| cached(&cache, &id, "local-desktop")),
@@ -453,7 +453,7 @@ async fn bounded(mut response: reqwest::Response) -> Result<serde_json::Value, S
         let value: serde_json::Value = serde_json::from_slice(&bytes).unwrap_or_default();
         let message = value["message"]
             .as_str()
-            .unwrap_or("Computer unavailable or this agent does not support the storage request");
+            .unwrap_or("Computer unavailable or this engine does not support the storage request");
         return Err(format!(
             "Storage request refused ({status}): {}",
             message.chars().take(2000).collect::<String>()
@@ -712,12 +712,12 @@ pub async fn storage_reveal(
             }
             let raw = credential(&host)?;
             let snapshot = cached(&cache, &host, &storage::identity(&[&raw]))
-                .ok_or("No verified local agent snapshot")?;
+                .ok_or("No verified local engine snapshot")?;
             let item = snapshot
                 .items
                 .iter()
                 .find(|item| item.id == item_id)
-                .ok_or("Local agent item not found")?;
+                .ok_or("Local engine item not found")?;
             let origin = std::env::current_exe().map_err(|e| e.to_string())?;
             let found = native::discover(
                 backend().as_ref(),
@@ -743,7 +743,7 @@ pub async fn storage_reveal(
             }
 
             // Some inventory roots are discovered inside MSC's owned server
-            // tree. The uninstall inventory knows the parent, while the agent
+            // tree. The uninstall inventory knows the parent, while the engine
             // snapshot supplies the child path and its independently measured
             // identity. Require both proofs before opening that child.
             let candidate = item
@@ -759,11 +759,9 @@ pub async fn storage_reveal(
                     && entry.path.as_ref().is_some_and(|parent| {
                         candidate.strip_prefix(parent).is_ok_and(|relative| {
                             !relative.as_os_str().is_empty()
-                                && relative
-                                    .components()
-                                    .all(|component| {
-                                        matches!(component, std::path::Component::Normal(_))
-                                    })
+                                && relative.components().all(|component| {
+                                    matches!(component, std::path::Component::Normal(_))
+                                })
                                 && storage::verified_root_id(&host, parent).is_ok()
                                 && candidate.is_dir()
                                 && storage::verified_root_id(&host, &candidate)
@@ -809,13 +807,13 @@ pub async fn storage_reveal(
     crate::reveal_in_file_manager(path.to_string_lossy().into_owned())
 }
 
-/// Local and agent measurements share a filesystem identity, not a display
+/// Local and engine measurements share a filesystem identity, not a display
 /// name. Unknown identities stay partial rather than being summed twice.
-pub fn compose(local: &Snapshot, agent: &Snapshot, bound_host: &str) -> Result<Snapshot, String> {
-    if agent.host_id != bound_host {
-        return Err("Local agent identity did not match".into());
+pub fn compose(local: &Snapshot, engine: &Snapshot, bound_host: &str) -> Result<Snapshot, String> {
+    if engine.host_id != bound_host {
+        return Err("Local engine identity did not match".into());
     }
-    let agent_roots: BTreeSet<_> = agent
+    let engine_roots: BTreeSet<_> = engine
         .items
         .iter()
         .filter(|i| !i.physical_root_id.is_empty())
@@ -833,17 +831,17 @@ pub fn compose(local: &Snapshot, agent: &Snapshot, bound_host: &str) -> Result<S
         let b = normalize(b);
         a == b || a.starts_with(&(b.clone() + "/")) || b.starts_with(&(a + "/"))
     };
-    let mut result = agent.clone();
+    let mut result = engine.clone();
     for item in &local.items {
-        // The agent already deduplicated its complete graph, including links
+        // The engine already deduplicated its complete graph, including links
         // charged to another category. Prefer that graph for matching roots.
-        if agent_roots.contains(&item.physical_root_id) {
+        if engine_roots.contains(&item.physical_root_id) {
             continue;
         }
         let uncertain = item.physical_root_id.is_empty()
             || item.has_hard_links
             || item.display_path.as_ref().is_some_and(|path| {
-                agent
+                engine
                     .items
                     .iter()
                     .filter_map(|i| i.display_path.as_deref())
@@ -851,7 +849,7 @@ pub fn compose(local: &Snapshot, agent: &Snapshot, bound_host: &str) -> Result<S
             });
         if uncertain {
             result.partial = true;
-            result.issues.push(storage::Issue { root_id:Some(item.root_id.clone()), reason:"Desktop source overlaps agent coverage or has shared links; its separate measurement is excluded from the combined total".into() });
+            result.issues.push(storage::Issue { root_id:Some(item.root_id.clone()), reason:"Desktop source overlaps engine coverage or has shared links; its separate measurement is excluded from the combined total".into() });
         } else {
             result.items.push(item.clone());
         }
@@ -861,7 +859,7 @@ pub fn compose(local: &Snapshot, agent: &Snapshot, bound_host: &str) -> Result<S
         .items
         .iter()
         .try_fold(0u64, |n, i| n.checked_add(i.allocated_bytes?));
-    result.partial |= local.partial || agent.items.iter().any(|i| i.physical_root_id.is_empty());
+    result.partial |= local.partial || engine.items.iter().any(|i| i.physical_root_id.is_empty());
     for volume in &local.volumes {
         if let Some(existing) = result
             .volumes
@@ -870,7 +868,7 @@ pub fn compose(local: &Snapshot, agent: &Snapshot, bound_host: &str) -> Result<S
         {
             // macOS reclaimable capacity can be unavailable in a LaunchDaemon
             // session. The verified local desktop samples in the user's session.
-            // Preserve the agent's accounting ID while using that dated sample.
+            // Preserve the engine's accounting ID while using that dated sample.
             if volume.available_bytes.is_some() && volume.problem.is_none() {
                 existing.total_bytes = volume.total_bytes;
                 existing.available_bytes = volume.available_bytes;
@@ -904,10 +902,10 @@ pub async fn storage_composed(
             .as_deref()
             != Some(&agent_host_id)
         {
-            return Err("This is not the verified local agent identity".into());
+            return Err("This is not the verified local engine identity".into());
         }
         let raw = credential(&agent_host_id)?;
-        let agent = cached(&cache, &agent_host_id, &storage::identity(&[&raw]));
+        let engine = cached(&cache, &agent_host_id, &storage::identity(&[&raw]));
         let id = local_id(&cache);
         let local = local_state(&id)
             .lock()
@@ -917,23 +915,23 @@ pub async fn storage_composed(
             .and_then(|scan| scan.result())
             .map(|s| s.as_ref().clone())
             .or_else(|| cached(&cache, &id, "local-desktop"));
-        match (local, agent) {
-            (Some(local), Some(agent)) => compose(&local, &agent, &agent_host_id).map(Some),
+        match (local, engine) {
+            (Some(local), Some(engine)) => compose(&local, &engine, &agent_host_id).map(Some),
             (Some(mut local), None) => {
                 local.partial = true;
                 local.issues.push(storage::Issue {
                     root_id: None,
-                    reason: "Desktop measured; local agent inventory unavailable".into(),
+                    reason: "Desktop measured; local engine inventory unavailable".into(),
                 });
                 Ok(Some(local))
             }
-            (None, Some(mut agent)) => {
-                agent.partial = true;
-                agent.issues.push(storage::Issue {
+            (None, Some(mut engine)) => {
+                engine.partial = true;
+                engine.issues.push(storage::Issue {
                     root_id: None,
                     reason: "Local desktop footprint not measured".into(),
                 });
-                Ok(Some(agent))
+                Ok(Some(engine))
             }
             _ => Ok(None),
         }
@@ -955,15 +953,15 @@ pub struct CachedSummary {
 #[tauri::command]
 pub async fn storage_overview(
     app: tauri::AppHandle,
-    agent_host_ids: Vec<String>,
+    engine_host_ids: Vec<String>,
 ) -> Result<Vec<CachedSummary>, String> {
-    if agent_host_ids.len() > 64 {
+    if engine_host_ids.len() > 64 {
         return Err("Storage overview supports at most 64 saved computers at once".into());
     }
     let cache = root(&app)?;
     tauri::async_runtime::spawn_blocking(move || {
         let mut results = vec![];
-        for host in agent_host_ids {
+        for host in engine_host_ids {
             let Ok(raw) = credential(&host) else {
                 continue;
             };
@@ -987,7 +985,7 @@ pub async fn storage_overview(
 #[cfg(test)]
 mod tests {
     use super::*;
-    // Existing agent accounting tests do not combine native/agent reports.
+    // Existing engine accounting tests do not combine native/engine reports.
     // Guards duplicate local app/capacity totals and false locality. No I/O, <1 ms.
     #[test]
     fn matching_local_roots_and_volumes_are_counted_once() {
@@ -1018,24 +1016,27 @@ mod tests {
             observed_at: 0,
             problem: None,
         });
-        let mut agent = local.clone();
-        agent.host_id = "agent-one".into();
-        agent.items[0].id = "agent-item".into();
-        agent.items[0].volume_id = Some("agent-volume".into());
-        agent.volumes[0].id = "agent-volume".into();
+        let mut engine = local.clone();
+        engine.host_id = "engine-one".into();
+        engine.items[0].id = "engine-item".into();
+        engine.items[0].volume_id = Some("engine-volume".into());
+        engine.volumes[0].id = "engine-volume".into();
         // Essential: the background capacity API returned a false zero while
         // the user's desktop had a valid available-capacity sample. No I/O.
-        agent.volumes[0].available_bytes = Some(0);
-        let combined = compose(&local, &agent, "agent-one").unwrap();
+        engine.volumes[0].available_bytes = Some(0);
+        let combined = compose(&local, &engine, "engine-one").unwrap();
         assert_eq!(combined.logical_bytes, 8);
         assert_eq!(combined.items.len(), 1);
         assert_eq!(combined.volumes.len(), 1);
         assert_eq!(combined.volumes[0].available_bytes, Some(50));
-        assert_eq!(combined.items[0].volume_id.as_deref(), Some("agent-volume"));
-        assert!(compose(&local, &agent, "another-agent").is_err());
+        assert_eq!(
+            combined.items[0].volume_id.as_deref(),
+            Some("engine-volume")
+        );
+        assert!(compose(&local, &engine, "another-engine").is_err());
         local.items[0].physical_root_id = "another-root".into();
         local.items[0].has_hard_links = true;
-        let partial = compose(&local, &agent, "agent-one").unwrap();
+        let partial = compose(&local, &engine, "engine-one").unwrap();
         assert!(partial.partial);
         assert_eq!(partial.logical_bytes, 8);
     }

@@ -79,7 +79,7 @@ describe('add server wizard update checks', () => {
 });
 
 describe('add server wizard CurseForge inspection status', () => {
-  it('shows API-key guidance only when the agent could not resolve the pack', () => {
+  it('shows API-key guidance only when the engine could not resolve the pack', () => {
     expect(uploadSource).toContain(
       "inspection.format === 'curseforge' && inspection.curseforgeLookupAvailable === false",
     );

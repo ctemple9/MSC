@@ -139,7 +139,7 @@
     </table>
   </section>
   <CapabilityNotice
-    title="Agent-Planned files remain out of this screen"
+    title="Background Service-Planned files remain out of this screen"
     message="File browsing, watchdog controls, and player-profile administration are not represented by a decorative disabled control."
   />
   <ConfirmDialog

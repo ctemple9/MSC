@@ -1,6 +1,6 @@
 <script lang="ts">
   // MSC 1 DetailsOverviewTabView, rebuilt to the S0 disciplined system
-  // (docs/msc2/antiAIslop.md). Zones: Status (connection + live stats),
+  // (docs/msc/antiAIslop.md). Zones: Status (connection + live stats),
   // Server Health, Activity (players / active world / chat), Notes — the
   // same order as MSC 1's Overview tab. This shared component keeps its
   // server workflow independent of Tauri APIs.
@@ -206,7 +206,7 @@
 
   <section class="zone">
     <div class="overline standalone">
-      <span class="msc2-type-overline">Activity</span>
+      <span class="msc-type-overline">Activity</span>
     </div>
     <div class="activity-row">
       <PlayersCard
@@ -234,7 +234,7 @@
 
   <section class="zone">
     <div class="overline standalone">
-      <span class="msc2-type-overline">Notes</span>
+      <span class="msc-type-overline">Notes</span>
     </div>
     <Card padding="14px 16px">
       <div class="notes-header">
@@ -264,7 +264,7 @@
     gap: 8px;
   }
   .overline.standalone {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .status-row {
     display: grid;
@@ -292,7 +292,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     margin-bottom: 8px;
   }
   .notes-label {
@@ -303,27 +303,27 @@
     box-sizing: border-box;
     min-height: 80px;
     resize: vertical;
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 12px;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-terminal);
-    border: 1px solid var(--msc2-hairline-field);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-terminal);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
     padding: 10px;
     outline: none;
   }
   .notes:focus-visible {
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
   .notes-hint {
     margin: 6px 0 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .notes-status {
     margin: 4px 0 0;
     font-size: 10px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   @media (max-width: 900px) {

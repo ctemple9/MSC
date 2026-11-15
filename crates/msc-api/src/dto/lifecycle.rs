@@ -16,7 +16,7 @@ pub struct ModpackIdentityDto {
     pub version: Option<String>,
 }
 
-/// `ServerImportRequestDTO`'s frozen shape (`docs/msc2/api-contract/openapi.json`).
+/// `ServerImportRequestDTO`'s frozen shape (`docs/msc/api-contract/openapi.json`).
 /// `action` preserves the real values
 /// `scan|importExisting|importTransfer|rescan`; `importKind` preserves
 /// `folder|zip|transfer|auto` (P5.17). `sourcePath` is required for scan
@@ -107,8 +107,8 @@ pub struct ServerImportResultDto {
     pub success: bool,
     pub message: String,
     /// Durable operation to poll after a mutating import is accepted.
-    /// Kept optional for decoding older agents during the version-skew
-    /// window, although MSC 2 agents always populate it on `202`.
+    /// Kept optional for decoding older engines during the version-skew
+    /// window, although MSC engines always populate it on `202`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub operation_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -142,7 +142,7 @@ pub struct ServerDto {
     pub name: String,
     pub directory: String,
     pub server_type: String,
-    /// Notes belong to the agent-owned server record, so every connected
+    /// Notes belong to the engine-owned server record, so every connected
     /// client sees the same Overview text.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub notes: String,

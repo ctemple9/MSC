@@ -2,7 +2,7 @@ import type { ComponentState, Schema, ScreenApi } from '../shared/types';
 
 export { addonPaths, addonStatusLabel, demoAddons } from '../addons/model';
 
-// Real, frozen routes this tab calls (docs/msc2/api-contract/openapi.json).
+// Real, frozen routes this tab calls (docs/msc/api-contract/openapi.json).
 // /v1/components/version and /v1/versions are shared by both the Server
 // JAR/Loader row and the Bedrock Runtime card -- VersionsResponseDTO already
 // carries isBedrock/runtime, so one version-management flow covers both
@@ -80,7 +80,7 @@ export function flavorDisplayName(javaFlavor: string | undefined): string {
 }
 
 /** MSC 1 treats both the published `voicechat` jar name and the
- * `simple-voice-chat` project name as Simple Voice Chat. The agent remains
+ * `simple-voice-chat` project name as Simple Voice Chat. The engine remains
  * authoritative for the on-disk plugins/ and mods/ check; this client helper
  * only decides when an add-on action should re-check the Playit status. */
 export function isSimpleVoiceChatAddon(addon: Schema['AddonItemDTO']): boolean {
@@ -133,7 +133,7 @@ export function supportsCrossplay(server: Schema['ServerDTO'] | undefined): bool
 
 export type Tone = 'ok' | 'warn' | 'error';
 
-/** ComponentStatusDTO already carries the agent's own resolved verdict
+/** ComponentStatusDTO already carries the engine's own resolved verdict
  *  (isUpToDate/updatable/note) -- unlike MSC 1's client-side ComponentStatus
  *  .derive, there's no version-string comparison to reproduce here. */
 export function componentTone(component: Schema['ComponentStatusDTO']): Tone {

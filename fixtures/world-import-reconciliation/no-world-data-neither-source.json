@@ -3,7 +3,7 @@
   "case": "no-world-data-neither-source",
   "source": {
     "file": "WorldSlotManager.swift",
-    "test": "loadSlots(forServerDir:) missing-directory guard combined with worldFolderNames(for:) returning empty — see docs/msc2/worlds/phase6-scope.md §\"Why this is a real problem, not a hypothetical one\"",
+    "test": "loadSlots(forServerDir:) missing-directory guard combined with worldFolderNames(for:) returning empty — see docs/msc/worlds/phase6-scope.md §\"Why this is a real problem, not a hypothetical one\"",
     "line": 280
   },
   "input": {

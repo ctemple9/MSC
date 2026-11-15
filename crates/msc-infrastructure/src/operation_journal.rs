@@ -1,14 +1,14 @@
 //! `OperationJournal`: restart survival and per-target exclusivity for
 //! `msc_domain::operation`'s `OperationState` machine.
 //!
-//! Greenfield MSC 2 construction, not a port — MSC 1 has no
+//! Greenfield MSC construction, not a port — MSC 1 has no
 //! operation-journal concept, the same D-018 exemption P2.9 recorded for
-//! `OperationState` itself. `msc2-engineering.md` §7: "incomplete
+//! `OperationState` itself. `msc-engineering.md` §7: "incomplete
 //! operations are reconciled and their outcome explained rather than
 //! silently forgotten." This module is what makes that true: every
 //! operation is journaled (via [`crate::atomic_write`]) before it begins,
 //! and [`OperationJournal::reconcile_on_startup`] walks the journal on
-//! agent startup, turning any entry still `queued` or `running` into a
+//! engine startup, turning any entry still `queued` or `running` into a
 //! terminal state instead of leaving it stuck or silently resuming it —
 //! this phase has no real work-resumption mechanism to resume it under.
 //!
@@ -29,7 +29,7 @@
 //!
 //! A terminal operation record does not certify a completed world swap.
 //! World activation, restore, and replacement keep their own durable
-//! folder manifest; the agent refuses further world mutations while one
+//! folder manifest; the engine refuses further world mutations while one
 //! remains and startup reconciles it before restoring mutation access.
 
 use crate::atomic_write::{AtomicWriteError, atomic_write};
@@ -56,7 +56,7 @@ struct JournalIndex {
 static JOURNAL_LOCKS: OnceLock<Mutex<HashMap<PathBuf, Weak<Mutex<JournalIndex>>>>> =
     OnceLock::new();
 
-// Multiple application handles can point at one directory in the agent.
+// Multiple application handles can point at one directory in the engine.
 // Sharing their lock keeps the scan and durable reservation one transaction.
 fn journal_lock(dir: &PathBuf) -> Arc<Mutex<JournalIndex>> {
     let mut locks = JOURNAL_LOCKS
@@ -75,9 +75,9 @@ fn journal_lock(dir: &PathBuf) -> Arc<Mutex<JournalIndex>> {
 /// The reason attached to every entry reconciled by
 /// [`OperationJournal::reconcile_on_startup`] — the same explanation
 /// whether the entry lands on `failed` or `cancelled`, since in both
-/// cases the true cause is the same: the agent restarted while this
+/// cases the true cause is the same: the engine restarted while this
 /// operation was still open.
-const RESTART_REASON: &str = "agent restarted mid-operation";
+const RESTART_REASON: &str = "engine restarted mid-operation";
 
 pub const HOST_MAINTENANCE_OPERATION_TYPE: &str = "host-reset";
 
@@ -206,7 +206,7 @@ impl<'fs> OperationJournal<'fs> {
         atomic_write(self.fs, &self.entry_path(&entry.id), &bytes).map_err(JournalError::Write)
     }
 
-    /// Journals `entry`, first enforcing `msc2-engineering.md` §7's
+    /// Journals `entry`, first enforcing `msc-engineering.md` §7's
     /// per-target exclusivity rule: "Only one conflicting operation runs
     /// against a server at a time. Starting a backup during a world
     /// replacement is refused, not queued silently." If any other
@@ -334,13 +334,13 @@ impl<'fs> OperationJournal<'fs> {
         }
     }
 
-    /// Walks every journaled entry under `dir` on agent startup.
+    /// Walks every journaled entry under `dir` on engine startup.
     ///
     /// - A `succeeded`/`failed`/`cancelled` entry is already terminal —
     ///   left exactly as it is on disk (inert).
     /// - A `running` entry is reconciled to `failed`, carrying a fresh
     ///   [`OperationError`] (`code: "operation_interrupted"`,
-    ///   `message: "agent restarted mid-operation"`) — real work was in
+    ///   `message: "engine restarted mid-operation"`) — real work was in
     ///   flight and cannot be assumed to have completed.
     /// - A `queued` entry — never actually started — is reconciled to
     ///   `cancelled` instead of `failed`, since `queued -> failed` isn't

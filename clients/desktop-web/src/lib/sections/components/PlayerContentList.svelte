@@ -114,7 +114,7 @@
   .list-actions,
   .pages {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     padding: 8px 0;
   }
   .files {
@@ -123,7 +123,7 @@
   }
   .file {
     padding: 9px 0;
-    border-bottom: 1px solid var(--msc2-hairline-subtle);
+    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   label {
     display: flex;
@@ -139,23 +139,23 @@
   .name {
     overflow-wrap: anywhere;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .state {
     font-size: 11px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     flex-shrink: 0;
   }
   p {
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .attention {
     margin: 4px 0 0 21px;
     font-size: 11px;
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   details {
     margin: 4px 0 0 21px;
@@ -164,7 +164,7 @@
     width: fit-content;
     cursor: pointer;
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .details {
     display: grid;
@@ -179,9 +179,9 @@
     overflow-wrap: anywhere;
   }
   input:not([type='checkbox']) {
-    background: var(--msc2-tier-content);
-    color: var(--msc2-text-primary);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-content);
+    color: var(--msc-text-primary);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 6px;
     padding: 7px 9px;
     font: inherit;

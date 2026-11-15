@@ -8,7 +8,7 @@ if [[ "${1:-}" != "--synthetic" || "${2:-}" != "--all-platforms" || "$#" -ne 2 ]
   exit 2
 fi
 
-python3 - "$ROOT/docs/msc2/clients/phase11-update.md" "$ROOT/packaging/update-release-schema.json" <<'PY'
+python3 - "$ROOT/docs/msc/clients/phase11-update.md" "$ROOT/packaging/update-release-schema.json" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -22,8 +22,8 @@ missing = [term for term in required if term not in policy]
 assert not missing, missing
 
 schema = json.loads(Path(sys.argv[2]).read_text())
-assert schema["macos"]["requiredArtifacts"] == ["desktop", "agent", "sidecar"]
-assert schema["windows"]["requiredArtifacts"] == ["desktop", "agent"]
+assert schema["macos"]["requiredArtifacts"] == ["desktop", "engine", "sidecar"]
+assert schema["windows"]["requiredArtifacts"] == ["desktop", "engine"]
 assert schema["linux"]["installation"] == "package-manager-only"
 assert set(schema["excludedUpdateFamilies"]) == {"minecraft-server", "loader", "add-on", "modpack"}
 print("OK: all-platform coordinated-update policy is present")

@@ -38,8 +38,8 @@ pub struct Preview {
     pub inventory: Inventory,
     pub request: Request,
     pub installations: Vec<Installation>,
-    pub agent_data_dir: PathBuf,
-    pub agent_running: bool,
+    pub engine_data_dir: PathBuf,
+    pub engine_running: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -62,9 +62,9 @@ pub fn discover(
         .map(PathBuf::from)
         .ok_or("Cannot determine the current user's home.")?;
     let reports = services.inspect()?;
-    let agent = reports
+    let engine = reports
         .iter()
-        .find(|report| report.service_name.as_str() == AGENT);
+        .find(|report| report.service_name.as_str() == ENGINE);
     let platform = if cfg!(target_os = "macos") {
         Platform::Macos
     } else if cfg!(target_os = "windows") {
@@ -82,7 +82,7 @@ pub fn discover(
             .filter(|value| !value.is_empty())
             .map(PathBuf::from);
     }
-    let agent_data_dir = agent
+    let engine_data_dir = engine
         .and_then(|report| report.definition.as_ref())
         .map(|definition| {
             Overrides::from_environment(&definition.environment)
@@ -91,7 +91,7 @@ pub fn discover(
         })
         .unwrap_or_else(crate::config_repository::default_app_data_dir);
     // Refuse another installing account; complete removal is per installing user.
-    if let Some(user) = agent
+    if let Some(user) = engine
         .and_then(|report| report.definition.as_ref())
         .and_then(|definition| definition.run_user.as_ref())
     {
@@ -105,7 +105,7 @@ pub fn discover(
                 .is_some_and(|name| name.eq_ignore_ascii_case(&current));
         if !matches {
             return Err(format!(
-                "The local agent belongs to {user}; sign in as that account to uninstall."
+                "The local engine belongs to {user}; sign in as that account to uninstall."
             ));
         }
     }
@@ -158,7 +158,7 @@ pub fn discover(
             {
                 request
                     .headless_roots
-                    .push(PathBuf::from(base).join("MSC2/bin"));
+                    .push(PathBuf::from(base).join("MSC/bin"));
             }
             request
                 .client_paths
@@ -207,7 +207,7 @@ pub fn discover(
             installations.push(Installation::MarkedArchive { path: path.clone() });
         }
     }
-    let checksums = installer_checksums(&agent_data_dir, trusted_key)?;
+    let checksums = installer_checksums(&engine_data_dir, trusted_key)?;
     let mut candidates = options.installers.clone();
     // Bounded Downloads scan, with signed release checksum verification. Never
     // crawl the home/disk or infer ownership just from MSC in a filename.
@@ -237,19 +237,19 @@ pub fn discover(
     preliminary = inventory(&StdFileSystem, &request);
     // A service binary in a dev-build cache is part of its data tree, but a
     // source-tree executable must never become an installation deletion target.
-    let agent_running = agent_running(&request);
+    let engine_running = engine_running(&request);
     Ok(Preview {
         inventory: preliminary,
         request,
         installations,
-        agent_data_dir,
-        agent_running,
+        engine_data_dir,
+        engine_running,
     })
 }
 
-fn agent_running(request: &Request) -> bool {
+fn engine_running(request: &Request) -> bool {
     request.services.iter().any(|report| {
-        report.service_name.as_str() == AGENT && report.state == ServiceState::Running
+        report.service_name.as_str() == ENGINE && report.state == ServiceState::Running
     })
 }
 
@@ -298,8 +298,10 @@ pub fn inspect_installations(
     #[cfg(target_os = "macos")]
     {
         let mut paths = vec![
-            PathBuf::from("/Applications/MSC 2.app"),
-            request.home.join("Applications/MSC 2.app"),
+            PathBuf::from("/Applications/Minecraft Server Controller.app"),
+            request
+                .home
+                .join("Applications/Minecraft Server Controller.app"),
         ];
         for origin in [
             &options.origin,
@@ -327,7 +329,7 @@ pub fn inspect_installations(
     {
         let mut binaries = vec![
             options.origin.clone(),
-            PathBuf::from("/usr/bin/msc2-desktop-web"),
+            PathBuf::from("/usr/bin/msc-desktop-web"),
             PathBuf::from("/usr/lib/msc2/msc"),
         ];
         if let Some(origin) = &options.desktop_origin {
@@ -336,15 +338,30 @@ pub fn inspect_installations(
         for path in binaries.into_iter().filter(|path| path.is_file()) {
             if let Ok(owner) = capture("dpkg-query", &["-S", &path.display().to_string()]) {
                 if let Some((name, _)) = owner.split_once(": ")
-                    && matches!(name, "msc2" | "msc2-desktop-web" | "msc-2")
+                    && matches!(
+                        name,
+                        "msc"
+                            | "msc-desktop-web"
+                            | "minecraft-server-controller"
+                            | "msc2"
+                            | "msc2-desktop-web"
+                            | "msc-2"
+                    )
                 {
                     result.push(Installation::Deb { name: name.into() });
                 }
             } else if let Ok(name) = capture(
                 "rpm",
                 &["-qf", "--qf", "%{NAME}", &path.display().to_string()],
-            ) && matches!(name.as_str(), "msc2" | "msc2-desktop-web" | "msc-2")
-            {
+            ) && matches!(
+                name.as_str(),
+                "msc"
+                    | "msc-desktop-web"
+                    | "minecraft-server-controller"
+                    | "msc2"
+                    | "msc2-desktop-web"
+                    | "msc-2"
+            ) {
                 result.push(Installation::Rpm { name });
             }
         }
@@ -359,7 +376,7 @@ pub fn inspect_installations(
                 "-NoProfile",
                 "-NonInteractive",
                 "-Command",
-                "$ErrorActionPreference='Stop'; Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'MSC 2' -and $_.Publisher -in @('ctemple','Cameron Temple') -and $_.WindowsInstaller -eq 1 } | ForEach-Object { $_.PSChildName }",
+                "$ErrorActionPreference='Stop'; Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'MSC' -and $_.Publisher -in @('ctemple','Cameron Temple') -and $_.WindowsInstaller -eq 1 } | ForEach-Object { $_.PSChildName }",
             ],
         )?;
         for product in output
@@ -483,7 +500,7 @@ pub fn remove(
     confirmation: &str,
 ) -> Result<RemovalResult, String> {
     if confirmation != CONFIRMATION {
-        return Err("Exact UNINSTALL MSC 2 confirmation is required.".into());
+        return Err("Exact UNINSTALL MSC confirmation is required.".into());
     }
     if preview.inventory.is_blocked() {
         return Err("Uninstall inventory contains blocked targets; nothing was removed.".into());

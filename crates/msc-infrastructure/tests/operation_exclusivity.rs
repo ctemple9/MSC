@@ -1,8 +1,8 @@
 //! Hand-written coverage of `OperationJournal::admit`, in the same style
 //! `tests/operation_journal.rs` (P3.15) used: no MSC 1 fixture to port from
-//! (greenfield MSC 2 construction — see the module docs), so these exercise
+//! (greenfield MSC construction — see the module docs), so these exercise
 //! the implementation directly against its own written contract
-//! (`msc2-engineering.md` §7: "Only one conflicting operation runs against
+//! (`msc-engineering.md` §7: "Only one conflicting operation runs against
 //! a server at a time. Starting a backup during a world replacement is
 //! refused, not queued silently.").
 //!
@@ -13,7 +13,7 @@ use msc_domain::operation::{OperationId, OperationState};
 use msc_infrastructure::fs::FakeFileSystem;
 use msc_infrastructure::operation_journal::{AdmitError, JournalEntry, OperationJournal};
 
-const DIR: &str = "/srv/agent/operations";
+const DIR: &str = "/srv/engine/operations";
 
 // Package shutdown must neither race a server mutation nor admit one after
 // shutdown starts. Fake storage isolates this check from Windows and timing.

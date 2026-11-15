@@ -6,7 +6,7 @@
 //!
 //! Ported from `ModrinthAPI.swift`, `HangarAPI.swift`, `CurseForgeAPI.swift`,
 //! `GitHubReleaseChecker.swift`, and `AppViewModel+ComponentsVersions.swift`'s
-//! `fetchOnlineVersion` `.direct` case, per `docs/msc2/addons/phase8-scope.md`
+//! `fetchOnlineVersion` `.direct` case, per `docs/msc/addons/phase8-scope.md`
 //! and `fixtures/addon-providers/` (P8.4). Every function here takes
 //! already-fetched status codes/response bodies -- `msc-domain` carries no
 //! I/O; the real HTTP transport is `msc-infrastructure`'s job (P8.13).

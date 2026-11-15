@@ -41,7 +41,7 @@
 
   onMount(async () => {
     if (!api) {
-      state = { kind: 'unavailable', message: 'Not connected to an agent.' };
+      state = { kind: 'unavailable', message: 'Not connected to an engine.' };
       return;
     }
     try {
@@ -158,10 +158,10 @@
     margin: 0 0 12px;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .explain.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .list {
     display: flex;
@@ -177,10 +177,10 @@
     justify-content: space-between;
     gap: 10px;
     padding: 9px 12px;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border: 1px solid transparent;
     border-radius: 8px;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font: inherit;
     font-size: 13px;
     cursor: pointer;
@@ -194,7 +194,7 @@
     font-weight: 600;
     letter-spacing: 0.4px;
     text-transform: uppercase;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .footer {
     display: flex;

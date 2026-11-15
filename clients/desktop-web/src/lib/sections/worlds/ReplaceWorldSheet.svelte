@@ -217,23 +217,23 @@
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .error-text {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
   .explain {
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .warning {
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--msc2-status-warn);
-    background: var(--msc2-status-warn-tint);
+    color: var(--msc-status-warn);
+    background: var(--msc-status-warn-tint);
     border-radius: 8px;
     padding: 8px 10px;
   }

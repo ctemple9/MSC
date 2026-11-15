@@ -162,7 +162,7 @@
       {catalog.note}
     </p>
   {:else if !api}<p class="hint">
-      Connect to an agent to browse rules. Manual entry is available.
+      Connect to an engine to browse rules. Manual entry is available.
     </p>{/if}
 
   {#if manual}
@@ -307,7 +307,7 @@
   }
   .hint,
   code {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   .context {
@@ -316,12 +316,12 @@
     min-width: 0;
   }
   .version {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 13px;
     font-weight: 500;
   }
   .edition {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 12px;
   }
   .hint {
@@ -330,7 +330,7 @@
   }
   .rule-row {
     padding: 12px 0;
-    border-bottom: 1px solid var(--msc2-hairline);
+    border-bottom: 1px solid var(--msc-hairline);
   }
   .rule-info {
     display: grid;
@@ -351,14 +351,14 @@
   .number {
     width: 105px;
     padding: 8px;
-    border: 1px solid var(--msc2-hairline-field);
+    border: 1px solid var(--msc-hairline-field);
     border-radius: 8px;
-    background: var(--msc2-tier-chrome);
-    color: var(--msc2-text-primary);
+    background: var(--msc-tier-chrome);
+    color: var(--msc-text-primary);
     font: inherit;
   }
   .invalid {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
     font-size: 12px;
   }
   @media (max-width: 600px) {

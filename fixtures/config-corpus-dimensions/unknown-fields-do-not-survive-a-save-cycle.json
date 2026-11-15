@@ -7,7 +7,7 @@
     "line": 614
   },
   "input": {
-    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc2-port-plan.md line 187, first sub-item)",
+    "portPlanDimension": "missing, renamed, malformed, and unknown fields (msc-port-plan.md line 187, first sub-item)",
     "description": "A config on disk carries a top-level key AppConfig.CodingKeys has never named -- e.g. written by a newer MSC 1 release, or a hand edit. AppConfig's init(from:)/encode(to:) are both hand-written against one fixed CodingKeys enum (source lines 614-868), not a catch-all [String: Any] dictionary."
   },
   "expected": {

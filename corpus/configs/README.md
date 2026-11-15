@@ -43,7 +43,7 @@ Application Support copies, local Time Machine snapshots, MSC 1's own git
 history (the config path is gitignored there, correctly, since it's runtime
 data), and iCloud, the owner confirmed no second-era config exists anywhere.
 He approved relaxing the bar to one real config rather than inventing a
-second — recorded in `docs/msc2/config-migration/phase5-scope.md`'s
+second — recorded in `docs/msc/config-migration/phase5-scope.md`'s
 "Evidence required" section. Era-diversity coverage for the decode-time
 defaulting/rename/duplicate-ID/duplicate-path behavior a second era would
 have exercised is carried instead by P5.4/P5.5's dedicated characterization

@@ -4,7 +4,7 @@
 //! Ported from `AddonUpdateResolver.swift`,
 //! `AppViewModel+AddonUpdates.swift::mergeDiscoveredLinks`, and
 //! `AppViewModel+ComponentsVersions.swift`/`AppViewModel+PluginManagement.swift`'s
-//! plugin-source-tier/rekey/sort logic, per `docs/msc2/addons/phase8-scope.md`
+//! plugin-source-tier/rekey/sort logic, per `docs/msc/addons/phase8-scope.md`
 //! and `fixtures/addon-update-resolution/` + `fixtures/plugin-source-mapping/`
 //! (P8.5). Every function here is a pure decision over already-fetched/
 //! already-computed inputs (hash lookups, persisted links, disk listings) --

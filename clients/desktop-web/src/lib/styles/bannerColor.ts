@@ -1,9 +1,9 @@
-// Per-server identity accent — MSC 1's `bannerColor`. The agent contract has no
+// Per-server identity accent — MSC 1's `bannerColor`. The engine contract has no
 // banner-color field yet (ServerDTO carries no such property), so this is held
 // as client-local state per host+server until a real field exists. Mirrors MSC 1's
 // clampedAwayFromWhite/clampedAwayFromBlack guard rails (ContentView.swift) so the
 // wash stays visible on the dark chrome shell regardless of input.
-const STORAGE_PREFIX = 'msc2.bannerColor.';
+const STORAGE_PREFIX = 'msc.bannerColor.';
 
 // MSC 1's own clampedAwayFromBlack() replacement color — the "no color set" default.
 export const DEFAULT_BANNER_COLOR = '#666679';

@@ -1,6 +1,6 @@
 <script lang="ts">
   // Ports DetailsComponentsTabView.swift to the S0 disciplined system
-  // (docs/msc2/antiAIslop.md): Server JAR/Loader row, Plugins/Mods list,
+  // (docs/msc/antiAIslop.md): Server JAR/Loader row, Plugins/Mods list,
   // Crossplay row, and (Bedrock) the Runtime + Broadcast cards. Same
   // shared-component pattern HomeSection/WorldsSection use (D-003).
   //
@@ -13,11 +13,11 @@
   // Two real, pre-existing backend gaps found while wiring this, left alone
   // rather than expanded on (crates/ wasn't in this step's scope) but worth
   // recording plainly:
-  //  1. GET /v1/components (crates/msc-agent/src/routes/components.rs
+  //  1. GET /v1/components (crates/msc-engine/src/routes/components.rs
   //     component_rows) hardcodes is_up_to_date=true/updatable=true for the
   //     primary server-jar row -- there is no real online-build check behind
   //     it yet (unlike GET /v1/versions, which is real). The Server JAR row
-  //     below renders whatever the agent reports, honestly; it will always
+  //     below renders whatever the engine reports, honestly; it will always
   //     read "Up to date" until that route gets a real PaperMC-style build
   //     check, which is a backend step of its own.
   //  2. AddonItemDTO has no MSC-1-style tier (managed/userSourced/unmanaged)
@@ -280,7 +280,7 @@
   }
 
   function voicePromptKey(): string {
-    return `msc2.svc-tunnel-prompt.${hostId}.${serverId}`;
+    return `msc.svc-tunnel-prompt.${hostId}.${serverId}`;
   }
 
   function voicePromptWasDismissed(): boolean {
@@ -300,7 +300,7 @@
       clearVoicePromptState();
       return;
     }
-    // An address means the agent already provisioned the named voice tunnel.
+    // An address means the engine already provisioned the named voice tunnel.
     // GET /v1/playit also synchronizes its host into voicechat-server.properties.
     if (currentPlayit.voiceAddress || voicePromptWasDismissed()) {
       showVoicePrompt = false;
@@ -536,7 +536,7 @@
   async function openAddonFolder(): Promise<void> {
     if (!activeServer) return;
     if (hostId !== 'local-agent') {
-      flash('Open the add-on folder is available for a locally-connected agent.');
+      flash('Open the add-on folder is available for a locally-connected engine.');
       return;
     }
     try {
@@ -582,7 +582,7 @@
 <div class="components">
   <div class="section-header">
     <div class="overline">
-      <span class="msc2-type-overline">Components</span>
+      <span class="msc-type-overline">Components</span>
     </div>
     <div class="header-actions">
       {#if activeServer?.serverType === 'java'}
@@ -608,7 +608,7 @@
 
   {#if activeServer?.modpackIdentity}
     <section class="modpack-summary" aria-label="Imported modpack">
-      <span class="msc2-type-overline">Imported Modpack</span>
+      <span class="msc-type-overline">Imported Modpack</span>
       <div class="modpack-line">
         <span class="modpack-name">{activeServer.modpackIdentity.name ?? 'Name unavailable'}</span>
         <span class="modpack-source">
@@ -628,7 +628,7 @@
   {:else}
     {#if isBedrock}
       <section class="zone">
-        <p class="msc2-type-overline">Bedrock Server</p>
+        <p class="msc-type-overline">Bedrock Server</p>
         <Card padding="0">
           <button
             type="button"
@@ -651,7 +651,7 @@
       </section>
     {:else}
       <section class="zone">
-        <p class="msc2-type-overline">Server</p>
+        <p class="msc-type-overline">Server</p>
         <Card padding="0">
           <button
             type="button"
@@ -686,7 +686,7 @@
         <section class="zone">
           <div class="section-header">
             <div class="addon-heading">
-              <p class="msc2-type-overline">{isModded ? 'Mods' : 'Plugins'}</p>
+              <p class="msc-type-overline">{isModded ? 'Mods' : 'Plugins'}</p>
               <span class="count-label">{installedAddonCount} installed</span>
               <button
                 type="button"
@@ -811,7 +811,7 @@
 
       {#if crossplayEligible}
         <section class="zone">
-          <p class="msc2-type-overline">Crossplay</p>
+          <p class="msc-type-overline">Crossplay</p>
           <Card padding="0">
             <button
               type="button"
@@ -843,7 +843,7 @@
 
     {#if isBedrock}
       <section class="zone">
-        <p class="msc2-type-overline">Crossplay</p>
+        <p class="msc-type-overline">Crossplay</p>
         <Card padding="0">
           <button
             type="button"
@@ -1133,12 +1133,12 @@
     flex-wrap: wrap;
   }
   .modpack-name {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-size: 14px;
     font-weight: 500;
   }
   .modpack-source {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
     font-size: 12px;
   }
   .section-header {
@@ -1152,7 +1152,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .header-actions {
     display: flex;
@@ -1163,12 +1163,12 @@
   .notice {
     margin: 0;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
 
   .loading-state {
     margin: 0;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     font-size: 13px;
   }
   .zone {
@@ -1186,7 +1186,7 @@
   .server-card-row {
     width: 100%;
     border: 0;
-    border-radius: var(--msc2-radius-2);
+    border-radius: var(--msc-radius-2);
     background: transparent;
     color: inherit;
     font: inherit;
@@ -1197,12 +1197,12 @@
     background: rgba(255, 255, 255, 0.04);
   }
   .server-card-row:focus-visible {
-    outline: 2px solid var(--msc2-selection);
+    outline: 2px solid var(--msc-selection);
     outline-offset: -2px;
   }
   .server-card-row.selected {
     background: rgba(59, 130, 246, 0.06);
-    box-shadow: inset 0 0 0 1.5px var(--msc2-selection);
+    box-shadow: inset 0 0 0 1.5px var(--msc-selection);
   }
   .addon-heading {
     display: flex;
@@ -1215,17 +1215,17 @@
     height: 28px;
     padding: 6px;
     place-items: center;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: transparent;
     border: 1px solid transparent;
-    border-radius: var(--msc2-radius-2);
+    border-radius: var(--msc-radius-2);
     cursor: pointer;
   }
   .search-toggle:hover,
   .search-toggle:focus-visible,
   .search-toggle[aria-expanded='true'] {
-    color: var(--msc2-text-primary);
-    border-color: var(--msc2-hairline-field);
+    color: var(--msc-text-primary);
+    border-color: var(--msc-hairline-field);
     outline: none;
   }
   .search-toggle svg {
@@ -1238,7 +1238,7 @@
   }
   .count-label {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .component-controls {
     display: flex;
@@ -1249,10 +1249,10 @@
   .component-search {
     min-height: 30px;
     box-sizing: border-box;
-    color: var(--msc2-text-primary);
-    background: var(--msc2-tier-terminal);
-    border: 1px solid var(--msc2-hairline-field);
-    border-radius: var(--msc2-radius-2);
+    color: var(--msc-text-primary);
+    background: var(--msc-tier-terminal);
+    border: 1px solid var(--msc-hairline-field);
+    border-radius: var(--msc-radius-2);
     font: inherit;
     font-size: 12px;
   }
@@ -1263,26 +1263,26 @@
   }
   .component-search:focus-visible {
     outline: none;
-    border-color: var(--msc2-hairline-field-focus);
+    border-color: var(--msc-hairline-field-focus);
   }
   .addon-row.bordered {
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .addon-row.disabled .name {
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     text-decoration: line-through;
   }
   .addon-row.disabled .subtitle {
     text-decoration: line-through;
   }
   .addon-row.selected {
-    border-radius: var(--msc2-radius-2);
+    border-radius: var(--msc-radius-2);
     background: rgba(59, 130, 246, 0.06);
-    box-shadow: inset 0 0 0 1.5px var(--msc2-selection);
+    box-shadow: inset 0 0 0 1.5px var(--msc-selection);
   }
   .row-affordance {
     display: inline-flex;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .addon-row-link {
     display: flex;
@@ -1313,27 +1313,27 @@
   .name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .subtitle {
     font-size: 11px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .subtitle.error {
-    color: var(--msc2-status-error);
+    color: var(--msc-status-error);
   }
   .status-label {
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .confirm {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hidden-input {
     position: absolute;
@@ -1351,13 +1351,13 @@
     margin: 0;
     font-size: 12.5px;
     line-height: 1.5;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
   }
   .voice-prompt .hint {
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .voice-prompt code {
-    font-family: var(--msc2-font-mono);
+    font-family: var(--msc-font-mono);
     font-size: 11px;
   }
   .prompt-actions {
@@ -1365,6 +1365,6 @@
     flex-wrap: wrap;
     gap: 8px;
     padding-top: 4px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
 </style>

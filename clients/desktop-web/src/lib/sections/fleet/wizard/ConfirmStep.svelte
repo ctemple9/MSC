@@ -119,12 +119,12 @@
     </div>
 
     <section class="block">
-      <p class="msc2-type-overline">Display Name</p>
+      <p class="msc-type-overline">Display Name</p>
       <Field bind:value={displayName} placeholder="Server display name" disabled={isCreating} />
     </section>
 
     <section class="block">
-      <p class="msc2-type-overline">Server settings — apply to every world</p>
+      <p class="msc-type-overline">Server settings — apply to every world</p>
       <div class="summary">
         {#if isExistingImport}
           <div class="row">
@@ -253,7 +253,7 @@
     </section>
 
     <section class="block">
-      <p class="msc2-type-overline">
+      <p class="msc-type-overline">
         {isExistingImport
           ? 'Imported world settings — saved with this world'
           : 'First world settings — saved with this world'}
@@ -309,7 +309,7 @@
 
       {#if !isExistingImport && draft.worldGamemode === 'creative'}
         <p class="hint warn">
-          Creative is saved with this world. The agent will ask for an acknowledgement before it
+          Creative is saved with this world. The engine will ask for an acknowledgement before it
           applies the gameplay change.
         </p>
       {/if}
@@ -348,12 +348,12 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
   }
   .intro p {
     margin: 0;
     font-size: 12.5px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
 
   .block {
@@ -369,7 +369,7 @@
   .summary {
     display: flex;
     flex-direction: column;
-    background: var(--msc2-tier-chrome);
+    background: var(--msc-tier-chrome);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -379,33 +379,33 @@
     justify-content: space-between;
     gap: 12px;
     padding: 8px 14px;
-    border-top: 1px solid var(--msc2-hairline-subtle);
+    border-top: 1px solid var(--msc-hairline-subtle);
   }
   .row:first-child {
     border-top: none;
   }
   .label {
     font-size: 12px;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .value {
     font-size: 12px;
     font-weight: 500;
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     text-align: right;
   }
   .value.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
 
   .hint {
     margin: 0;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--msc2-text-tertiary);
+    color: var(--msc-text-tertiary);
   }
   .hint.warn {
-    color: var(--msc2-status-warn);
+    color: var(--msc-status-warn);
   }
 
   .progress {
@@ -418,8 +418,8 @@
     height: 13px;
     flex-shrink: 0;
     border-radius: 50%;
-    border: 2px solid var(--msc2-hairline-subtle);
-    border-top-color: var(--msc2-text-secondary);
+    border: 2px solid var(--msc-hairline-subtle);
+    border-top-color: var(--msc-text-secondary);
     animation: spin 0.7s linear infinite;
   }
   @keyframes spin {

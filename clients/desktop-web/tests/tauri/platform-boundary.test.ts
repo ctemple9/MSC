@@ -31,8 +31,8 @@ function nativeDependencies(): TauriPlatformDependencies {
     revealInFileManager: vi.fn(async () => undefined),
     onFileDrop: vi.fn(async () => () => undefined),
     onCloseRequested: vi.fn(async () => () => undefined),
-    agentHealthCheck: vi.fn(async () => true),
-    agentServiceStatus: vi.fn(async () => ({
+    engineHealthCheck: vi.fn(async () => true),
+    engineServiceStatus: vi.fn(async () => ({
       available: true,
       platform: 'macos',
       serviceName: 'com.ctemple.msc2.agent',
@@ -40,7 +40,7 @@ function nativeDependencies(): TauriPlatformDependencies {
       pid: 42,
       detail: 'Running as the installing user.',
     })),
-    manageAgentService: vi.fn(async () => ({
+    manageEngineService: vi.fn(async () => ({
       available: true,
       platform: 'macos',
       serviceName: 'com.ctemple.msc2.agent',
@@ -86,12 +86,12 @@ describe('Tauri boundary', () => {
     expect(dependencies.openExternal).toHaveBeenCalledWith('https://example.test');
     expect(dependencies.revealInFileManager).toHaveBeenCalledWith('/srv/example');
     expect(await desktop.credentialFor('remote-host')).toBeNull();
-    expect(await desktop.agentHealthCheck()).toBe(true);
-    expect((await desktop.agentServiceStatus()).state).toBe('running');
-    await desktop.manageAgentService('repair');
-    expect(dependencies.manageAgentService).toHaveBeenCalledWith('repair');
-    await desktop.manageAgentService('uninstall');
-    expect(dependencies.manageAgentService).toHaveBeenCalledWith('uninstall');
+    expect(await desktop.engineHealthCheck()).toBe(true);
+    expect((await desktop.engineServiceStatus()).state).toBe('running');
+    await desktop.manageEngineService('repair');
+    expect(dependencies.manageEngineService).toHaveBeenCalledWith('repair');
+    await desktop.manageEngineService('uninstall');
+    expect(dependencies.manageEngineService).toHaveBeenCalledWith('uninstall');
   });
 
   it('treats cancelling a native file picker as a user choice', async () => {
@@ -126,7 +126,7 @@ describe('Tauri boundary', () => {
     expect(capability.permissions).toContain('fs:read-files');
   });
 
-  it('preserves native string errors instead of blaming the remote agent', () => {
+  it('preserves native string errors instead of blaming the remote engine', () => {
     expect(errorMessage('command plugin:fs|open not allowed by ACL')).toBe(
       'command plugin:fs|open not allowed by ACL',
     );
@@ -146,6 +146,6 @@ describe('Tauri boundary', () => {
     expect(config.build.frontendDist).toBe('../dist');
     expect(config.app.windows[0].backgroundColor).toBe('#000000');
     expect(routeAndScreenSources).toContain("segment: 'local-agent'");
-    expect(routeAndScreenSources).not.toContain('invoke<AgentServiceStatus>');
+    expect(routeAndScreenSources).not.toContain('invoke<EngineServiceStatus>');
   });
 });

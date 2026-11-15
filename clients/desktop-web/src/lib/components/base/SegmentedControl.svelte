@@ -1,6 +1,6 @@
 <script lang="ts">
   // Neutral selected fill on chrome track — NOT accent-tinted.
-  // docs/msc2/renderings/primitives.html
+  // docs/msc/renderings/primitives.html
   export let options: readonly { value: string; label: string }[] = [];
   export let value = '';
   export let onchange: ((value: string) => void) | undefined = undefined;
@@ -29,8 +29,8 @@
 <style>
   .track {
     display: inline-flex;
-    background: var(--msc2-tier-chrome);
-    border: 1px solid var(--msc2-hairline-subtle);
+    background: var(--msc-tier-chrome);
+    border: 1px solid var(--msc-hairline-subtle);
     border-radius: 9px;
     padding: 3px;
     gap: 2px;
@@ -39,7 +39,7 @@
   .segment {
     font-family: inherit;
     font-size: 12px;
-    color: var(--msc2-text-secondary);
+    color: var(--msc-text-secondary);
     background: transparent;
     border: none;
     border-radius: 6px;
@@ -49,8 +49,8 @@
   }
 
   .segment.selected {
-    color: var(--msc2-text-primary);
+    color: var(--msc-text-primary);
     font-weight: 500;
-    background: var(--msc2-neutral-elevated);
+    background: var(--msc-neutral-elevated);
   }
 </style>
