@@ -26,17 +26,19 @@ use std::process::{Command, Output};
 
 const EXPECTED_PORT_ENV: &str = "MSC2_EXPECTED_PORT";
 const META_PREFIX: &str = "# MSC2-";
-const SYSTEM_ENGINE_PATHS: [&str; 4] = [
+const SYSTEM_ENGINE_PATHS: [&str; 5] = [
     "/usr/lib/Minecraft Server Controller/agent/msc",
     "/usr/lib/msc-desktop-web/agent/msc",
     "/usr/lib/MSC 2/agent/msc",
     "/usr/lib/msc2-desktop-web/agent/msc",
+    "/usr/lib/msc-development/agent/msc",
 ];
-const SYSTEM_ENGINE_DEV_BUILDS_PATHS: [&str; 4] = [
+const SYSTEM_ENGINE_DEV_BUILDS_PATHS: [&str; 5] = [
     "/usr/lib/Minecraft Server Controller/agent/dev-builds",
     "/usr/lib/msc-desktop-web/agent/dev-builds",
     "/usr/lib/MSC 2/agent/dev-builds",
     "/usr/lib/msc2-desktop-web/agent/dev-builds",
+    "/usr/lib/msc-development/agent/dev-builds",
 ];
 pub const DESKTOP_ENGINE_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
 
@@ -544,7 +546,7 @@ fn label_system_engine_executables(helper: &Path, engine: &Path) -> Result<(), S
         .ok_or_else(|| ServiceError::Platform(
             "SELinux is active but semanage is unavailable; install policycoreutils-python-utils before repairing the MSC service".into()
         ))?;
-    let rule = r"/usr/lib/(MSC\x202|msc-desktop-web)/engine(/dev-builds/[0-9a-fA-F]{64})?/msc";
+    let rule = r"/usr/lib/(Minecraft\x20Server\x20Controller|MSC\x202|msc2-desktop-web|msc-desktop-web|msc-development)/agent(/dev-builds/[0-9a-fA-F]{64})?/msc";
     let mut output = Command::new(semanage)
         .args(["fcontext", "-a", "-t", "bin_t", rule])
         .output()

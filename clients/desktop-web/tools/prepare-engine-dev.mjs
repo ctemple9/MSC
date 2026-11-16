@@ -73,6 +73,15 @@ stageFile(source, join(packageEngineDirectory, engineName));
 console.log(`staged ${profile} msc-engine ${version} at ${destination}`);
 stageVantage();
 stageBedrockMap();
+if (process.platform === 'linux' && profile === 'debug') {
+  const bootstrap = spawnSync(
+    'python3',
+    [join(workspaceRoot, 'tools', 'bootstrap-linux-dev.py'), source],
+    { cwd: workspaceRoot, stdio: 'inherit' },
+  );
+  if (bootstrap.status !== 0) fail('Linux development helper setup failed; authorize setup when restarting npx tauri dev');
+}
+
 if (process.platform === 'win32' && profile === 'release') {
   const helperRoot = join(workspaceRoot, 'packaging', 'windows', 'lifecycle-helper');
   const helper = spawnSync(

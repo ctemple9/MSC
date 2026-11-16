@@ -1266,15 +1266,25 @@ fn linux_system_engine_path() -> Result<PathBuf, String> {
     let candidates = [
         PathBuf::from("/usr/lib/Minecraft Server Controller/agent/msc"),
         PathBuf::from("/usr/lib/msc-desktop-web/agent/msc"),
+        PathBuf::from("/usr/lib/MSC 2/agent/msc"),
+        PathBuf::from("/usr/lib/msc2-desktop-web/agent/msc"),
         directory.join("../lib/Minecraft Server Controller/agent/msc"),
         directory.join("../lib/msc-desktop-web/agent/msc"),
+        directory.join("../lib/MSC 2/agent/msc"),
+        directory.join("../lib/msc2-desktop-web/agent/msc"),
     ];
+    #[cfg(debug_assertions)]
+    let candidates = {
+        let mut paths = candidates.to_vec();
+        paths.push(PathBuf::from("/usr/lib/msc-development/agent/msc"));
+        paths
+    };
     let path = candidates
         .iter()
         .find(|path| path.is_file())
         .cloned()
         .ok_or_else(|| {
-            "Could not find the system-installed MSC engine. Install the MSC desktop package before changing the local engine service.".to_string()
+            "Could not find the MSC service helper. For source development, restart `npx tauri dev` and authorize the helper setup. For a packaged app, reinstall the MSC desktop package.".to_string()
         })?;
     std::fs::canonicalize(&path).map_err(|error| {
         format!(

@@ -354,3 +354,19 @@ Security fixes are currently promised only for the latest stable release, as
 described in [SECURITY.md](SECURITY.md). Since the published builds are prereleases and no
 stable release has been published, no release currently qualifies for that
 security-support policy.
+
+### Linux source development
+
+Run `npx tauri dev` from `clients/desktop-web`. This builds the frontend,
+engine and terrain renderers. Python 3 with pip is required to provision the
+pinned Zig compiler (`sudo dnf install python3-pip` on Fedora).
+
+A release RPM or DEB is not required. If no installed MSC helper is available,
+the development preparation requests a one-time polkit administrator approval
+to copy the locally built engine to `/usr/lib/msc-development/agent/msc`.
+On Fedora, SELinux setup also requires `policycoreutils-python-utils`.
+This preparation installs only the helper; choose **Install** or **Repair engine**
+in the app to register and start the current development engine. After engine
+code changes, use **Repair engine** again to switch to the newly built engine.
+Declining authorization stops preparation; rerun the same command to retry.
+Existing package helpers and previous installation paths remain supported.

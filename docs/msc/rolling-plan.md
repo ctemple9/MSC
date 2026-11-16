@@ -426,3 +426,36 @@ referenced packaging tools resolve. Naming inventory and whitespace checks
 passed. Existing signing secret/variable names remain configured. The previous
 v0.1.44 release workflow completed successfully. No tests or installer/service
 operations were run locally. The release tag is new and must not be moved.
+
+
+### P26.4 — bootstrap Linux source development without a release package
+
+**Status:** Implemented; owner verification pending.
+
+**Files:** Linux service platform, native desktop helper lookup, desktop engine
+preparation, `tools/bootstrap-linux-dev.py`, README and this plan.
+
+**What:** Provision a dedicated root-owned development helper from the local
+engine build through an explicit pkexec authorization when no installed helper
+exists. Do not overwrite package helpers or install/start a service during
+preparation. Preserve old package path lookup, protect destination ancestry,
+install atomically, and label the bootstrap executable for SELinux. Correct
+the service executable label rule to cover deployed `agent/` paths and both
+current and previous product directories. Keep service registration/repair in
+the existing explicit app action. No tests added or run; no live bootstrap,
+service changes, package installation or release operations performed.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — authorize the one-time
+helper setup on a machine without an MSC package, then use Install/Repair engine
+and confirm local connection; repeat after an engine change with Repair engine.
+Also confirm an existing old-path installation remains discoverable.
+
+**Batch:** This Linux development fix only, one commit as requested.
+
+**Commit:** `P26.4: bootstrap linux development service helper`
+
+Checks: targeted Linux platform and native desktop `cargo clippy --locked`
+passed with existing unused-variable/dead-code warnings. Rust formatting, Node
+syntax, Python syntax and whitespace checks passed. No tests run. Physical
+verification and administrator authorization remain with Cameron. The separately
+changed desktop Cargo lockfile (package ordering only) was left out of this step.
