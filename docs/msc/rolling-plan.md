@@ -391,3 +391,38 @@ existing platform-dependent dead-code/unused/needless-return warnings. No tests
 were run. Live requests verified old/new repository metadata, the updater's
 release-list endpoint, and both v0.1.44 manifest/signature download addresses;
 no installer or installed-client update was executed.
+
+
+### P26.3 - prepare and publish v0.1.45
+
+**Status:** Release candidate prepared; publication requested by Cameron on
+2026-11-16. Physical owner verification and phase gates remain pending.
+
+**Files:** Engine/desktop package manifests and lockfiles; static/shared bundle
+identity and its existing fixture; README; `release/v0.1.45.md`; this plan.
+
+**What:** Synchronize product versions at 0.1.45, update current download/help
+references and document the manual Windows upgrade needed when an older running
+updater rejects the standard protected installation. Include committed naming,
+Windows service, provider/catalog and creation fixes since v0.1.44. Publish via
+the existing build-only four-runner release workflow, retaining all nine
+packages, checksums, signing/notarization and signed update metadata. No new
+workflow gates, tests, live local installation or tag movement.
+
+**Verify:** `gh release view v0.1.45 --repo ctemple9/MSC` - inspect the published
+prerelease, nine platform packages, checksum file, release notes and signed
+metadata. Publication itself is not owner physical acceptance.
+
+**Batch:** This version/README/release step only. Monitor the first release
+attempt; inspect all failures before deciding on any further costly attempt.
+
+**Commit:** `P26.3: prepare v0.1.45 release and update readme`.
+
+P26.3 preflight: all engine/desktop/shared/static/lockfile version identities
+agree at 0.1.45. Workspace/native desktop formatting and Clippy passed with
+existing warnings; the frontend build and static bundle identity passed.
+Release YAML parses with only the existing build/publish jobs; all eight
+referenced packaging tools resolve. Naming inventory and whitespace checks
+passed. Existing signing secret/variable names remain configured. The previous
+v0.1.44 release workflow completed successfully. No tests or installer/service
+operations were run locally. The release tag is new and must not be moved.

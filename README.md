@@ -22,7 +22,7 @@ host.
 
 ## Download and install
 
-Download [MSC v0.1.43](https://github.com/ctemple9/MSC/releases/tag/v0.1.43)
+Download [MSC v0.1.45](https://github.com/ctemple9/MSC/releases/tag/v0.1.45)
 and choose the file for your computer. The desktop app includes the engine.
 
 - **Mac:** Open the `.dmg` and drag MSC to Applications.
@@ -33,17 +33,17 @@ and choose the file for your computer. The desktop app includes the engine.
 
 Update the macOS or Windows desktop app from its built-in updater. Update Linux
 packages with `apt` or `dnf`. For a headless install, run `msc update check`,
-then `msc update install --release-id 0.1.43`.
+then `msc update install --release-id 0.1.45`.
 
 ### What is in the download?
 
-The v0.1.43 download includes the desktop app, host-local CLI and full-screen
+The v0.1.45 download includes the desktop app, host-local CLI and full-screen
 `msc tui`, saved-terrain maps, and the server-management features below.
 The TUI runs locally on the engine host or through an SSH login to it.
 
 Desktop builds also include a Minecraft-style helmet in the system bar while
 the local engine runs, including after the desktop window closes. Use the local
-Engine page to show or hide it. See the [indicator guide](docs/msc/engine-indicator.md).
+Background Service page to show or hide it. See the [indicator guide](docs/msc/engine-indicator.md).
 
 ## Start your first server
 
@@ -298,18 +298,24 @@ Swift is used for the macOS Bedrock runtime.
 
 ## Current release and support
 
-The latest published build is [MSC v0.1.43](https://github.com/ctemple9/MSC/releases/tag/v0.1.43),
+The latest published build is [MSC v0.1.45](https://github.com/ctemple9/MSC/releases/tag/v0.1.45),
 a prerelease. There is no stable release yet. Download the
 platform-specific installer or archive from that release page and verify its
 entry in `SHA256SUMS` before installing. The Phase 16 acceptance record
 (P16.29) is still open; this prerelease has not passed the full physical
 release acceptance gate.
 
-Read the [v0.1.43 release notes](docs/msc/release/v0.1.43.md) for the latest
+Read the [v0.1.45 release notes](docs/msc/release/v0.1.45.md) for the latest
 fixes and the [release history](docs/msc/release/) for earlier changes. On
 Intel macOS, use **Repair engine** after installing the updated app to register
 its matching engine and Bedrock helper before the next Bedrock start. Existing
 root-owned Bedrock data still requires a one-time ownership repair.
+
+**Windows 0.1.43/0.1.44:** if the built-in updater reports that it requires a
+machine-protected desktop directory, download the v0.1.45 MSI and install it
+manually. The correction must be in the desktop performing the update; the
+older updater cannot acquire it by retrying the same blocked update. This build
+also fixes error 33 when checking an already-running background indicator.
 
 **macOS 0.1.25/0.1.26:** stop the Minecraft server, quit MSC, manually install
 v0.1.42 from its disk image, and repair the engine once. The older updater's helper
