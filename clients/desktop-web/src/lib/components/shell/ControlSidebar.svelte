@@ -242,7 +242,7 @@
           <ShellIcon name={running ? 'stop' : 'play'} size={13} />
           {stopping ? 'Stopping…' : running ? 'Stop' : startLabel}
         </Button>
-        <Button variant="secondary" size="sm" onclick={onOpenEngineSetup}>Background Service</Button
+        <Button variant="secondary" size="sm" onclick={onOpenEngineSetup}>Engine</Button
         >
       </div>
       {#if statusNotice}

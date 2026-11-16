@@ -459,3 +459,25 @@ passed with existing unused-variable/dead-code warnings. Rust formatting, Node
 syntax, Python syntax and whitespace checks passed. No tests run. Physical
 verification and administrator authorization remain with Cameron. The separately
 changed desktop Cargo lockfile (package ordering only) was left out of this step.
+
+
+### P26.5 — shorten the sidebar engine button
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** `ControlSidebar.svelte`; this plan.
+
+**What:** Cameron approved the compact sidebar label **Engine** in place of
+**Background Service** on 2026-11-16 so the adjacent Start button no longer
+stretches to accommodate a wrapped label. This is a sidebar-label exception to
+the user-facing Background Service naming contract; other labels stay as they are.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — confirm Engine fits on
+one line next to Start and still opens the Background Service screen.
+
+**Batch:** This sidebar label only.
+
+**Commit:** `P26.5: shorten sidebar engine button label`
+
+Checks: frontend `npm run build` passed with existing CSS/import/chunk warnings;
+`git diff --check` passed. No tests added or run.
