@@ -260,6 +260,69 @@ Clippy completed with pre-existing warnings (including needless returns); no
 unrelated warning fixes, tests, release actions or platform-pass claims.
 
 
+### P25.6 - fix Windows updater permissions and indicator lock status
+
+**Status:** Implemented; owner verification pending. Cameron explicitly
+authorized fixing both reported issues and committing them together on
+2026-11-15, overriding the usual Phase 25 verify-before-commit order for this
+step only. No acceptance or phase closure is implied.
+
+**Files:** `clients/desktop-web/src-tauri/src/update_windows.rs`;
+`clients/desktop-web/src-tauri/src/engine_indicator.rs`; this plan.
+
+**What:** The updater walks the executable and its ancestors to check ownership
+and write/delete/permission-change rights. It incorrectly rejected an
+Authenticated Users rule on `C:\` marked InheritOnly: that rule describes child
+objects and grants no access to the inspected ancestor itself. Skip only such
+inheritance-only entries. Continue checking every path's trusted owner and all
+applicable inherited/explicit allow entries; retain rejection of writable
+executables, deletable ancestors and untrusted owners. The same production
+check is used before scheduling and before an elevated helper runs.
+
+Factor the existing script builder so one essential Windows regression can
+exercise the production decision with four in-memory permission scenarios:
+inheritance-only allow, executable-write denial, ancestor-delete denial and
+untrusted-owner denial. This protects the observed update failure and the
+security boundary existing tests missed. It uses synthetic Windows security
+objects and a process-local Get-Acl replacement; no filesystem ACL changes,
+elevation, network, sleeps or installed app/service operations. Expected runtime
+under 10 seconds excluding compilation. Test added, not run.
+
+**Verify:** `cargo test --manifest-path clients/desktop-web/src-tauri/Cargo.toml --lib windows_desktop_regression_`
+- Cameron runs the two focused regressions on Windows; verify two tests run.
+Full installed-update acceptance requires a build containing this change.
+
+**Batch:** These two owner-reported Windows fixes only; one commit as requested.
+
+**Commit:** `P25.6: fix Windows updater permissions and indicator lock status`.
+
+The installed 0.1.43 app, staged 0.1.44 MSI, machine permissions and service were
+not modified. Fixing a future target build alone cannot change the permission
+check already running inside 0.1.43; replacing that desktop with a corrected
+build requires a separate manual installation/build step, not an automatic
+release or live-service action in this task.
+
+The second fix recognizes fs2's platform-specific contention error as a running
+indicator, alongside the existing WouldBlock handling. Windows returns error 33
+when the indicator legitimately owns its coordination-file lock; that is not a
+failed service action. Other lock errors still propagate. Keep the lock held
+while inspecting status; do not stop or restart the indicator or service.
+
+A second essential regression uses a unique temporary file and separate handles
+to verify missing/unlocked => not running, held lock => running, released lock =>
+not running. This catches the exact real Windows contention error existing
+coverage missed. It uses no installed paths, separate processes, network or
+sleeps; expected runtime below 100 ms excluding compilation. Cleanup removes
+only its own file and temporary directory. Test added, not run.
+
+P25.6 non-test checks: native desktop `cargo clippy --locked --manifest-path
+clients/desktop-web/src-tauri/Cargo.toml --lib`, `cargo check --locked
+--manifest-path clients/desktop-web/src-tauri/Cargo.toml --tests` (compile only),
+Rust formatting, production-script/fixture PowerShell parsing,
+`python tools/naming-audit.py` and `git diff --check` passed. Existing
+infrastructure dead-code and desktop needless-return warnings remain. No test
+was executed and no installed application, service or Windows ACL was changed.
+
 ## Phase 26 — Product and background service naming
 
 ### P26.1 — rename the product and background service throughout the repository

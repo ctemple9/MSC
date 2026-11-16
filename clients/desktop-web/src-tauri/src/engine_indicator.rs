@@ -11,6 +11,10 @@ impl<T: AsyncRead + AsyncWrite + Unpin + Send> Connection for T {}
 
 pub(super) fn is_running() -> Result<bool, String> {
     let path = super::engine_data_directory()?.join("agent-indicator.lock");
+    is_running_at(&path)
+}
+
+fn is_running_at(path: &std::path::Path) -> Result<bool, String> {
     let Ok(file) = std::fs::OpenOptions::new()
         .read(true)
         .write(true)
@@ -20,7 +24,14 @@ pub(super) fn is_running() -> Result<bool, String> {
     };
     match fs2::FileExt::try_lock_exclusive(&file) {
         Ok(()) => Ok(false),
-        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => Ok(true),
+        // fs2 reports Windows contention as ERROR_LOCK_VIOLATION (33), whose
+        // standard-library kind is not necessarily WouldBlock.
+        Err(error)
+            if error.kind() == std::io::ErrorKind::WouldBlock
+                || error.raw_os_error() == fs2::lock_contended_error().raw_os_error() =>
+        {
+            Ok(true)
+        }
         Err(error) => Err(error.to_string()),
     }
 }
@@ -312,4 +323,42 @@ pub(super) fn run(mut context: tauri::Context<tauri::Wry>) {
 fn handle_exit() {
     // No server action is associated with ending this graphical companion.
     std::process::exit(0);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_running_at;
+    use std::{fs::OpenOptions, path::PathBuf};
+
+    struct LockFixture(PathBuf);
+
+    impl Drop for LockFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(self.0.join("indicator.lock"));
+            let _ = std::fs::remove_dir(&self.0);
+        }
+    }
+
+    #[test]
+    fn windows_desktop_regression_indicator_lock_status() {
+        // Separate handles exercise the real platform lock error without an
+        // indicator process, installed files, sleeps or service changes.
+        let directory =
+            std::env::temp_dir().join(format!("msc-indicator-lock-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir(&directory).unwrap();
+        let fixture = LockFixture(directory);
+        let path = fixture.0.join("indicator.lock");
+        assert!(!is_running_at(&path).unwrap());
+        let owner = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create_new(true)
+            .open(&path)
+            .unwrap();
+        assert!(!is_running_at(&path).unwrap());
+        fs2::FileExt::lock_exclusive(&owner).unwrap();
+        assert!(is_running_at(&path).unwrap());
+        fs2::FileExt::unlock(&owner).unwrap();
+        assert!(!is_running_at(&path).unwrap());
+    }
 }

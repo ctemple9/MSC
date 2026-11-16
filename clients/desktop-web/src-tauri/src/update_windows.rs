@@ -163,8 +163,8 @@ fn powershell(script: &str) -> Result<std::process::Output, String> {
 fn literal(path: &Path) -> String {
     path.to_string_lossy().replace('\'', "''")
 }
-fn trusted_runner(executable: &Path) -> Result<(), String> {
-    let script = format!(
+fn runner_protection_script(executable: &Path) -> String {
+    format!(
         r#"$ErrorActionPreference='Stop'; try {{
         $trusted=(New-Object Security.Principal.NTAccount('NT SERVICE\TrustedInstaller')).Translate([Security.Principal.SecurityIdentifier]).Value;
         $allowed=@('S-1-5-18','S-1-5-32-544',$trusted);
@@ -175,18 +175,27 @@ fn trusted_runner(executable: &Path) -> Result<(), String> {
             $write=[Security.AccessControl.FileSystemRights]::Delete -bor [Security.AccessControl.FileSystemRights]::DeleteSubdirectoriesAndFiles -bor [Security.AccessControl.FileSystemRights]::ChangePermissions -bor [Security.AccessControl.FileSystemRights]::TakeOwnership;
             if ($first) {{ $write=$write -bor [Security.AccessControl.FileSystemRights]::Write }};
             foreach ($r in $acl.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier])) {{
+                if ($r.PropagationFlags -band [Security.AccessControl.PropagationFlags]::InheritOnly) {{ continue }};
                 if ($r.AccessControlType -eq 'Allow' -and $r.IdentityReference.Value -notin $allowed -and ($r.FileSystemRights -band $write)) {{ throw 'Unprotected coordinator permissions' }}
             }};
             $first=$false; $p=Split-Path -Parent $p
         }}; exit 0
     }} catch {{ exit 1 }}"#,
         literal(executable)
-    );
-    if !powershell(&script)?.status.success() {
+    )
+}
+fn trusted_runner(executable: &Path) -> Result<(), String> {
+    // Inheritance-only entries describe children, not the inspected ancestor.
+    // Effective inherited permissions are still checked on each actual path.
+    if !powershell(&runner_protection_script(executable))?
+        .status
+        .success()
+    {
         return Err("Windows coordinated updates require a machine-protected desktop executable and directory. Repair/reinstall into a protected machine directory before updating.".into());
     }
     Ok(())
 }
+
 fn coordinator(
     operation: &str,
     product: &str,
@@ -761,6 +770,62 @@ pub(super) fn apply(
             let detail=format!("{failure} Recovery failed: {error}. Retained signed MSI, service snapshot and logs in {} require inspection; data was not reset.",work.display());
             save_result(data, "recovery-failed", release, &detail)?;
             Err(detail)
+        }
+    }
+}
+
+#[cfg(test)]
+mod protection_tests {
+    use super::{powershell, runner_protection_script};
+    use std::path::Path;
+
+    #[test]
+    fn windows_desktop_regression_updater_permissions() {
+        // In-memory ACLs exercise the production PowerShell decision without
+        // editing permissions, touching real paths or requiring elevation.
+        let fixture = r#"
+function Get-Acl {
+    param([string]$LiteralPath)
+    $acl = New-Object Security.AccessControl.DirectorySecurity;
+    $ordinary = New-Object Security.Principal.SecurityIdentifier('S-1-5-11');
+    $owner = 'S-1-5-18';
+    if ($scenario -eq 'untrusted-owner' -and $LiteralPath -eq 'C:\fixture') {
+        $owner = 'S-1-5-11';
+    };
+    $acl.SetOwner((New-Object Security.Principal.SecurityIdentifier($owner)));
+    if ($scenario -eq 'inherit-only' -and $LiteralPath -eq 'C:\') {
+        $acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
+            $ordinary, 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow')));
+    };
+    if ($scenario -eq 'executable-write' -and $LiteralPath -eq 'C:\fixture\desktop.exe') {
+        $acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
+            $ordinary, 'Write', 'None', 'None', 'Allow')));
+    };
+    if ($scenario -eq 'ancestor-delete' -and $LiteralPath -eq 'C:\fixture') {
+        $acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
+            $ordinary, 'DeleteSubdirectoriesAndFiles', 'None', 'None', 'Allow')));
+    };
+    return $acl;
+}
+"#;
+        for (scenario, accepted) in [
+            ("inherit-only", true),
+            ("executable-write", false),
+            ("ancestor-delete", false),
+            ("untrusted-owner", false),
+        ] {
+            let script = format!(
+                "$scenario='{scenario}';\n{fixture}\n{}",
+                runner_protection_script(Path::new(r"C:\fixture\desktop.exe"))
+            );
+            let output =
+                powershell(&script).expect("could not inspect synthetic updater permissions");
+            assert_eq!(
+                output.status.success(),
+                accepted,
+                "unexpected permission decision for {scenario}: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
         }
     }
 }
