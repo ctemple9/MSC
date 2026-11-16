@@ -28,6 +28,10 @@ pub struct ServerCreateWorldSettingsDto {
 #[serde(rename_all = "camelCase")]
 pub struct ServerCreateRequestDto {
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none", rename = "minRamGB")]
+    pub min_ram_gb: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxRamGB")]
+    pub max_ram_gb: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub server_type: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

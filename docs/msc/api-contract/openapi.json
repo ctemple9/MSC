@@ -13332,6 +13332,14 @@
           "name": {
             "type": "string"
           },
+          "minRamGB": {
+            "type": "number", "minimum": 0,
+            "description": "Initial minimum RAM in GB. Omit to retain the server type/flavor default."
+          },
+          "maxRamGB": {
+            "type": "number", "minimum": 0,
+            "description": "Initial maximum RAM in GB. Omit to retain the server type/flavor default."
+          },
           "serverType": {
             "type": "string"
           },

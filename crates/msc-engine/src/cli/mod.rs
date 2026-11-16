@@ -3119,6 +3119,8 @@ async fn run_server(common: CommonArgs, command: ServerCommand) -> Result<(), Cl
                 None
             };
             let body = ServerCreateRequestDto {
+                min_ram_gb: None,
+                max_ram_gb: None,
                 name: args.name,
                 server_type: args.server_type,
                 java_flavor: args.flavor,

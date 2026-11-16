@@ -210,6 +210,8 @@ export interface WizardDraft {
   uploadHostId?: string;
   uploadApi?: ScreenApi;
   stagedInputs?: { id: string; api: ScreenApi }[];
+  minRamDraft?: string;
+  maxRamDraft?: string;
   serverName: string;
   serverType: WizardServerType;
   javaCategory: JavaCategory;
@@ -472,8 +474,25 @@ export function javaSelectionKey(draft: WizardDraft): string {
 export const BEDROCK_VERSION_NOTE =
   'Bedrock versions are limited to the verified distribution selected for this runtime. Leave as LATEST unless you need a specific build.';
 
+// Keep the displayed defaults aligned with the engine until the user edits them.
+export function ramDraftValues(draft: WizardDraft): { minimum: string; maximum: string } {
+  const modded = draft.serverType === 'java' && draft.javaCategory === 'modded';
+  return {
+    minimum: draft.minRamDraft ?? (modded ? '3' : '2'),
+    maximum: draft.maxRamDraft ?? (modded ? '6' : '4'),
+  };
+}
+
+export function validRamDraft(draft: WizardDraft): boolean {
+  const { minimum, maximum } = ramDraftValues(draft);
+  return [minimum, maximum].every(
+    (value) => value.trim() !== '' && Number.isFinite(Number(value)) && Number(value) >= 0,
+  );
+}
+
 /** `AddServerWizardView.swift`'s `canAdvance` case 2, Fresh branch. */
 export function canAdvanceConfigure(draft: WizardDraft): boolean {
+  if (!validRamDraft(draft)) return false;
   if (draft.serverName.trim().length === 0) return false;
   return draft.serverType === 'java' ? isJavaFlavorImplemented(draft.javaFlavor) : true;
 }
@@ -657,6 +676,8 @@ export function buildServerCreateRequest(
     throw new Error(
       'Minecraft or loader setup changed after pack review. Remove and select the pack again to review this setup.',
     );
+  if (!validRamDraft(draft)) throw new Error('Enter a valid minimum and maximum RAM value.');
+  const ram = ramDraftValues(draft);
   const name = displayName.trim() || draft.serverName.trim();
   const body: Record<string, unknown> = {
     name,
@@ -666,6 +687,10 @@ export function buildServerCreateRequest(
     difficulty: draft.worldDifficulty,
     gamemode: draft.worldGamemode,
   };
+  if (draft.minRamDraft !== undefined || draft.maxRamDraft !== undefined) {
+    body.minRamGB = Number(ram.minimum);
+    body.maxRamGB = Number(ram.maximum);
+  }
   if (draft.serverType === 'java' && hasStagedSimpleVoiceChat(draft)) {
     body.enableVoiceChat = true;
   }

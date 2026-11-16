@@ -1,5 +1,5 @@
 // Generated from docs/msc/api-contract/openapi.json. Do not edit by hand.
-// Contract SHA-256: d27e6fdc454a98d54925167d346fd0b048c2de1b266df346d86a6146caa183b5
+// Contract SHA-256: f8a703fa65b97bfcf261abb4c16a673041bcb15aeccdd6bb376b51122629fb43
 
 export interface paths {
   '/v1/active-server': {
@@ -10844,7 +10844,11 @@ export interface components {
       javaPath?: string;
       loaderVersion?: string;
       maxPlayers?: number;
+      /** @description Initial maximum RAM in GB. Omit to retain the server type/flavor default. */
+      maxRamGB?: number;
       minecraftVersion?: string;
+      /** @description Initial minimum RAM in GB. Omit to retain the server type/flavor default. */
+      minRamGB?: number;
       name: string;
       port?: number;
       serverType?: string;

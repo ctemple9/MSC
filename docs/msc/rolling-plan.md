@@ -481,3 +481,51 @@ one line next to Start and still opens the Background Service screen.
 
 Checks: frontend `npm run build` passed with existing CSS/import/chunk warnings;
 `git diff --check` passed. No tests added or run.
+
+
+### P26.6 — reuse memory allocation in Configure and its guided tour
+
+**Status:** Implemented; owner verification pending.
+
+**Files:** Shared RAM fields; Edit Server General tab; wizard Configure,
+Confirm and draft/request model; onboarding guide, source map, anchors and
+corpus expectations; create API contract/generated types/DTO; engine create
+route and CLI request construction; existing API conformance case; this plan.
+
+**What:** Reuse the exact Edit Server minimum/maximum RAM controls, units,
+step size and styling in Configure. Keep edits in the wizard draft through
+Back/Continue and show them in Confirm. Preserve existing 2/4 GB defaults
+(3/6 GB for modded Java) until edited; reject empty, negative and non-finite
+values using the existing editor's numeric rules. Optional minRamGB/maxRamGB
+creation fields apply only to the newly created record before registration,
+including Java, staged-pack and Bedrock paths; omitted fields retain existing
+engine defaults. Existing CLI/TUI callers continue to omit them. Edit Server's
+autosave behavior remains in its parent, while creation makes no RAM mutation
+until Create.
+
+Add an engine-owned Memory tour card after Crossplay and before Xbox Broadcast,
+in the same order as the Configure section. Anchor the real fields and reuse
+the standard informational Next card, scrolling and spotlight; no mandatory
+edit, extra dialog or change to Configure's Continue/Java-selection behavior.
+Record the owner-requested extension honestly in the guide source map rather
+than inventing an MSC 1 tour source. Update the existing corpus expectation to
+41 steps. Extend the existing API conformance input with fractional RAM values;
+no new tests or redundant coverage and no additional runtime. Tests not run.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — restart the tour, choose
+Start Fresh, and confirm Memory follows Crossplay (or the Bedrock fields),
+before Xbox Broadcast/settings review. Adjust RAM, move forward/back, create,
+and confirm Edit Server reads the chosen pair. Check standard/modded defaults,
+empty-value blocking, and Edit Server's existing autosave form.
+
+**Batch:** This Configure memory and onboarding slice only.
+
+**Commit:** `P26.6: reuse ram allocation in server creation and onboarding`
+
+Checks: `npm run check` passed (0 errors, existing CSS warnings);
+`npm run build` passed with existing CSS/import/chunk warnings. Engine
+`cargo clippy --locked -p msc-engine`, Rust formatting, touched frontend
+formatting, JSON parsing and `git diff --check` passed. The explicit CLI
+request initializer was updated after the initial compile caught its missing
+optional fields. No live server creation or tests performed. The separate
+desktop lockfile change remains outside this commit.

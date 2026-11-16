@@ -23,6 +23,7 @@
   import { onboardingAnchor } from '../../../help/tourAnchors';
   import {
     JAVA_CATEGORY_INFO,
+    ramDraftValues,
     JAVA_FLAVOR_CATALOG,
     javaAddOnKind,
     hasStagedSimpleVoiceChat,
@@ -162,6 +163,14 @@
             <span class="label">Server type</span>
             <span class="value">{draft.serverType === 'java' ? 'Java' : 'Bedrock'}</span>
           </div>
+          {#if path === 'fresh'}
+            <div class="row">
+              <span class="label">Memory</span>
+              <span class="value"
+                >{ramDraftValues(draft).minimum} GB minimum · {ramDraftValues(draft).maximum} GB maximum</span
+              >
+            </div>
+          {/if}
           {#if draft.serverType === 'java'}
             <div class="row">
               <span class="label">Software</span>

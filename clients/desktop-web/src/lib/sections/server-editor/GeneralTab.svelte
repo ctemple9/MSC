@@ -23,6 +23,7 @@
   // gated on `isActive` and offers the same "Set as Active" action
   // ManageSheet's row menu already exposes instead.
   import { onDestroy } from 'svelte';
+  import RamAllocationFields from '../../components/base/RamAllocationFields.svelte';
   import Card from '../../components/base/Card.svelte';
   import Button from '../../components/base/Button.svelte';
   import Field from '../../components/base/Field.svelte';
@@ -398,36 +399,13 @@
     {:else if !ram}
       <p class="hint">Loading memory allocation…</p>
     {:else}
-      <Card padding="0">
-        <div class="row">
-          <span class="name">Minimum RAM</span>
-          <div class="control">
-            <NumberField
-              value={minRamDraft}
-              min={0}
-              step={0.1}
-              width="80px"
-              disabled={!canControl || ramSaving}
-              onValueChange={handleMinRamChange}
-            />
-            <span class="unit">GB</span>
-          </div>
-        </div>
-        <div class="row bordered">
-          <span class="name">Maximum RAM</span>
-          <div class="control">
-            <NumberField
-              value={maxRamDraft}
-              min={0}
-              step={0.1}
-              width="80px"
-              disabled={!canControl || ramSaving}
-              onValueChange={handleMaxRamChange}
-            />
-            <span class="unit">GB</span>
-          </div>
-        </div>
-      </Card>
+      <RamAllocationFields
+        minimum={minRamDraft}
+        maximum={maxRamDraft}
+        disabled={!canControl || ramSaving}
+        onMinimumChange={handleMinRamChange}
+        onMaximumChange={handleMaxRamChange}
+      />
       {#if ramSaving}<p class="hint memory-status">Saving…</p>{/if}
     {/if}
   </section>
@@ -651,10 +629,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .unit {
-    font-size: 11px;
-    color: var(--msc-text-tertiary);
   }
   .storage-value {
     font-size: 12px;

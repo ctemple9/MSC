@@ -483,6 +483,18 @@ pub async fn create(
         Err(_) => return invalid_body("invalid_body", "Request body must be a server object."),
     };
 
+    let ram_allocation = (body.min_ram_gb, body.max_ram_gb);
+    if [ram_allocation.0, ram_allocation.1]
+        .into_iter()
+        .flatten()
+        .any(|value| !value.is_finite() || value < 0.0)
+    {
+        return invalid_body(
+            "invalid_ram",
+            "Enter a valid minimum and maximum RAM value.",
+        );
+    }
+
     let Some(safe_name) = msc_domain::provisioning::trimmed_server_name(&body.name) else {
         return invalid_body("name_required", "name is required.");
     };
@@ -588,6 +600,7 @@ pub async fn create(
                     request_gamemode,
                     request_seed,
                     request_world_profile,
+                    ram_allocation,
                 )
             })
             .await;
@@ -752,6 +765,7 @@ pub async fn create(
                 staged_modpack,
                 pack_setup,
                 pending_modpack_imports,
+                ram_allocation,
             )
         })
         .await
@@ -789,6 +803,16 @@ fn confirmation_required_response(required: SafetyConfirmation) -> Response {
         .into_response()
 }
 
+// Apply to the new record before registration, never to an unrelated active server.
+fn apply_creation_ram(server: &mut ConfigServer, allocation: (Option<f64>, Option<f64>)) {
+    if let Some(value) = allocation.0 {
+        server.min_ram_gb = value;
+    }
+    if let Some(value) = allocation.1 {
+        server.max_ram_gb = value;
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn run_create_bedrock_server(
     state: LifecycleRoutesState,
@@ -804,6 +828,7 @@ fn run_create_bedrock_server(
     gamemode: String,
     world_seed: Option<String>,
     initial_world_profile: Option<WorldProfile>,
+    ram_allocation: (Option<f64>, Option<f64>),
 ) {
     let should_cancel = state.operations().cancellation_check(&operation_id);
     if should_cancel() {
@@ -834,7 +859,8 @@ fn run_create_bedrock_server(
         &iso8601_now(),
     );
     match created {
-        Ok(created) => {
+        Ok(mut created) => {
+            apply_creation_ram(&mut created.config, ram_allocation);
             match state.register_imported_config_servers(vec![created.config.clone()], false) {
                 Ok(statuses) => {
                     let first_start_required =
@@ -919,6 +945,7 @@ fn run_create_server(
     staged_modpack: Option<CreationPackLease>,
     pack_setup: Option<provisioning::PackRuntimeOverride>,
     pending_modpack_imports: PendingModpackImports,
+    ram_allocation: (Option<f64>, Option<f64>),
 ) {
     let should_cancel = state.operations().cancellation_check(&operation_id);
     if should_cancel() {
@@ -1022,6 +1049,7 @@ fn run_create_server(
                 let unresolved_files = pack_unresolved_files(&created_from_pack.pack_report);
                 let pack_summary = pack_summary(&created_from_pack.pack_report);
                 let mut created = created_from_pack.created;
+                apply_creation_ram(&mut created.config, ram_allocation);
                 let created_server_id = created.config.id.clone();
                 created.config.java_path = java_path_override.clone();
                 created.config.check_addon_updates = check_addon_updates;
@@ -1102,6 +1130,7 @@ fn run_create_server(
 
     match result {
         Ok(mut created) => {
+            apply_creation_ram(&mut created.config, ram_allocation);
             // P7.31: `create_install_step_server` already ran this guard
             // itself (before its own installer subprocess), so this only
             // gates the four download-and-go families, which never spawn

@@ -26,6 +26,7 @@
   // installs whatever `enableCrossPlay`/`enableXboxBroadcast` need as part
   // of the real create operation (P12.18g), so there is nothing to poll yet
   // -- a deliberate omission, not a silent drop.
+  import RamAllocationFields from '../../../components/base/RamAllocationFields.svelte';
   import Field from '../../../components/base/Field.svelte';
   import NumberField from '../../../components/base/NumberField.svelte';
   import SegmentedControl from '../../../components/base/SegmentedControl.svelte';
@@ -36,6 +37,8 @@
   import type { Schema, ScreenApi } from '../../shared/types';
   import { errorMessage } from '../../shared/types';
   import {
+    ramDraftValues,
+    validRamDraft,
     BEDROCK_VERSION_NOTE,
     JAVA_CATEGORY_INFO,
     crossPlayUnavailable,
@@ -69,6 +72,8 @@
   }
 
   publishTourContext();
+
+  $: ramValues = ramDraftValues(draft);
 
   $: unavailableForCrossPlay = crossPlayUnavailable(draft.javaCategory, draft.javaFlavor);
   // Xbox Broadcast is shared by both branches (`xboxBroadcastSection` in the
@@ -313,6 +318,19 @@
       <p class="hint">Port and connectivity options are on the next step.</p>
     </section>
   {/if}
+
+  <section class="block" use:onboardingAnchor={'ob_server_memory'}>
+    <p class="msc-type-overline">Memory</p>
+    <RamAllocationFields
+      minimum={ramValues.minimum}
+      maximum={ramValues.maximum}
+      onMinimumChange={(value) => (draft.minRamDraft = value)}
+      onMaximumChange={(value) => (draft.maxRamDraft = value)}
+    />
+    {#if !validRamDraft(draft)}
+      <p class="hint warn" role="alert">Enter a valid minimum and maximum RAM value.</p>
+    {/if}
+  </section>
 
   {#if showXboxBroadcast}
     <section class="block" use:onboardingAnchor={'ob_server_xbox_broadcast'}>

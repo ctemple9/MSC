@@ -125,6 +125,8 @@ fn provisioning_conformance_server_create_request() {
     check(
         "ServerCreateRequestDTO",
         &ServerCreateRequestDto {
+            min_ram_gb: Some(2.5),
+            max_ram_gb: Some(5.0),
             name: "Survival Realm".to_string(),
             server_type: Some("java".to_string()),
             java_flavor: Some("paper".to_string()),
