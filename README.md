@@ -22,7 +22,7 @@ host.
 
 ## Download and install
 
-Download [MSC v0.1.43](https://github.com/ctemple9/msc2/releases/tag/v0.1.43)
+Download [MSC v0.1.43](https://github.com/ctemple9/MSC/releases/tag/v0.1.43)
 and choose the file for your computer. The desktop app includes the engine.
 
 - **Mac:** Open the `.dmg` and drag MSC to Applications.
@@ -237,7 +237,7 @@ does not replace the separate terms for third-party software and bundled
 runtime files; see [Third-party notices](THIRD-PARTY-NOTICES.md).
 
 For a security issue, use GitHub's [private vulnerability report
-form](https://github.com/ctemple9/msc2/security/advisories/new). Please do not
+form](https://github.com/ctemple9/MSC/security/advisories/new). Please do not
 report vulnerabilities in public issues. The supported-version policy and
 disclosure guidance are in [SECURITY.md](SECURITY.md).
 
@@ -298,7 +298,7 @@ Swift is used for the macOS Bedrock runtime.
 
 ## Current release and support
 
-The latest published build is [MSC v0.1.43](https://github.com/ctemple9/msc2/releases/tag/v0.1.43),
+The latest published build is [MSC v0.1.43](https://github.com/ctemple9/MSC/releases/tag/v0.1.43),
 a prerelease. There is no stable release yet. Download the
 platform-specific installer or archive from that release page and verify its
 entry in `SHA256SUMS` before installing. The Phase 16 acceptance record

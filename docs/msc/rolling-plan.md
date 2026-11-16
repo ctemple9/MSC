@@ -292,3 +292,39 @@ physical macOS/Linux and installer acceptance remain owner verification.
 **Batch:** One owner-authorized autonomous step; one commit for all changes.
 
 **Commit:** `P26.1: rename product and background service throughout repository`
+
+
+### P26.2 ? follow the owner-renamed GitHub repository
+
+**Status:** Implemented; owner verification pending. Owner confirmed the remote
+rename and local remote update on 2026-11-15. The already-published P26.1 commit
+is preserved; this bounded follow-up has one commit.
+
+**Files:** README/security links; desktop bundle homepage; Windows installer
+support links; desktop/CLI updater defaults; uninstall recovery configuration;
+update fixture repository; naming migration record and compatibility inventory;
+this plan.
+
+**What:** Use `ctemple9/MSC` for current repository references. Preserve historical
+links, private updater switches, signing configuration and manifest filenames.
+Read-only GitHub inspection confirmed that both repository addresses expose the
+same 38 releases and both serve the v0.1.44 update manifest/signature. These
+requests do not establish full installed-client upgrade acceptance. No tests,
+installer execution, push or release publication.
+
+**Verify:** `python tools/naming-audit.py` ? retained historical/compatibility
+spellings match their inventory; the new canonical address is used by current
+download/support links and updater defaults. Non-test compile/lint and syntax
+checks are recorded below after completion.
+
+**Batch:** This repository-address follow-up only.
+
+**Commit:** `P26.2: update links and updater defaults for renamed repository`
+
+P26.2 checks: `python tools/naming-audit.py`, workspace/native desktop Rust
+format checks, workspace/native desktop `cargo clippy --locked`, desktop JSON
+and installer XML parsing, and `git diff --check` passed. Clippy reports the
+existing platform-dependent dead-code/unused/needless-return warnings. No tests
+were run. Live requests verified old/new repository metadata, the updater's
+release-list endpoint, and both v0.1.44 manifest/signature download addresses;
+no installer or installed-client update was executed.

@@ -113,20 +113,6 @@
         "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
       }
     ],
-    "README.md": [
-      {
-        "token": "msc2",
-        "count": 3,
-        "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
-      }
-    ],
-    "SECURITY.md": [
-      {
-        "token": "msc2",
-        "count": 1,
-        "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
-      }
-    ],
     "clients/desktop-web/package-lock.json": [
       {
         "token": "agent-base",
@@ -622,11 +608,6 @@
         "token": "MSC2_RELEASE_REPOSITORY",
         "count": 1,
         "reason": "Established environment setting or installed service definition input."
-      },
-      {
-        "token": "msc2",
-        "count": 1,
-        "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
       }
     ],
     "clients/desktop-web/src-tauri/src/update_windows.rs": [
@@ -705,11 +686,6 @@
         "token": "com.ctemple.msc2",
         "count": 1,
         "reason": "Installed application, service, startup or credential-store identity."
-      },
-      {
-        "token": "msc2",
-        "count": 1,
-        "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
       }
     ],
     "clients/desktop-web/src/App.svelte": [
@@ -1941,7 +1917,7 @@
       },
       {
         "token": "msc2",
-        "count": 6,
+        "count": 5,
         "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
       }
     ],
@@ -3397,11 +3373,6 @@
         "reason": "External dependency API, OS term or provider protocol."
       },
       {
-        "token": "msc2",
-        "count": 1,
-        "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
-      },
-      {
         "token": "msc2-update-manifest.json",
         "count": 1,
         "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
@@ -3549,7 +3520,7 @@
       },
       {
         "token": "msc2",
-        "count": 7,
+        "count": 6,
         "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
       },
       {
@@ -5197,11 +5168,6 @@
       {
         "token": "MSC2",
         "count": 5,
-        "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
-      },
-      {
-        "token": "msc2",
-        "count": 2,
         "reason": "Existing data/secret/ownership/update identity or compatibility fixture; see migration table."
       }
     ],

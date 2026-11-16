@@ -13,7 +13,7 @@ response or remediation time.
 ## Reporting a vulnerability
 
 Report vulnerabilities privately through [GitHub's private vulnerability
-reporting form](https://github.com/ctemple9/msc2/security/advisories/new). Do not
+reporting form](https://github.com/ctemple9/MSC/security/advisories/new). Do not
 open a public issue or discussion containing exploit details. GitHub sends
 private reports to the repository maintainers; they are not visible to the
 public.

@@ -449,7 +449,7 @@ fn installer_checksums(
     }
     .into();
     let config = crate::release_update::UpdateClientConfig {
-        repository: "ctemple9/msc2".into(),
+        repository: "ctemple9/MSC".into(),
         current_version: "0.0.0".into(),
         api_major: 1,
         api_minor: 0,

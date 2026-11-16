@@ -24,7 +24,7 @@ use std::process::Command;
 use std::process::{Child, Stdio};
 use std::time::Duration;
 
-const DEFAULT_RELEASE_REPOSITORY: &str = "ctemple9/msc2";
+const DEFAULT_RELEASE_REPOSITORY: &str = "ctemple9/MSC";
 const ENGINE_SERVICE_NAME: &str = "com.ctemple.msc2.agent";
 const ENGINE_PORT: u16 = 48001;
 

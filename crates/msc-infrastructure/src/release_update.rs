@@ -945,7 +945,7 @@ mod tests {
             _ => return,
         };
         let config = UpdateClientConfig {
-            repository: "ctemple9/msc2".into(),
+            repository: "ctemple9/MSC".into(),
             current_version: "0.1.25".into(),
             api_major: 1,
             api_minor: 0,

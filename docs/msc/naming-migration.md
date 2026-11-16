@@ -12,7 +12,7 @@ compatibility aliases. This is a terminology change, not a server-data move.
 Current documents live in `docs/msc/`; their filenames use MSC. Historical
 evidence keeps the names recorded at the time. Links into moved documents are
 updated. Git history is untouched. The local checkout directory is not renamed
-while tools are using it, and no remote repository setting is changed.
+while tools are using it, and this repository task does not change remote repository settings.
 
 ## Documented compatibility exceptions
 
@@ -36,7 +36,7 @@ tests, contact a service or change an installed application.
 | Private `--msc2-*` updater switches and `--agent-indicator` | An already-running older executable can launch its replacement and complete health checks, repair and rollback. These switches are not advertised as product terminology. |
 | `msc2-update-manifest.json` and `.sig` | Existing clients discover and verify the same signed update metadata. New downloadable application/archive filenames use `msc-`; checksums and signatures cover those exact filenames. |
 | Previous desktop executable/package names and install locations | Upgrade, repair, rollback and uninstall recognize the installation they actually find. New source/package identifiers use `msc-desktop-web`. |
-| `ctemple9/msc2` links and update endpoints | This is the existing external repository address, not a local product label. Inventing a replacement URL would break downloads and updates. Remote repository renaming is a separate external operation. |
+| `ctemple9/msc2` in historical evidence links | Cameron renamed the repository to `ctemple9/MSC` on 2026-11-15. Current download/support links and updater defaults use that canonical address. Earlier installed clients still use the former address through GitHub redirects; historical evidence links retain their recorded spelling. |
 | HTTP `User-Agent`, `ureq::Agent`, OpenSSH `IdentityAgent`, Playit keys/origin values/URLs, npm dependency names | External protocols and dependency APIs belong to their providers and must retain their real spelling. The user-facing SSH choice is **SSH key helper**. |
 | `AGENTS.md` references | Required instruction filename. Its content and `CLAUDE.md` remain identical. Coding contributors are distinguished from the background service. |
 
@@ -101,3 +101,27 @@ from an existing version on Windows/macOS/Linux; repair, rollback and uninstall;
 saved servers/hosts/credentials/preferences; desktop/TUI service naming; CLI
 help and service controls. Cross-platform source inspection and a Windows
 build do not establish physical macOS/Linux acceptance.
+
+
+## Repository address follow-up (P26.2)
+
+Cameron confirmed renaming the GitHub repository and changing his Git remote on
+2026-11-15. The current address is `https://github.com/ctemple9/MSC`; the local
+remote was inspected and already uses that address. Current desktop/CLI updater
+defaults, uninstall recovery configuration, installer support links and README/
+security links now point directly to the canonical repository. Existing update
+manifest filenames, signing keys and redirect-host restrictions are unchanged.
+
+Read-only GitHub requests returned HTTP 200 for the new and former repository
+addresses and each updater's `/releases?per_page=100` endpoint. Both returned
+38 releases, headed by v0.1.44. The v0.1.44 manifest (3,081 bytes) and detached
+signature (89 bytes) were downloaded successfully through both repository
+addresses, ending on the already-allowed GitHub release asset host. This checks
+metadata access and redirection, not a complete installed-client update or a
+new signature-verification result. `/releases/latest` returns 404 for both
+addresses because the published builds are prereleases; the updater uses the
+release-list endpoint instead. No installer was downloaded or executed.
+
+The original P26.1 commit was already published, so this follow-up is a separate
+commit rather than a rewrite of shared history. No push, test suite or release
+publication is part of the follow-up.

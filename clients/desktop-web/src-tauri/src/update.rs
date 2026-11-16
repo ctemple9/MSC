@@ -14,7 +14,7 @@ use std::{
     process::Command,
 };
 
-const DEFAULT_RELEASE_REPOSITORY: &str = "ctemple9/msc2";
+const DEFAULT_RELEASE_REPOSITORY: &str = "ctemple9/MSC";
 #[cfg(target_os = "windows")]
 #[path = "update_windows.rs"]
 mod windows;

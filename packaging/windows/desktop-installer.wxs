@@ -85,8 +85,8 @@
 
         {{#if homepage}}
         <Property Id="ARPURLINFOABOUT" Value="{{homepage}}"/>
-        <Property Id="ARPHELPLINK" Value="https://github.com/ctemple9/msc2/issues"/>
-        <Property Id="ARPURLUPDATEINFO" Value="https://github.com/ctemple9/msc2/releases"/>
+        <Property Id="ARPHELPLINK" Value="https://github.com/ctemple9/MSC/issues"/>
+        <Property Id="ARPURLUPDATEINFO" Value="https://github.com/ctemple9/MSC/releases"/>
         {{/if}}
 
         <!-- Machine registration survives approval by a different administrator.
