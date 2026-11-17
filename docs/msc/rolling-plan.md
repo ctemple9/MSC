@@ -881,3 +881,28 @@ layout and the stopping instructions sit beneath it.
 Checks: final `npm run check` passed with 0 errors and existing CSS warnings;
 touched Svelte formatting and `git diff --check` passed. Removed the unused
 heading selector after replacing the old explanation. No tests added or run.
+
+
+### P26.18 — shorten the engine explanation with optional detail
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** EngineSetupSection; this plan.
+
+**What:** Show the three concise owner-approved engine/control-panel/window-close
+explanations in the existing numbered layout. Keep the full previous explanation
+inside one closed-by-default More about the engine disclosure underneath, using
+the page's existing disclosure styling. Keep stopping instructions visible below
+it. No layout fillers, separate disclosures per step or service behavior changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Engine → How does MSC
+work?; compare the compact explanation with More about the engine closed, then
+expand it to read the preserved full copy. Stopping instructions remain outside
+the disclosure. Check the column at normal and narrow window widths.
+
+**Batch:** This explanation presentation only.
+
+**Commit:** `P26.18: shorten engine explanation with optional detail`
+
+Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. No tests added or run.
