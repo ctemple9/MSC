@@ -350,8 +350,6 @@
         {relativeTime?.reason ??
           'Same-day shortcuts are unavailable until the selected runtime advertises time support.'}
       </p>
-    {:else}
-      <p class="subtle-note">Dawn, dusk, and night keep the current Minecraft day.</p>
     {/if}
     <p class="sub-label">Weather</p>
     <div class="button-row">

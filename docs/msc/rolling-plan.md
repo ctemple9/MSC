@@ -1009,3 +1009,22 @@ the address visibility toggle and collapse/expand behavior.
 
 Checks: `npm run check` passed (0 errors, 10 existing CSS warnings);
 touched Svelte formatting and `git diff --check` passed. No tests added or run.
+
+### P26.23 — remove sidebar time shortcut explanation
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** QuickCommandsSection; this plan.
+
+**What:** Remove “Dawn, dusk, and night keep the current Minecraft day.” from
+sidebar Quick commands.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — expand Quick commands
+and confirm the sentence below the time shortcuts is gone.
+
+**Batch:** Requested sidebar sentence only.
+
+**Commit:** `P26.23: remove sidebar time shortcut explanation`
+
+Checks: inspected the two-line removal and intact Svelte conditional;
+`git diff --check` passed. No tests added or run.
