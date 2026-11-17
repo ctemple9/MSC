@@ -4,6 +4,7 @@
   export let name:
     | 'sidebar'
     | 'console'
+    | 'engine'
     | 'external-link'
     | 'help'
     | 'settings'
@@ -19,6 +20,7 @@
 
   const paths: Record<string, string> = {
     sidebar: 'M4 5h16v14H4zM9 5v14',
+    engine: 'M4 4h16v16H4zM15 8H9v8h6M9 12h5',
     console: 'M4 5h16v14H4zM4 15h16',
     'external-link': 'M14 4h6v6M20 4l-9 9M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5',
     help: 'M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.9.4-1.4 1-1.4 1.9v.3M12 17h.01',

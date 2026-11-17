@@ -13,6 +13,7 @@
   export let onToggleSidebar: () => void;
   export let consoleCollapsed = false;
   export let onToggleConsole: () => void;
+  export let onEngine: (() => void) | undefined = undefined;
   export let onHelp: (() => void) | undefined = undefined;
   export let onSettings: (() => void) | undefined = undefined;
   export let onRefresh: (() => void) | undefined = undefined;
@@ -54,6 +55,16 @@
       onclick={onToggleConsole}
     >
       <ShellIcon name="console" />
+    </button>
+    <button
+      type="button"
+      class="icon-btn"
+      aria-label="Engine"
+      title="Engine"
+      disabled={!onEngine}
+      onclick={onEngine}
+    >
+      <ShellIcon name="engine" />
     </button>
     <button
       type="button"

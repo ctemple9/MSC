@@ -122,6 +122,7 @@
     onToggleSidebar={toggleSidebar}
     {consoleCollapsed}
     onToggleConsole={toggleConsole}
+    onEngine={onOpenEngineSetup}
     {onHelp}
     {onSettings}
     {onRefresh}
@@ -158,7 +159,6 @@
         {onResumeInitiation}
         {onDiscardInitiation}
         {discardingInitiation}
-        {onOpenEngineSetup}
         {onManage}
         {addressesVisible}
         {onToggleAddresses}

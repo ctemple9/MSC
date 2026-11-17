@@ -906,3 +906,29 @@ the disclosure. Check the column at normal and narrow window widths.
 
 Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. No tests added or run.
+
+### P26.19 — move manage to the sidebar and engine to the header
+
+**Status:** Implemented; owner visual and onboarding verification pending.
+
+**Files:** ApplicationShell; ControlSidebar; TopBar; ShellIcon; TourOverlay;
+onboarding guide; this plan.
+
+**What:** Replace the sidebar Engine button with Manage and remove Manage from
+the server picker. Move Engine into the header as the third small icon, directly
+after the console toggle, using a square E in the existing shell icon style and
+button dimensions. Point the server-list onboarding card directly at Manage and
+remove the old dropdown-specific card hiding behavior.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — check Manage beside
+Start opens the server list, and the third header icon opens Engine with either
+sidebar state. Start onboarding and click its highlighted Manage button; confirm
+the tour advances to Create Server.
+
+**Batch:** This navigation and matching onboarding change only.
+
+**Commit:** `P26.19: move manage to sidebar and engine to header`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings).
+`npm run build` and `git diff --check` passed; existing build warnings remain.
+Touched Svelte formatting passed. No tests added or run.

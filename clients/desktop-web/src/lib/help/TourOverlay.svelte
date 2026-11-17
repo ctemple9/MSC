@@ -130,13 +130,6 @@
     const onAnchorAction = (event: Event) => {
       if ($tourExitRequest) return;
       const anchorId = (event as CustomEvent<{ anchorId?: string }>).detail?.anchorId;
-      if (step?.id === 'manage-servers' && anchorId === 'ob_server_picker') {
-        // The picker menu renders above the page but below this tour layer. Hide
-        // the coach mark after opening it so the Manage item remains visible
-        // and clickable; selecting that item still advances the tour below.
-        cardHidden = true;
-        return;
-      }
       if (
         step &&
         ACTION_ANCHORS[step.id] === anchorId &&

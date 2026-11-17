@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Server-control rail: host-aware picker, Initiate/Start/Stop, Manage, Engine, and MSC 1's
+  // Server-control rail: host-aware picker, Initiate/Start/Stop, Manage, and MSC 1's
   // four collapsible sections, all real now (P12.21, P12.22).
   // docs/msc/renderings/shell.html, MSC 1 SidebarView.swift.
   import Button from '../base/Button.svelte';
@@ -62,7 +62,6 @@
   export let onResumeInitiation: () => void = () => undefined;
   export let onDiscardInitiation: () => void = () => undefined;
   export let discardingInitiation = false;
-  export let onOpenEngineSetup: () => void;
   export let onManage: () => void;
   export let addressesVisible = false;
   export let onToggleAddresses: () => void = () => undefined;
@@ -87,7 +86,6 @@
           label: server.name,
           onSelect: () => onSelectServer(server.id),
         })),
-        { label: 'Manage…', onSelect: onManage, anchorId: 'ob_manage_servers' },
       ];
     }
     const items: PickerItem[] = [];
@@ -101,7 +99,6 @@
         items.push({ label: 'Switch to this host…', onSelect: () => onSwitchHost(host.id) });
       }
     }
-    items.push({ label: 'Manage…', onSelect: onManage, anchorId: 'ob_manage_servers' });
     return items;
   }
 
@@ -242,7 +239,8 @@
           <ShellIcon name={running ? 'stop' : 'play'} size={13} />
           {stopping ? 'Stopping…' : running ? 'Stop' : startLabel}
         </Button>
-        <Button variant="secondary" size="sm" onclick={onOpenEngineSetup}>Engine</Button
+        <Button variant="secondary" size="sm" onclick={onManage} anchorId="ob_manage_servers"
+          >Manage</Button
         >
       </div>
       {#if statusNotice}
