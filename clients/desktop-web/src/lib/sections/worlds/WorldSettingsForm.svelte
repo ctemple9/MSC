@@ -75,6 +75,55 @@
     }
   }
 
+  function selectWorldType(worldType: string): void {
+    if (mode !== 'wizard') {
+      update({ worldType });
+      return;
+    }
+    // Creation offers familiar presets; users do not need to author generator JSON.
+    update({
+      worldType,
+      flatPreset:
+        serverType === 'java' && worldType === 'flat'
+          ? JSON.stringify({
+              layers: [
+                { block: 'minecraft:bedrock', height: 1 },
+                { block: 'minecraft:dirt', height: 2 },
+                { block: 'minecraft:grass_block', height: 1 },
+              ],
+              biome: 'minecraft:plains',
+            })
+          : '',
+      biomeSource: '',
+      generatorOptions: '',
+    });
+  }
+
+  function worldTypeHint(worldType: string): string {
+    switch (worldType) {
+      case 'flat':
+        return 'A flat grass world, with dirt and bedrock underneath.';
+      case 'large_biomes':
+        return 'Normal terrain with larger stretches of each biome.';
+      case 'amplified':
+        return 'Dramatic terrain with taller mountains and deeper valleys.';
+      default:
+        return 'Normal Minecraft terrain, with a mix of biomes.';
+    }
+  }
+
+  function worldTypeOptions(): readonly { value: string; label: string }[] {
+    return WORLD_TYPE_OPTIONS.filter((option) =>
+      serverType === 'bedrock'
+        ? ['default', 'flat'].includes(option.value)
+        : mode !== 'wizard' || option.value !== 'single_biome_surface',
+    ).map((option) =>
+      mode === 'wizard' && serverType === 'java' && option.value === 'flat'
+        ? { ...option, label: 'Superflat' }
+        : option,
+    );
+  }
+
   function unavailable(key: string): boolean {
     return profileFieldIsUnavailable(key, serverType, mode, metadata, capabilities);
   }
@@ -263,27 +312,33 @@
     <summary>
       <span>
         <span class="disclosure-title">World Generation</span>
-        <span class="disclosure-subtitle">Terrain, folder, and first-creation options</span>
+        <span class="disclosure-subtitle"
+          >{mode === 'wizard'
+            ? 'World type, structures, and starter supplies'
+            : 'Terrain, folder, and first-creation options'}</span
+        >
       </span>
       <span class="chevron" aria-hidden="true">⌄</span>
     </summary>
     <div class="disclosure-body">
       <div class="field-grid">
-        <label class="field-group">
-          <span class="label">Minecraft Folder Name</span>
-          {#if unavailable('identity.level-name')}
-            <span class="unavailable">Unavailable: {reason('identity.level-name')}</span>
-          {:else}
-            <Field
-              bind:value={values.levelName}
-              placeholder="Use the default folder name"
-              disabled={readOnly('identity.level-name')}
-            />
-            {#if fieldNote('identity.level-name')}<span class="hint"
-                >{fieldNote('identity.level-name')}</span
-              >{/if}
-          {/if}
-        </label>
+        {#if mode !== 'wizard'}
+          <label class="field-group">
+            <span class="label">Minecraft Folder Name</span>
+            {#if unavailable('identity.level-name')}
+              <span class="unavailable">Unavailable: {reason('identity.level-name')}</span>
+            {:else}
+              <Field
+                bind:value={values.levelName}
+                placeholder="Use the default folder name"
+                disabled={readOnly('identity.level-name')}
+              />
+              {#if fieldNote('identity.level-name')}<span class="hint"
+                  >{fieldNote('identity.level-name')}</span
+                >{/if}
+            {/if}
+          </label>
+        {/if}
 
         <label class="field-group">
           <span class="label">World Type</span>
@@ -291,25 +346,21 @@
             <span class="unavailable">Unavailable: {reason('generation.world-type')}</span>
           {:else}
             <Select
-              options={optionList(
-                serverType === 'bedrock'
-                  ? WORLD_TYPE_OPTIONS.filter((option) =>
-                      ['default', 'flat'].includes(option.value),
-                    )
-                  : WORLD_TYPE_OPTIONS,
-                values.worldType,
-              )}
+              options={optionList(worldTypeOptions(), values.worldType)}
               value={values.worldType}
               disabled={readOnly('generation.world-type')}
-              onchange={(value) => update({ worldType: value })}
+              onchange={selectWorldType}
             />
+            {#if mode === 'wizard'}
+              <span class="hint">{worldTypeHint(values.worldType)}</span>
+            {/if}
             {#if fieldNote('generation.world-type')}<span class="hint"
                 >{fieldNote('generation.world-type')}</span
               >{/if}
           {/if}
         </label>
 
-        {#if serverType === 'java' || !unavailable('generation.flat-preset')}
+        {#if mode !== 'wizard' && (serverType === 'java' || !unavailable('generation.flat-preset'))}
           <label
             class="field-group"
             class:unavailable-group={unavailable('generation.flat-preset')}
@@ -330,7 +381,7 @@
           </label>
         {/if}
 
-        {#if serverType === 'java' || !unavailable('generation.biome-source')}
+        {#if mode !== 'wizard' && (serverType === 'java' || !unavailable('generation.biome-source'))}
           <label class="field-group">
             <span class="label">Biome Source</span>
             {#if unavailable('generation.biome-source')}
@@ -350,7 +401,7 @@
 
         {#if serverType === 'java'}
           <label class="field-group">
-            <span class="label">Structures</span>
+            <span class="label">Generate Structures</span>
             {#if unavailable('generation.structures')}
               <span class="unavailable">Unavailable: {reason('generation.structures')}</span>
             {:else}
@@ -360,6 +411,9 @@
                 disabled={readOnly('generation.structures')}
                 onchange={(checked) => update({ structures: checked })}
               />
+              {#if mode === 'wizard'}
+                <span class="hint">Generate villages, temples, and other structures.</span>
+              {/if}
               {#if fieldNote('generation.structures')}<span class="hint"
                   >{fieldNote('generation.structures')}</span
                 >{/if}
@@ -367,7 +421,7 @@
           </label>
         {/if}
 
-        <div class="field-group wide generation-options">
+        <div class="field-group generation-options">
           <div class="inline-toggle-row">
             <span class="label">Bonus Chest</span>
             {#if unavailable('generation.bonus-chest')}
@@ -397,11 +451,13 @@
             </div>
           {/if}
           <span class="hint"
-            >Used only when a new world is generated. Create a new world to change it.</span
+            >{mode === 'wizard'
+              ? 'A bonus chest provides starter supplies near the initial spawn.'
+              : 'Used only when a new world is generated. Create a new world to change it.'}</span
           >
         </div>
 
-        {#if serverType === 'java' || !unavailable('generation.generator-options')}
+        {#if mode !== 'wizard' && (serverType === 'java' || !unavailable('generation.generator-options'))}
           <label class="field-group wide">
             <span class="label">Generator Options</span>
             {#if unavailable('generation.generator-options')}
@@ -420,7 +476,7 @@
           </label>
         {/if}
 
-        {#if serverType === 'java' || !unavailable('generation.data-packs')}
+        {#if mode !== 'wizard' && (serverType === 'java' || !unavailable('generation.data-packs'))}
           <label class="field-group wide">
             <span class="label">Data Packs</span>
             {#if unavailable('generation.data-packs')}

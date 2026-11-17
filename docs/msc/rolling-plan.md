@@ -529,3 +529,45 @@ formatting, JSON parsing and `git diff --check` passed. The explicit CLI
 request initializer was updated after the initial compile caught its missing
 optional fields. No live server creation or tests performed. The separate
 desktop lockfile change remains outside this commit.
+
+
+### P26.7 — simplify first-world generation choices
+
+**Status:** Implemented; owner visual and creation verification pending.
+
+**Files:** Shared WorldSettingsForm wizard presentation; onboarding guide;
+this plan.
+
+**What:** Owner-approved simplification of the Add Server first-world form:
+keep World Type, Generate Structures (Java), and Bonus Chest, retaining existing
+edition/capability restrictions and the Bedrock Starting Map option. Offer
+Default, Superflat, Large Biomes and Amplified on Java; Default/Flat on Bedrock.
+Remove Single Biome from the wizard choices because its custom biome field is
+no longer offered. Hide Minecraft Folder Name, Flat Preset JSON, Biome Source,
+Generator Options and raw Data Pack IDs in this creation flow. Packs browsing
+and import remain in the dedicated Packs section. Do not add an Advanced panel.
+Selecting Java Superflat supplies one bedrock layer, two dirt layers, one grass
+layer and a plains biome automatically; selecting another type clears the
+wizard's custom generator settings. The existing Bedrock flat preset is owned
+by the engine. Retain world name, seed, difficulty and game mode in Essentials.
+Keep the shared form's existing Worlds create/edit controls and stored/custom
+profiles available outside the Add Server wizard. Update the existing World
+Generation tour explanation in place, preserving card order and anchors.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → Start Fresh
+→ World → World Generation: confirm only the simple edition-appropriate
+controls appear, and Essentials/Packs remain available. Select Superflat,
+continue/back and confirm the selection persists; create it and verify standard
+grass terrain. Switch Superflat back to Default before creation and confirm
+normal terrain. Repair engine and restart the tour to read the updated card.
+
+**Batch:** This creation-form simplification only.
+
+**Commit:** `P26.7: simplify world generation in server creation`
+
+Checks: frontend `npm run check` passed (0 errors, existing CSS warnings);
+`npm run build` passed with existing CSS/import/chunk warnings. Touched Svelte
+formatting, Rust format check, engine Clippy, onboarding JSON parsing and
+`git diff --check` passed; Clippy reports existing warnings. No tests added or
+run, and no live world or service changes. Separate desktop lockfile change
+remains outside this step.
