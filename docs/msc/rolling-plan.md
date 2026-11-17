@@ -1090,3 +1090,40 @@ follow the 0.1.46 release and local release-notes links.
 
 Checks: verified 0.1.46 is a published prerelease using GitHub's release API;
 local README link targets and `git diff --check` passed. No tests added or run.
+
+### P26.27 — read Windows server CPU and RAM usage
+
+**Status:** Implemented; owner Windows interaction verification pending.
+
+**Files:** Infrastructure process metrics; this plan.
+
+**What:** Replace the Windows no-reading fallback with the existing sysinfo
+dependency's native process CPU and working-set memory readings. Retain sample
+state for CPU deltas, reset it when the server process changes, and reuse the
+last reading for requests inside the library's minimum sampling interval.
+Report RAM in MiB and CPU as a percentage of whole-machine capacity, matching
+the existing macOS/Linux convention. Leave CPU absent until the second sample
+rather than reporting a false idle baseline. Both Overview and Performance
+consume the existing shared API fields; no frontend or release change.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — when ready to stop the
+current server, install the rebuilt background service through Engine repair,
+then start Paper. Confirm RAM appears and CPU becomes numeric after subsequent
+refreshes in Overview and Performance. Compare broadly with the Java process
+in Task Manager; stop/start or switch servers and confirm readings follow the
+current process rather than the previous server.
+
+**Batch:** This Windows metrics implementation only.
+
+**Commit:** `P26.27: read windows server cpu and ram usage`
+
+Checks: `cargo fmt --all` and `cargo clippy -p msc-engine` passed, with existing
+Windows warnings outside the changed code. An initial strict Clippy invocation
+with `-D warnings` stopped on the existing BEDROCK_HELPER_SOCKET_MODE warning.
+`git diff --check` passed. Cargo's unrelated lockfile package reordering was
+discarded; no dependency changes were needed.
+
+No tests added or run; no running server or installed service modified.
+Separate reported uninstall issue: Windows MSI discovery still filters for the
+old DisplayName MSC, while current packages use Minecraft Server Controller.
+That finding is outside this metrics step.

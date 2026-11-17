@@ -18,25 +18,43 @@ pub trait ProcessMetricsProvider {
     fn process_usage(&self, pid: ProcessId) -> Option<ProcessResourceUsage>;
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct PsProcessMetricsProvider {
-    #[cfg_attr(not(any(target_os = "macos", target_os = "linux")), allow(dead_code))]
+    #[cfg_attr(
+        not(any(target_os = "macos", target_os = "linux", windows)),
+        allow(dead_code)
+    )]
     logical_core_count: usize,
+    #[cfg(windows)]
+    windows: std::sync::Arc<std::sync::Mutex<WindowsProcessMetrics>>,
+}
+
+#[cfg(windows)]
+#[derive(Debug, Default)]
+struct WindowsProcessMetrics {
+    system: sysinfo::System,
+    pid: Option<ProcessId>,
+    sampled_at: Option<std::time::Instant>,
+    usage: Option<ProcessResourceUsage>,
 }
 
 impl Default for PsProcessMetricsProvider {
     fn default() -> Self {
-        Self {
-            logical_core_count: std::thread::available_parallelism()
+        Self::new(
+            std::thread::available_parallelism()
                 .map(usize::from)
                 .unwrap_or(1),
-        }
+        )
     }
 }
 
 impl PsProcessMetricsProvider {
     pub fn new(logical_core_count: usize) -> Self {
-        Self { logical_core_count }
+        Self {
+            logical_core_count,
+            #[cfg(windows)]
+            windows: Default::default(),
+        }
     }
 }
 
@@ -55,7 +73,49 @@ impl ProcessMetricsProvider for PsProcessMetricsProvider {
             parse_ps_cpu_rss(&stdout, self.logical_core_count)
         }
 
-        #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+        #[cfg(windows)]
+        {
+            let mut state = self.windows.lock().ok()?;
+            if state.pid != Some(pid) {
+                // CPU deltas must never carry across server processes.
+                *state = WindowsProcessMetrics::default();
+                state.pid = Some(pid);
+                // sysinfo needs the processor count to scale Windows CPU deltas.
+                state
+                    .system
+                    .refresh_cpu_list(sysinfo::CpuRefreshKind::nothing());
+            }
+            if state
+                .sampled_at
+                .is_some_and(|at| at.elapsed() < sysinfo::MINIMUM_CPU_UPDATE_INTERVAL)
+            {
+                return state.usage;
+            }
+            let had_sample = state.sampled_at.is_some();
+            let process_id = sysinfo::Pid::from_u32(pid.raw());
+            state.system.refresh_processes_specifics(
+                sysinfo::ProcessesToUpdate::Some(&[process_id]),
+                true,
+                sysinfo::ProcessRefreshKind::nothing()
+                    .with_cpu()
+                    .with_memory(),
+            );
+            state.usage = state
+                .system
+                .process(process_id)
+                .map(|process| ProcessResourceUsage {
+                    // CPU requires two observations; do not present the initial baseline as idle.
+                    cpu_percent: had_sample.then(|| {
+                        (f64::from(process.cpu_usage()) / self.logical_core_count.max(1) as f64)
+                            .clamp(0.0, 100.0)
+                    }),
+                    ram_used_mb: Some(process.memory() as f64 / 1_048_576.0),
+                });
+            state.sampled_at = state.usage.map(|_| std::time::Instant::now());
+            state.usage
+        }
+
+        #[cfg(not(any(target_os = "macos", target_os = "linux", windows)))]
         {
             let _ = pid;
             None
