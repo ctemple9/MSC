@@ -5,6 +5,9 @@ import { writable } from 'svelte/store';
 /** The current guided-tour card, shared with UI that needs tour-only limits. */
 export const activeTourStep = writable<string | null>(null);
 
+/** Deferred wizard navigation; only confirmation may execute it during a tour. */
+export const tourExitRequest = writable<(() => void) | null>(null);
+
 /** Actions shown in the app header while the guided-tour card is hidden. */
 export const hiddenTourActions = writable<{
   showTip: () => void;

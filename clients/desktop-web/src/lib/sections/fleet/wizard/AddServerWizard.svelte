@@ -37,6 +37,7 @@
   import Button from '../../../components/base/Button.svelte';
   import {
     activeTourStep,
+    tourExitRequest,
     tourJavaSelectionPending,
     tourServerContext,
     tourServerCreated,
@@ -129,6 +130,7 @@
   });
 
   onDestroy(() => {
+    tourExitRequest.set(null);
     const staged = draft.stagedServerSource;
     if (staged && !isCreating && !createSucceeded)
       void discardUpload(staged.api, staged.stagedUploadId).catch((error) =>
@@ -236,6 +238,10 @@
   }
 
   async function closeWizard(): Promise<void> {
+    if ($tourExitRequest) {
+      tourExitRequest.set(null);
+      return;
+    }
     cleanupError = '';
     const staged = draft.stagedServerSource;
     if (staged && !createSucceeded) {
@@ -260,7 +266,15 @@
   }
 
   function backStep(): void {
-    if (currentStep > 1) currentStep -= 1;
+    if (currentStep <= 1 || isCreating || transferBusy || $tourExitRequest) return;
+    if ($activeTourStep) {
+      const previousStep = currentStep - 1;
+      tourExitRequest.set(() => {
+        currentStep = previousStep;
+      });
+      return;
+    }
+    currentStep -= 1;
   }
 
   async function beginCreate(): Promise<void> {

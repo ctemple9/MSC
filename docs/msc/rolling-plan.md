@@ -700,3 +700,39 @@ paragraph no longer separates the context from Essentials.
 Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. The subsequent redundant-border
 removal was inspected in the diff. No tests added or run.
+
+
+### P26.13 — confirm leaving onboarding before creator Back
+
+**Status:** Implemented; owner interaction verification pending.
+
+**Files:** Onboarding shared state, TourOverlay and AddServerWizard; this plan.
+
+**What:** Defer the creator's Back action while the guided tour is active.
+Use the existing tour card presentation for “Do you want to exit onboarding?”
+with Cancel and Yes, exit onboarding. Yes invokes the existing skip/completion
+path (including its persistence/restart behavior) before going back exactly one
+wizard page. Cancel leaves the wizard, values, tour index and prior hidden-card
+state unchanged. Reveal the confirmation even on hidden tips and the popup-free
+World review step; suppress tip-header actions and anchor advancement while it
+is pending. Block background pointer interaction, focus Cancel, contain keyboard
+focus, and treat Escape as cancellation. Clear deferred navigation if the
+wizard or tour unmounts. Ordinary non-tour Back and creation/busy guards remain.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — restart onboarding and
+press Back in Configure, Network, World and Confirm (including hidden tips and
+World review). Cancel must keep page, input values and tour position; Yes must
+end the tour and go back one page with values intact. Confirm Escape cancels,
+Tab stays within the confirmation, and Back works normally outside onboarding.
+Restart the tour afterwards to confirm it can be reopened normally.
+
+**Batch:** This tour/creator Back confirmation only.
+
+**Commit:** `P26.13: confirm onboarding exit before creator back navigation`
+
+Checks: frontend `npm run check` passed (0 errors, existing CSS warnings);
+`npm run build` passed with existing CSS/import/chunk warnings. After adding
+keyboard focus containment, the type-check passed again. Touched frontend
+formatting and `git diff --check` passed. No tests added or run; verify the
+visible interaction manually rather than adding source-text or timer-sensitive
+tests. The separate desktop lockfile change remains outside this step.

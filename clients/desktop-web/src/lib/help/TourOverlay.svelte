@@ -22,6 +22,7 @@
   } from './tourAnchors';
   import {
     activeTourStep,
+    tourExitRequest,
     hiddenTourActions,
     tourJavaSelectionPending,
     tourServerCreated,
@@ -65,6 +66,46 @@
   let scrollRequest = 0;
   let scrollFrame: number | undefined;
   let createCompletionHandled = false;
+  function confirmTourExit(): void {
+    const navigateBack = $tourExitRequest;
+    if (!navigateBack) return;
+    tourExitRequest.set(null);
+    onSkip();
+    activeTourStep.set(null);
+    navigateBack();
+  }
+
+  function focusExitConfirmation(node: HTMLElement): { destroy: () => void } {
+    const previousFocus = document.activeElement;
+    node.querySelector('button')?.focus();
+    function handleKey(event: KeyboardEvent): void {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        tourExitRequest.set(null);
+      } else if (event.key === 'Tab') {
+        const buttons = [...node.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+        const first = buttons[0];
+        const last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    }
+    node.addEventListener('keydown', handleKey);
+    return {
+      destroy: () => {
+        node.removeEventListener('keydown', handleKey);
+        if (previousFocus instanceof HTMLElement && previousFocus.isConnected)
+          previousFocus.focus();
+      },
+    };
+  }
+
   function showTourTip(): void {
     cardHidden = false;
   }
@@ -87,6 +128,7 @@
 
   onMount(() => {
     const onAnchorAction = (event: Event) => {
+      if ($tourExitRequest) return;
       const anchorId = (event as CustomEvent<{ anchorId?: string }>).detail?.anchorId;
       if (step?.id === 'manage-servers' && anchorId === 'ob_server_picker') {
         // The picker menu renders above the page but below this tour layer. Hide
@@ -109,7 +151,9 @@
 
   $: activeTourStep.set(step?.id ?? null);
   $: hiddenTourActions.set(
-    cardHidden && step ? { showTip: showTourTip, skip: onSkip, skipLabel } : null,
+    cardHidden && step && !$tourExitRequest
+      ? { showTip: showTourTip, skip: onSkip, skipLabel }
+      : null,
   );
   // Wait for the real asynchronous create operation before ending this pass of
   // the tour, so the success page is visible and later setup cards do not take
@@ -119,6 +163,7 @@
     onComplete();
   }
   onDestroy(() => {
+    tourExitRequest.set(null);
     if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
     activeTourStep.set(null);
     hiddenTourActions.set(null);
@@ -207,14 +252,16 @@
 <svelte:window on:resize={onResize} />
 
 <!-- World review waits for the wizard's Continue action without another popup. -->
-{#if step && step.id !== 'world-review' && !(REVIEW_STEP_IDS.has(step.id) && cardHidden)}
+{#if step && ($tourExitRequest || (step.id !== 'world-review' && !(REVIEW_STEP_IDS.has(step.id) && cardHidden)))}
   <div
     class="tour-root"
-    role={!cardHidden ? 'dialog' : undefined}
-    aria-modal={!cardHidden ? 'true' : undefined}
+    role={$tourExitRequest || !cardHidden ? 'dialog' : undefined}
+    aria-modal={$tourExitRequest || !cardHidden ? 'true' : undefined}
     aria-live="polite"
   >
-    {#if !cardHidden}
+    {#if $tourExitRequest}
+      <div class="dim-block" aria-hidden="true"></div>
+    {:else if !cardHidden}
       {#if blocking}
         <div class="dim-block" aria-hidden="true"></div>
       {:else if spot}
@@ -227,7 +274,19 @@
       {/if}
     {/if}
 
-    {#if cardHidden}
+    {#if $tourExitRequest}
+      <div class="bookend-card" use:focusExitConfirmation>
+        <h2>Do you want to exit onboarding?</h2>
+        <p>Exit the tour to go back in the server creator. Your server choices will be kept.</p>
+        <div class="actions center">
+          <Button variant="secondary" size="sm" onclick={() => tourExitRequest.set(null)}
+            >Cancel</Button
+          >
+          <Button variant="primary" size="sm" onclick={confirmTourExit}>Yes, exit onboarding</Button
+          >
+        </div>
+      </div>
+    {:else if cardHidden}
       <!-- The hidden-card controls are rendered in TopBar. -->
     {:else if REVIEW_STEP_IDS.has(step.id)}
       <div class="bookend-card">
