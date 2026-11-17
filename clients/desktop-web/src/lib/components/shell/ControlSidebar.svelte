@@ -1,6 +1,6 @@
 <script lang="ts">
   // Server-control rail: host-aware picker, Initiate/Start/Stop, Manage, and MSC 1's
-  // four collapsible sections, all real now (P12.21, P12.22).
+  // three collapsible sections, all real now (P12.21, P12.22).
   // docs/msc/renderings/shell.html, MSC 1 SidebarView.swift.
   import Button from '../base/Button.svelte';
   import Menu from '../base/Menu.svelte';
@@ -112,15 +112,9 @@
     return buildPickerItems();
   })();
 
-  const DISCLOSURE_SECTIONS = [
-    'Services',
-    'How to connect',
-    'Maintenance',
-    'Quick commands',
-  ] as const;
+  const DISCLOSURE_SECTIONS = ['Connection', 'Maintenance', 'Quick commands'] as const;
   let expanded: Record<(typeof DISCLOSURE_SECTIONS)[number], boolean> = {
-    Services: false,
-    'How to connect': false,
+    Connection: false,
     Maintenance: false,
     'Quick commands': false,
   };
@@ -139,14 +133,7 @@
   $: startLabel = activeServer?.firstStartRequired ? 'Initiate' : 'Start';
   $: canResumeInitiation = initiationHidden && initiationServerId === activeServerId;
 
-  // Services is MSC's own external-services panel (playit.gg + Xbox
-  // Broadcast, not an oracle 1:1 port; MSC 1 calls its Xbox-Broadcast-only
-  // equivalent "Console Access"), so it shows whenever a server is
-  // selected -- playit applies to any server type/flavor. Xbox Broadcast's
-  // own crossplay rule (MSC 1 SidebarView.swift's `showCrossPlatform`:
-  // always for Bedrock; for Java, only flavors that can host Geyser/Xbox
-  // Broadcast, not Vanilla, not a modded loader) only gates its own
-  // sub-block within the section, passed down separately.
+  // Only supported server flavors expose Xbox Broadcast connection details.
   $: showXboxBroadcast =
     activeServer !== undefined &&
     (activeServer.serverType === 'bedrock' ||
@@ -156,14 +143,9 @@
           activeServer.javaFlavor as JavaFlavor,
         )));
 
-  // MSC 1's SidebarView.swift hides How to Connect entirely with no server
-  // selected (`if viewModel.selectedServer != nil`); Maintenance always
-  // shows, its two buttons disabled instead.
-  $: visibleSections = DISCLOSURE_SECTIONS.filter((section) => {
-    if (section === 'How to connect') return !!activeServer;
-    if (section === 'Services') return !!activeServer;
-    return true;
-  });
+  $: visibleSections = DISCLOSURE_SECTIONS.filter(
+    (section) => section !== 'Connection' || !!activeServer,
+  );
 
   let maintenanceNotice = '';
 
@@ -285,7 +267,7 @@
             <ShellIcon name={expanded[section] ? 'chevron-down' : 'chevron-right'} size={11} />
             <span class="overline">{section}</span>
           </button>
-          {#if section === 'How to connect' && expanded[section]}
+          {#if section === 'Connection' && expanded[section]}
             <button
               type="button"
               class="visibility-toggle"
@@ -302,16 +284,15 @@
         </div>
         {#if expanded[section]}
           <div class="disclosure-content">
-            {#if section === 'Services'}
+            {#if section === 'Connection'}
               <ConsoleAccessSection
                 {api}
                 serverType={activeServer?.serverType}
                 {activeServerId}
                 {running}
                 {canControl}
-                {showXboxBroadcast}
+                showXboxBroadcast={showXboxBroadcast && activeServer?.xboxBroadcastEnabled === true}
               />
-            {:else if section === 'How to connect'}
               <HowToConnectSection
                 {api}
                 serverType={activeServer?.serverType}

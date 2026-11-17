@@ -984,3 +984,28 @@ incompatible runtimes remain unavailable.
 
 Checks: `npm run check` passed (0 errors, 10 existing CSS warnings);
 touched Svelte formatting and `git diff --check` passed. No tests added or run.
+
+### P26.22 — unify sidebar connection and enabled services
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** ControlSidebar; ConsoleAccessSection; this plan.
+
+**What:** Combine Services and How to connect into one Connection disclosure,
+keeping the address visibility toggle. Show playit.gg controls only when its
+server setting is enabled and Xbox Broadcast only when enabled for a supported
+server. Remove disabled-service setup prompts. Hide the empty service group
+without leaving extra spacing; clear old service facts when switching servers.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — expand Connection on a
+server with both services disabled: only connection addresses should appear.
+Enable each service in the editor and confirm its controls appear in Connection.
+Switch servers and check the enabled services match the selected server. Check
+the address visibility toggle and collapse/expand behavior.
+
+**Batch:** Sidebar connection grouping and service visibility only.
+
+**Commit:** `P26.22: unify sidebar connection and enabled services`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings);
+touched Svelte formatting and `git diff --check` passed. No tests added or run.

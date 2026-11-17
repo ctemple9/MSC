@@ -1,23 +1,6 @@
 <script lang="ts">
-  // Shown in the sidebar under "Services" (renamed from "Console Access" --
-  // Xbox Broadcast's own MSC 1 name -- once this became a general panel).
-  // MSC's own external-services quick control -- the two helper processes
-  // the engine manages that are not the Minecraft server process itself
-  // (crates/msc-infrastructure/src/helper_process.rs's HelperKey has
-  // exactly two call sites: "xbox-broadcast" and "playit").
-  // Xbox Broadcast started here as a port of MSC 1 SidebarView.swift's
-  // BedrockCrossPlatformSidebarSection/CrossPlatformAccessSidebarSection;
-  // Playit is the owner's own addition on top of that, not an oracle port --
-  // the oracle has no sidebar Playit control at all. Neither service is the
-  // deeper setup surface (that stays BroadcastTab.svelte's job, per the
-  // oracle's own contextual-help copy: "use Edit Server for the deeper
-  // setup path"). Reuses the same routes and status shapes BroadcastTab.svelte
-  // already calls for both.
-  //
-  // Playit applies to any server type/flavor (it's a generic tunnel, not
-  // crossplay-specific), so it always renders here. Xbox Broadcast's own
-  // crossplay visibility rule lives in ControlSidebar and is passed down as
-  // showXboxBroadcast.
+  // Connection quick controls only expose services enabled for this server.
+  // Deeper setup remains in the server editor.
   import { onDestroy, onMount } from 'svelte';
   import Button from '../../base/Button.svelte';
   import type { Schema, ScreenApi } from '../../../sections/shared/types';
@@ -53,6 +36,12 @@
   $: showBroadcastControls = isBedrock || (jarStatus?.installed ?? false);
 
   $: if (activeServerId !== loadedForServerId || running !== loadedRunning) {
+    if (activeServerId !== loadedForServerId) {
+      status = undefined;
+      jarStatus = undefined;
+      playit = undefined;
+      notice = '';
+    }
     loadedForServerId = activeServerId;
     loadedRunning = running;
     void load();
@@ -112,50 +101,49 @@
   }
 </script>
 
-<div class="console-access">
-  <div class="service">
-    <div class="service-header">
-      <p class="msc-type-overline">playit.gg</p>
-      <Button
-        variant="secondary"
-        size="sm"
-        disabled={playitBusy || !playit?.playitEnabled || !canControl}
-        onclick={togglePlayit}
-      >
-        {playit?.isRunning ? 'Stop' : 'Start'}
-      </Button>
-    </div>
-    {#if !playit?.playitEnabled}
-      <p class="hint">Enable in Edit Server → Services</p>
-    {/if}
-  </div>
-
-  {#if showXboxBroadcast}
-    <div class="service">
-      <div class="service-header">
-        <p class="msc-type-overline">Xbox Broadcast</p>
-        {#if showBroadcastControls}
+{#if playit?.playitEnabled || showXboxBroadcast || notice}
+  <div class="console-access">
+    {#if playit?.playitEnabled}
+      <div class="service">
+        <div class="service-header">
+          <p class="msc-type-overline">playit.gg</p>
           <Button
             variant="secondary"
             size="sm"
-            disabled={broadcastBusy || !canControl}
-            onclick={toggleBroadcast}
+            disabled={playitBusy || !playit?.playitEnabled || !canControl}
+            onclick={togglePlayit}
           >
-            {broadcastRunning ? 'Stop' : 'Start'}
+            {playit?.isRunning ? 'Stop' : 'Start'}
           </Button>
-        {/if}
+        </div>
       </div>
-      {#if !showBroadcastControls}
-        <p class="hint">Set up in Edit Server → Broadcast</p>
-      {/if}
-    </div>
-  {/if}
+    {/if}
 
-  {#if notice}<p class="notice" role="status">{notice}</p>{/if}
-</div>
+    {#if showXboxBroadcast}
+      <div class="service">
+        <div class="service-header">
+          <p class="msc-type-overline">Xbox Broadcast</p>
+          {#if showBroadcastControls}
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={broadcastBusy || !canControl}
+              onclick={toggleBroadcast}
+            >
+              {broadcastRunning ? 'Stop' : 'Start'}
+            </Button>
+          {/if}
+        </div>
+      </div>
+    {/if}
+
+    {#if notice}<p class="notice" role="status">{notice}</p>{/if}
+  </div>
+{/if}
 
 <style>
   .console-access {
+    margin-bottom: 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -174,12 +162,6 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-  }
-  .hint {
-    margin: 0;
-    font-size: 11px;
-    color: var(--msc-text-tertiary);
-    line-height: 1.5;
   }
   .notice {
     margin: 0;
