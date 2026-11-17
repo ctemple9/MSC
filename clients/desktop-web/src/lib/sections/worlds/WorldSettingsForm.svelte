@@ -3,6 +3,7 @@
   // The profile route owns the actual capability/lifecycle decision; this
   // component only makes that decision legible instead of guessing that a
   // Minecraft setting applies everywhere.
+  import { flavorDisplayName } from '../components/model';
   import GameruleEditor from './GameruleEditor.svelte';
   import type { ScreenApi } from '../shared/types';
   import Field from '../../components/base/Field.svelte';
@@ -188,8 +189,8 @@
   {/if}
 
   {#if capabilities}
-    <section class="context" aria-label="Advanced settings context">
-      <p class="context-label">Advanced settings context</p>
+    <section class="context" aria-label="Settings Context">
+      <p class="context-label">Settings Context</p>
       <p class="context-value">
         {capabilities.context.serverType === 'bedrock' ? 'Bedrock' : 'Java'}
         · {capabilities.context.minecraftVersion ??
@@ -197,7 +198,7 @@
             ? 'verified runtime'
             : 'Minecraft version not selected')}
         {#if capabilities.context.javaFlavor}
-          · {capabilities.context.javaFlavor}
+          · {flavorDisplayName(capabilities.context.javaFlavor)}
         {/if}
         {#if capabilities.context.loaderVersion}
           · loader {capabilities.context.loaderVersion}
@@ -216,11 +217,6 @@
       {/if}
     </section>
   {/if}
-
-  <p class="ownership">
-    These settings are saved with this world. Server settings—ports, player limits, access, MOTD,
-    runtime, and network helpers—apply to every world.
-  </p>
 
   {#if mode !== 'wizard' && capabilities?.thirdParty}
     <p class="boundary" role="note">
@@ -681,7 +677,6 @@
     font-weight: 600;
   }
   .intro p,
-  .ownership,
   .context-value,
   .boundary,
   .hint,
@@ -691,7 +686,6 @@
     line-height: 1.5;
   }
   .intro p,
-  .ownership,
   .hint {
     color: var(--msc-text-tertiary);
   }
@@ -701,7 +695,6 @@
     gap: 3px;
     padding: 10px 0;
     border-top: 1px solid var(--msc-hairline-subtle);
-    border-bottom: 1px solid var(--msc-hairline-subtle);
   }
   .context-label,
   .context-value {
@@ -714,6 +707,10 @@
     font-weight: 600;
     letter-spacing: 0.07em;
     text-transform: uppercase;
+  }
+  .context-label {
+    text-transform: none;
+    letter-spacing: normal;
   }
   .context-value {
     color: var(--msc-text-primary);

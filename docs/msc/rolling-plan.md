@@ -674,3 +674,29 @@ Checks: `npm run check` passed (0 errors, existing CSS warnings), and
 `npm run build` passed with existing CSS/import/chunk warnings. Touched frontend
 formatting, onboarding JSON parsing and `git diff --check` passed. No tests
 added or run. Separate desktop lockfile change remains outside this step.
+
+
+### P26.12 — simplify world settings context copy
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** WorldSettingsForm; this plan.
+
+**What:** Remove the world-versus-server ownership paragraph as requested.
+Rename the context heading and accessible label to Settings Context, rendered
+in title case. Use the existing software display-name formatter so Paper,
+Fabric, NeoForge and other known flavors have their established capitalization.
+Remove the redundant context bottom border so Essentials supplies the single
+divider below it. No setting, runtime value or capability behavior changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → World;
+confirm Settings Context shows a capitalized software name and the removed
+paragraph no longer separates the context from Essentials.
+
+**Batch:** This world-form copy change only.
+
+**Commit:** `P26.12: simplify world settings context copy`
+
+Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. The subsequent redundant-border
+removal was inspected in the diff. No tests added or run.
