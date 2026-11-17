@@ -1047,3 +1047,23 @@ the explanatory paragraph below the header is gone.
 
 Checks: inspected the paragraph removal; `git diff --check` passed.
 No tests added or run.
+
+### P26.25 — publish 0.1.46 for Windows and Mac verification
+
+**Status:** Release prepared; publication and owner platform verification pending.
+
+**Files:** Engine/desktop version manifests and lockfiles; bundle identity;
+release notes; this plan.
+
+**What:** Bump the shared release version to 0.1.46 and publish the accumulated
+owner-requested interface changes through the existing build-only beta workflow.
+Preserve the complete package set, checksums and signed update metadata.
+
+**Verify:** `gh release view v0.1.46` — confirm publication and the complete
+asset set, then install the Windows/Mac desktop packages for physical acceptance.
+
+**Batch:** Version, release notes and publication only.
+
+**Commit:** `P26.25: prepare 0.1.46 beta release`
+
+No test suites authorized or run. Release workflow remains unchanged.
