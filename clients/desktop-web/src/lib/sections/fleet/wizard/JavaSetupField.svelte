@@ -207,20 +207,35 @@
       {#each runtimes as runtime (runtime.executablePath)}
         <button
           type="button"
-          class="runtime"
+          class="runtime-row"
+          class:selected={pathDraft === runtime.executablePath}
           disabled={(runtime.majorVersion ?? 0) < requiredMajor}
           onclick={() => {
             selectPath(runtime.executablePath);
             showDetected = false;
           }}
         >
-          <span>{runtime.name}{runtime.majorVersion ? ` · Java ${runtime.majorVersion}` : ''}</span>
-          <span class="runtime-path">{runtime.executablePath}</span>
-          {#if (runtime.majorVersion ?? 0) < requiredMajor}<span class="hint"
-              >Needs Java {requiredMajor} or newer</span
-            >{/if}
+          <span class="runtime-info">
+            <span class="runtime-heading">
+              {#if runtime.majorVersion}<span class="runtime-version"
+                  >Java {runtime.majorVersion}</span
+                >{/if}
+              <span class="runtime-name">{runtime.name}</span>
+            </span>
+            <span class="runtime-path" title={runtime.executablePath}>{runtime.executablePath}</span
+            >
+            {#if (runtime.majorVersion ?? 0) < requiredMajor}
+              <span class="hint">Needs Java {requiredMajor} or newer</span>
+            {/if}
+          </span>
+          <span class="tag"
+            >{(runtime.majorVersion ?? 0) < requiredMajor ? 'Unavailable' : 'Use'}</span
+          >
         </button>
       {/each}
+    </div>
+    <div class="footer">
+      <Button variant="secondary" onclick={() => (showDetected = false)}>Close</Button>
     </div>
   </Sheet>
 {/if}
@@ -271,31 +286,75 @@
     color: var(--msc-status-warn);
   }
   .runtime-list {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 6px;
     margin-top: 12px;
+    max-height: 280px;
+    overflow-y: auto;
   }
-  .runtime {
-    display: grid;
-    gap: 4px;
+  .runtime-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     width: 100%;
-    text-align: left;
     padding: 11px 14px;
     background: var(--msc-tier-chrome);
+    border: 1px solid transparent;
+    border-radius: 8px;
     color: var(--msc-text-primary);
     font: inherit;
-    border: 1px solid var(--msc-hairline-subtle);
-    border-radius: 8px;
+    text-align: left;
     cursor: pointer;
   }
-  .runtime:disabled {
+  .runtime-row:hover,
+  .runtime-row.selected {
+    border-color: rgba(255, 255, 255, 0.28);
+  }
+  .runtime-row:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+  .runtime-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .runtime-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .runtime-version {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .runtime-name,
+  .runtime-path {
+    overflow: hidden;
+    color: var(--msc-text-tertiary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .runtime-name {
+    font-size: 11px;
   }
   .runtime-path {
     font-family: var(--msc-font-mono, monospace);
     font-size: 10.5px;
-    overflow-wrap: anywhere;
+  }
+  .tag {
+    flex-shrink: 0;
+    color: var(--msc-text-tertiary);
+    font-size: 10px;
+  }
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
   }
   @media (max-width: 620px) {
     .path-row {

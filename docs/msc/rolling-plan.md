@@ -960,3 +960,27 @@ Hide a form tip and confirm the form can be freely scrolled.
 
 Checks: `npm run check` passed (0 errors, 10 existing CSS warnings);
 touched formatting and `git diff --check` passed. No tests added or run.
+
+### P26.21 — match creation Java detection to the server editor
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** JavaSetupField; this plan.
+
+**What:** Match the editor's detected-runtime row typography and layout: Java
+version first, quiet runtime name alongside, smaller muted executable path
+underneath, and a Use action at the right. Match the bounded 280-pixel scrolling
+list, hover/selection borders and Close footer. Preserve the creation flow's
+required Java explanation and disabled incompatible runtimes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → Configure →
+Java → Detect. Compare typography, list scrolling and Close footer against Edit
+Server → Java → Detect. Select a compatible runtime and confirm its path appears;
+incompatible runtimes remain unavailable.
+
+**Batch:** Creation Java detection presentation only.
+
+**Commit:** `P26.21: match creation java detection to editor styling`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings);
+touched Svelte formatting and `git diff --check` passed. No tests added or run.
