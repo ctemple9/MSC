@@ -411,9 +411,6 @@
                 disabled={readOnly('generation.structures')}
                 onchange={(checked) => update({ structures: checked })}
               />
-              {#if mode === 'wizard'}
-                <span class="hint">Generate villages, temples, and other structures.</span>
-              {/if}
               {#if fieldNote('generation.structures')}<span class="hint"
                   >{fieldNote('generation.structures')}</span
                 >{/if}
@@ -450,11 +447,11 @@
               {/if}
             </div>
           {/if}
-          <span class="hint"
-            >{mode === 'wizard'
-              ? 'A bonus chest provides starter supplies near the initial spawn.'
-              : 'Used only when a new world is generated. Create a new world to change it.'}</span
-          >
+          {#if mode !== 'wizard'}
+            <span class="hint"
+              >Used only when a new world is generated. Create a new world to change it.</span
+            >
+          {/if}
         </div>
 
         {#if mode !== 'wizard' && (serverType === 'java' || !unavailable('generation.generator-options'))}

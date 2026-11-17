@@ -621,3 +621,25 @@ Edit as Text still open and preserve entered rules.
 
 Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. No tests added or run.
+
+
+### P26.10 — remove generation switch descriptions
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** WorldSettingsForm wizard copy; this plan.
+
+**What:** Remove the explanatory sentences below Generate Structures and Bonus
+Chest in the creation wizard. Both switches now occupy single rows with the
+same 18px spacing as Gameplay Rules. Keep the World Type hint and existing
+capability/lifecycle notices.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → World;
+expand World Generation and Gameplay Rules and compare the switch-row spacing.
+
+**Batch:** This description removal only.
+
+**Commit:** `P26.10: remove generation switch descriptions`
+
+Checks: `npm run check` passed with 0 errors and existing CSS warnings;
+touched Svelte formatting and `git diff --check` passed. No tests added or run.
