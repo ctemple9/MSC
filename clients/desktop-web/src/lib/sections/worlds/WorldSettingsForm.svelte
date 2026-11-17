@@ -321,7 +321,7 @@
       <span class="chevron" aria-hidden="true">⌄</span>
     </summary>
     <div class="disclosure-body">
-      <div class="field-grid" class:simple-generation={mode === 'wizard'}>
+      <div class="field-grid" class:creation-fields={mode === 'wizard'}>
         {#if mode !== 'wizard'}
           <label class="field-group">
             <span class="label">Minecraft Folder Name</span>
@@ -512,7 +512,7 @@
       <span class="chevron" aria-hidden="true">⌄</span>
     </summary>
     <div class="disclosure-body">
-      <div class="field-grid">
+      <div class="field-grid" class:creation-fields={mode === 'wizard'}>
         {#if hasEditionField(javaFields)}
           <label class="field-group inline-toggle">
             <span class="label">Hardcore</span>
@@ -549,7 +549,8 @@
           </label>
         {/if}
 
-        <div class="field-group wide">
+        <div class="field-group wide" class:additional-rules={mode === 'wizard'}>
+          {#if mode === 'wizard'}<span class="label">Additional Rules</span>{/if}
           {#if unavailable('gameplay.gamerules')}
             <span class="unavailable">Unavailable: {reason('gameplay.gamerules')}</span>
           {:else}
@@ -746,11 +747,16 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px 18px;
   }
-  .field-grid.simple-generation {
+  .field-grid.creation-fields {
     grid-template-columns: minmax(0, 1fr);
     gap: 18px;
   }
-  .simple-generation .generation-options {
+  .creation-fields .additional-rules {
+    border-top: 1px solid var(--msc-hairline-subtle);
+    padding-top: 18px;
+    gap: 12px;
+  }
+  .creation-fields .generation-options {
     gap: 6px;
   }
   .field-group {

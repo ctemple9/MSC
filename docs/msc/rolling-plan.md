@@ -595,3 +595,29 @@ normal and narrow window widths. Confirm switches and type selection still work.
 
 Checks: `npm run check` passed with 0 errors and existing CSS warnings;
 touched Svelte formatting and `git diff --check` passed. No tests added or run.
+
+
+### P26.9 — align creation gameplay rules with world generation
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** WorldSettingsForm wizard layout; this plan.
+
+**What:** Reuse the creation-only single-column layout for Gameplay Rules.
+Hardcore, Allow Commands and edition-specific switches now use full-width
+rows with labels left and switches on the same right edge as World Generation.
+Separate the existing gamerule editor with a quiet divider and an Additional
+Rules label, keeping version information and editor actions aligned below.
+Keep rule editing, capability restrictions, onboarding anchors and saved values.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → World →
+Gameplay Rules; confirm switches line up with World Generation above and the
+Additional Rules editor fits normal and narrow windows. Check Add Rule and
+Edit as Text still open and preserve entered rules.
+
+**Batch:** This Gameplay Rules layout adjustment only.
+
+**Commit:** `P26.9: align gameplay rules in server creation`
+
+Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. No tests added or run.
