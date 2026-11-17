@@ -45,6 +45,7 @@
     'choose-path': 'ob_wizard_continue',
     'server-settings': 'ob_wizard_continue',
     'network-continue': 'ob_wizard_continue',
+    'world-essentials-expand': 'ob_world_essentials',
     'world-generation-expand': 'ob_world_generation',
     'world-gameplay-expand': 'ob_world_gameplay',
     'world-packs-expand': 'ob_world_packs',

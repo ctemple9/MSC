@@ -643,3 +643,34 @@ expand World Generation and Gameplay Rules and compare the switch-row spacing.
 
 Checks: `npm run check` passed with 0 errors and existing CSS warnings;
 touched Svelte formatting and `git diff --check` passed. No tests added or run.
+
+
+### P26.11 — collapse Essentials and guide its expansion
+
+**Status:** Implemented; owner visual and tour verification pending.
+
+**Files:** WorldSettingsForm, TourOverlay action map, onboarding guide/source
+map and corpus expectation; this plan.
+
+**What:** Present Essentials as a closed-by-default native disclosure using
+the same summary, chevron, spacing and body layout as the other world sections.
+Keep all field bindings and the existing onboarding anchor. Insert Open Essentials
+immediately before the existing Essentials review card; clicking the real
+section advances to review, using the same action behavior as World Generation
+and Gameplay Rules. Preserve the existing Okay/hide-card flow for editing fields.
+Record the new disclosure's owner-directed provenance; update the tour count
+to 42. No automatic expansion, setting changes or extra UI.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → World;
+confirm Essentials starts collapsed, opens/closes and retains field edits.
+Repair engine and restart the tour: verify Open Essentials precedes Essentials,
+expanding advances to review, and Okay allows editing before the generation card.
+
+**Batch:** This Essentials disclosure and onboarding adjustment only.
+
+**Commit:** `P26.11: collapse world essentials and guide expansion`
+
+Checks: `npm run check` passed (0 errors, existing CSS warnings), and
+`npm run build` passed with existing CSS/import/chunk warnings. Touched frontend
+formatting, onboarding JSON parsing and `git diff --check` passed. No tests
+added or run. Separate desktop lockfile change remains outside this step.

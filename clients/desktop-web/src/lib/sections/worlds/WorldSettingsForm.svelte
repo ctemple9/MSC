@@ -236,67 +236,75 @@
     <p class="boundary" role="status">{unknownFieldNotice()}</p>
   {/if}
 
-  <section
-    class="essentials"
+  <details
+    class="disclosure"
     use:onboardingAnchor={mode === 'wizard' ? 'ob_world_essentials' : undefined}
   >
-    <p class="section-title">Essentials</p>
-    <div class="field-grid">
-      <label class="field-group wide">
-        <span class="label">World Name</span>
-        <Field bind:value={values.name} placeholder="e.g. Survival World" />
-        <span class="hint"
-          >The display name for this world slot, separate from the server name.</span
-        >
-      </label>
+    <summary>
+      <span>
+        <span class="disclosure-title">Essentials</span>
+        <span class="disclosure-subtitle">World name, seed, difficulty, and game mode</span>
+      </span>
+      <span class="chevron" aria-hidden="true">⌄</span>
+    </summary>
+    <div class="disclosure-body">
+      <div class="field-grid">
+        <label class="field-group wide">
+          <span class="label">World Name</span>
+          <Field bind:value={values.name} placeholder="e.g. Survival World" />
+          <span class="hint"
+            >The display name for this world slot, separate from the server name.</span
+          >
+        </label>
 
-      <label class="field-group">
-        <span class="label">Seed</span>
-        <Field
-          bind:value={values.seed}
-          placeholder="Optional — random if blank"
-          disabled={readOnly('identity.seed')}
-        />
-        {#if fieldNote('identity.seed')}
-          <span class="hint">{fieldNote('identity.seed')}</span>
-        {:else}
-          <span class="hint">Used only the first time this world generates terrain.</span>
-        {/if}
-      </label>
+        <label class="field-group">
+          <span class="label">Seed</span>
+          <Field
+            bind:value={values.seed}
+            placeholder="Optional — random if blank"
+            disabled={readOnly('identity.seed')}
+          />
+          {#if fieldNote('identity.seed')}
+            <span class="hint">{fieldNote('identity.seed')}</span>
+          {:else}
+            <span class="hint">Used only the first time this world generates terrain.</span>
+          {/if}
+        </label>
 
-      <label class="field-group">
-        <span class="label">Difficulty</span>
-        <Select
-          options={optionList(WORLD_DIFFICULTY_OPTIONS, values.difficulty)}
-          value={values.difficulty}
-          disabled={unavailable('gameplay.difficulty') || readOnly('gameplay.difficulty')}
-          onchange={(value) => update({ difficulty: value })}
-        />
-        {#if fieldNote('gameplay.difficulty')}<span class="hint"
-            >{fieldNote('gameplay.difficulty')}</span
-          >{/if}
-      </label>
+        <label class="field-group">
+          <span class="label">Difficulty</span>
+          <Select
+            options={optionList(WORLD_DIFFICULTY_OPTIONS, values.difficulty)}
+            value={values.difficulty}
+            disabled={unavailable('gameplay.difficulty') || readOnly('gameplay.difficulty')}
+            onchange={(value) => update({ difficulty: value })}
+          />
+          {#if fieldNote('gameplay.difficulty')}<span class="hint"
+              >{fieldNote('gameplay.difficulty')}</span
+            >{/if}
+        </label>
 
-      <label class="field-group">
-        <span class="label">Default Game Mode</span>
-        <Select
-          options={optionList(
-            serverType === 'bedrock'
-              ? WORLD_GAMEMODE_OPTIONS.filter((option) => option.value !== 'spectator')
-              : WORLD_GAMEMODE_OPTIONS,
-            values.defaultGameMode,
-          )}
-          value={values.defaultGameMode}
-          disabled={unavailable('gameplay.default-game-mode') ||
-            readOnly('gameplay.default-game-mode')}
-          onchange={(value) => update({ defaultGameMode: value })}
-        />
-        {#if fieldNote('gameplay.default-game-mode')}
-          <span class="hint">{fieldNote('gameplay.default-game-mode')}</span>
-        {/if}
-      </label>
+        <label class="field-group">
+          <span class="label">Default Game Mode</span>
+          <Select
+            options={optionList(
+              serverType === 'bedrock'
+                ? WORLD_GAMEMODE_OPTIONS.filter((option) => option.value !== 'spectator')
+                : WORLD_GAMEMODE_OPTIONS,
+              values.defaultGameMode,
+            )}
+            value={values.defaultGameMode}
+            disabled={unavailable('gameplay.default-game-mode') ||
+              readOnly('gameplay.default-game-mode')}
+            onchange={(value) => update({ defaultGameMode: value })}
+          />
+          {#if fieldNote('gameplay.default-game-mode')}
+            <span class="hint">{fieldNote('gameplay.default-game-mode')}</span>
+          {/if}
+        </label>
+      </div>
     </div>
-  </section>
+  </details>
 
   {#if creativeSelected}
     <p class="safety-note" role="note">
@@ -725,19 +733,10 @@
     text-decoration: underline;
     text-underline-offset: 2px;
   }
-  .essentials {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .section-title,
   .label {
     color: var(--msc-text-primary);
     font-size: 12px;
     font-weight: 500;
-  }
-  .section-title {
-    margin: 0;
   }
   .field-grid {
     display: grid;
