@@ -319,19 +319,6 @@
     </section>
   {/if}
 
-  <section class="block" use:onboardingAnchor={'ob_server_memory'}>
-    <p class="msc-type-overline">Memory</p>
-    <RamAllocationFields
-      minimum={ramValues.minimum}
-      maximum={ramValues.maximum}
-      onMinimumChange={(value) => (draft.minRamDraft = value)}
-      onMaximumChange={(value) => (draft.maxRamDraft = value)}
-    />
-    {#if !validRamDraft(draft)}
-      <p class="hint warn" role="alert">Enter a valid minimum and maximum RAM value.</p>
-    {/if}
-  </section>
-
   {#if showXboxBroadcast}
     <section class="block" use:onboardingAnchor={'ob_server_xbox_broadcast'}>
       <p class="msc-type-overline">Xbox Broadcast</p>
@@ -353,6 +340,19 @@
       </div>
     </section>
   {/if}
+
+  <section class="block" use:onboardingAnchor={'ob_server_memory'}>
+    <p class="msc-type-overline">Memory</p>
+    <RamAllocationFields
+      minimum={ramValues.minimum}
+      maximum={ramValues.maximum}
+      onMinimumChange={(value) => (draft.minRamDraft = value)}
+      onMaximumChange={(value) => (draft.maxRamDraft = value)}
+    />
+    {#if !validRamDraft(draft)}
+      <p class="hint warn" role="alert">Enter a valid minimum and maximum RAM value.</p>
+    {/if}
+  </section>
 </div>
 
 <style>

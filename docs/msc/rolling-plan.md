@@ -736,3 +736,30 @@ keyboard focus containment, the type-check passed again. Touched frontend
 formatting and `git diff --check` passed. No tests added or run; verify the
 visible interaction manually rather than adding source-text or timer-sensitive
 tests. The separate desktop lockfile change remains outside this step.
+
+
+### P26.14 — group Crossplay and Xbox Broadcast before memory
+
+**Status:** Implemented; owner visual and tour verification pending.
+
+**Files:** ConfigureStep, onboarding guide; this plan.
+
+**What:** Put the conditional Xbox Broadcast section immediately after the
+Crossplay section and move Memory to the bottom of Configure. Preserve existing
+Java Crossplay eligibility and Bedrock broadcast visibility. Swap the broadcast
+and memory onboarding cards so the tour follows the visible form order; keep
+anchors, card IDs and the existing conditional tour filtering.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Configure a Java server,
+enable Crossplay and confirm Xbox Broadcast appears immediately underneath,
+with Memory last. Toggle Crossplay off and confirm Memory remains last. Repair
+engine and restart onboarding; check Crossplay → Xbox Broadcast (when enabled)
+→ Memory → Review Settings, with no missing-anchor card when Crossplay is off.
+
+**Batch:** This Configure and tour reorder only.
+
+**Commit:** `P26.14: group broadcast before memory in server configuration`
+
+Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
+Svelte formatting, onboarding JSON parsing and `git diff --check` passed.
+No tests added or run.
