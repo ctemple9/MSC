@@ -151,7 +151,7 @@
 
   $: activeTourStep.set(step?.id ?? null);
   $: hiddenTourActions.set(
-    cardHidden && step && !$tourExitRequest
+    cardHidden && step && !$tourExitRequest && !$tourJavaSelectionPending
       ? { showTip: showTourTip, skip: onSkip, skipLabel }
       : null,
   );
@@ -252,7 +252,7 @@
 <svelte:window on:resize={onResize} />
 
 <!-- World review waits for the wizard's Continue action without another popup. -->
-{#if step && ($tourExitRequest || (step.id !== 'world-review' && !(REVIEW_STEP_IDS.has(step.id) && cardHidden)))}
+{#if step && ($tourExitRequest || (!$tourJavaSelectionPending && step.id !== 'world-review' && !(REVIEW_STEP_IDS.has(step.id) && cardHidden)))}
   <div
     class="tour-root"
     role={$tourExitRequest || !cardHidden ? 'dialog' : undefined}

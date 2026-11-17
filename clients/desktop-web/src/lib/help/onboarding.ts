@@ -16,9 +16,9 @@ export const hiddenTourActions = writable<{
 } | null>(null);
 
 /**
- * Java selection is a required interruption of Configure's Continue action.
- * The tour reads this synchronously while handling that same click, so it
- * cannot advance its Network card until the selection sheet has closed.
+ * Imported-pack runtime selection can interrupt the wizard's Continue action.
+ * Keep this synchronous with the picker so its click cannot advance a tour
+ * before runtime selection completes. Fresh Configure now collects Java inline.
  */
 export const tourJavaSelectionPending = writable(false);
 
@@ -58,7 +58,8 @@ export function applicableTourSteps(
     if (
       step.id === 'server-category' ||
       step.id === 'server-flavor' ||
-      step.id === 'server-version'
+      step.id === 'server-version' ||
+      step.id === 'server-java'
     ) {
       return !context || context.serverType === 'java';
     }

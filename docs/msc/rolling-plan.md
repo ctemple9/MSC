@@ -798,3 +798,59 @@ Checks: `npm run check` and `npm run build` passed with existing CSS and
 import/chunk warnings; touched Svelte formatting and `git diff --check` passed.
 No tests or live provider downloads/server creation performed. Separate desktop
 lockfile change remains outside this step.
+
+
+### P26.16 — collect Java inline during fresh server configuration
+
+**Status:** Implemented; owner interaction verification pending.
+
+**Files:** New JavaSetupField; ConfigureStep, wizard controller/model; tour
+anchors/filter/overlay and guide/source map/corpus count; focused Configure gate
+regression cases; this plan.
+
+**What:** Add a Java Executable path row to Configure after Source, with Detect,
+Browse and Install Java actions patterned after Edit Server. Start blank and
+keep the path scoped to this server's draft; do not save a host default. Resolve
+the selected software/version's Minecraft release to show its required Java
+major, pin the resolved release, and require a nonblank path for that current
+setup before Continue. Leave Continue blocked while requirements are loading
+or fail to resolve, with an inline error/retry. Keep paths when navigating back;
+clear stale selections when software/version or host changes. Restore the
+pinned version list on returning to Configure. Share the existing required-Java
+version mapping with the retained picker. Detect opens an
+explicit picker that disables older/unknown runtimes, Browse selects an
+executable, and the existing installer populates the returned runtime path.
+Manual paths retain the engine's final creation-time compatibility validation.
+
+Fresh Configure Continue advances directly without the old automatic chooser.
+If a later pack changes the runtime context, return to Configure instead of
+opening that chooser. Preserve imported-pack runtime selection and the existing
+creation-error recovery path. Add a Java-only tour card after Source and before
+Crossplay, bringing the corpus to 43 steps. Temporarily hide the tour overlay
+while Java helper sheets are open, restoring it afterwards without advancing.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Start Fresh → Java →
+Configure: verify blank path disables Continue and required Java matches the
+selected release. Use Detect/Browse/Install and confirm path population; type
+or clear a manual path; continue directly to Network with no chooser. Back must
+retain the path; changing software/version must require reselection. Check
+Bedrock needs no Java, imported-pack selection remains available, and the
+restarted tour handles the new Java card and helper sheets. Repair engine to
+load the updated guide before restarting the tour.
+
+**Batch:** This inline Java setup change only.
+
+**Commit:** `P26.16: collect java executable in server configuration`
+
+Essential test rationale: blank/whitespace paths or stale/unresolved runtime
+choices must not enable Java Configure Continue; Bedrock must remain exempt.
+Two focused cases exercise those public navigation decisions with a local draft,
+no network, timers, filesystem or process dependence. Expected milliseconds;
+not run. No additional test framework or duplicated screenshot/source assertions.
+
+Checks: final `npm run check` passed (0 errors, existing CSS warnings);
+`npm run build` passed with existing CSS/import/chunk warnings. Touched
+frontend formatting, Rust format check, engine Clippy, guide JSON parsing and
+`git diff --check` passed. No Java installation, live server creation or
+automated tests performed. Separate desktop lockfile change remains outside
+this step.

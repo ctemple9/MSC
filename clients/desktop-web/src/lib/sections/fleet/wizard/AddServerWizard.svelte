@@ -70,6 +70,7 @@
     importDisplayNameFromPath,
     importServerFromDraft,
     javaSelectionKey,
+    requiredJavaMajorForVersion,
     ServerCreationError,
     modpackCreationSummary,
     versionsForCreatePath,
@@ -113,8 +114,8 @@
   let javaRuntimes: Schema['JavaRuntimeDTO'][] = [];
   let javaSelectedPath = '';
   let javaInstallMode: 'selection' | 'recovery' = 'recovery';
-  // Configure's Continue is intercepted by Java selection; defer its tour
-  // action until a runtime is confirmed.
+  // Imported packs retain their runtime picker before leaving Upload; the
+  // fresh Configure page collects Java inline.
   let continueAfterJavaSelection = false;
   let javaRequiredMajor = 25;
   let javaMinecraftVersion = '';
@@ -213,7 +214,7 @@
   }
 
   function javaSelectionBelongsHere(): boolean {
-    return draft.serverType === 'java' && currentStep === 2 && (path === 'fresh' || showModpack);
+    return draft.serverType === 'java' && currentStep === 2 && path !== 'fresh' && showModpack;
   }
 
   function hasCurrentJavaSelection(): boolean {
@@ -280,6 +281,10 @@
   async function beginCreate(): Promise<void> {
     if (!canCreateServer(displayName) || isCreating) return;
     if (draft.serverType === 'java' && !hasCurrentJavaSelection()) {
+      if (path === 'fresh') {
+        currentStep = 2;
+        return;
+      }
       await openJavaSelection();
       return;
     }
@@ -318,22 +323,6 @@
     const match = message.match(/needs Java (\d+)/i);
     const major = match ? Number(match[1]) : NaN;
     return [8, 17, 21, 25].includes(major) ? major : 25;
-  }
-
-  function requiredJavaMajorForVersion(version: string | undefined): number {
-    const numericParts = (version ?? '')
-      .split('.')
-      .map((part) => Number(part))
-      .filter((part) => Number.isFinite(part));
-    const first = numericParts[0];
-    if (first === 1) {
-      const minor = numericParts[1] ?? 0;
-      const patch = numericParts[2] ?? 0;
-      if (minor >= 21 || (minor === 20 && patch >= 5)) return 21;
-      if (minor >= 17) return 17;
-      return 8;
-    }
-    return 25;
   }
 
   async function resolveJavaMinecraftVersion(): Promise<string | undefined> {

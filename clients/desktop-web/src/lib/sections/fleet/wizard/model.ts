@@ -221,6 +221,7 @@ export interface WizardDraft {
   versionId: string | undefined;
   /** The runtime explicitly selected for this server creation only. */
   javaPath: string | undefined;
+  javaRequirementPending?: boolean;
   /** The version/loader context for which `javaPath` was selected. */
   javaSelectionKey: string | undefined;
   enableCrossPlay: boolean;
@@ -446,6 +447,22 @@ export function defaultWizardDraft(): WizardDraft {
   };
 }
 
+export function requiredJavaMajorForVersion(version: string | undefined): number {
+  const numericParts = (version ?? '')
+    .split('.')
+    .map((part) => Number(part))
+    .filter((part) => Number.isFinite(part));
+  const first = numericParts[0];
+  if (first === 1) {
+    const minor = numericParts[1] ?? 0;
+    const patch = numericParts[2] ?? 0;
+    if (minor >= 21 || (minor === 20 && patch >= 5)) return 21;
+    if (minor >= 17) return 17;
+    return 8;
+  }
+  return 25;
+}
+
 /** Prevents a runtime selected for one loader or Minecraft version from being
  * silently reused after the user changes that choice. */
 export function javaSelectionKey(draft: WizardDraft): string {
@@ -494,7 +511,12 @@ export function validRamDraft(draft: WizardDraft): boolean {
 export function canAdvanceConfigure(draft: WizardDraft): boolean {
   if (!validRamDraft(draft)) return false;
   if (draft.serverName.trim().length === 0) return false;
-  return draft.serverType === 'java' ? isJavaFlavorImplemented(draft.javaFlavor) : true;
+  return draft.serverType === 'java'
+    ? isJavaFlavorImplemented(draft.javaFlavor) &&
+        !!draft.javaPath?.trim() &&
+        draft.javaSelectionKey === javaSelectionKey(draft) &&
+        !draft.javaRequirementPending
+    : true;
 }
 
 /** `AddServerWizardView.swift`'s `canAdvance` case 3, Fresh branch: the

@@ -27,6 +27,7 @@
   // of the real create operation (P12.18g), so there is nothing to poll yet
   // -- a deliberate omission, not a silent drop.
   import RamAllocationFields from '../../../components/base/RamAllocationFields.svelte';
+  import JavaSetupField from './JavaSetupField.svelte';
   import Field from '../../../components/base/Field.svelte';
   import NumberField from '../../../components/base/NumberField.svelte';
   import SegmentedControl from '../../../components/base/SegmentedControl.svelte';
@@ -61,6 +62,11 @@
   let availableVersions: Schema['VersionEntryDTO'][] = [];
   let isLoadingVersions = false;
   let versionsError: string | undefined;
+  let loadedVersionChoiceKey = '';
+  $: if (sourceMode === 'choose' && api && loadedVersionChoiceKey !== draft.javaFlavor) {
+    loadedVersionChoiceKey = draft.javaFlavor;
+    void fetchVersions();
+  }
 
   function publishTourContext(): void {
     tourServerContext.set({
@@ -88,6 +94,7 @@
     availableVersions = [];
     versionsError = undefined;
     sourceMode = 'latest';
+    loadedVersionChoiceKey = '';
   }
 
   function selectServerType(type: WizardDraft['serverType']): void {
@@ -119,6 +126,7 @@
   async function fetchVersions(): Promise<void> {
     if (!api || isLoadingVersions) return;
     isLoadingVersions = true;
+    loadedVersionChoiceKey = draft.javaFlavor;
     versionsError = undefined;
     try {
       const response = await api.get<Schema['VersionsResponseDTO']>(
@@ -269,6 +277,8 @@
         {/if}
       {/if}
     </section>
+
+    <JavaSetupField {api} bind:draft />
 
     <section class="block" use:onboardingAnchor={'ob_server_crossplay'}>
       <p class="msc-type-overline">Crossplay</p>

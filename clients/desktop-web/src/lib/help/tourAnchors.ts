@@ -23,6 +23,7 @@ export const KNOWN_TOUR_ANCHOR_IDS: ReadonlySet<string> = new Set([
   'ob_server_category',
   'ob_server_flavor',
   'ob_server_source',
+  'ob_server_java',
   'ob_server_crossplay',
   'ob_server_memory',
   'ob_server_xbox_broadcast',
