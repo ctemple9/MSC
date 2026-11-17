@@ -794,11 +794,6 @@
         </div>
       </div>
 
-      <p class="ownership">
-        World settings travel with each slot. Server settings—ports, player limits, access, MOTD,
-        runtime, and network helpers—apply to every world and stay in Settings.
-      </p>
-
       {#if activation}
         <div class="activation-progress" aria-label="World activation progress">
           <div class="activation-stage">

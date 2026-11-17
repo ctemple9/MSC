@@ -1028,3 +1028,22 @@ and confirm the sentence below the time shortcuts is gone.
 
 Checks: inspected the two-line removal and intact Svelte conditional;
 `git diff --check` passed. No tests added or run.
+
+### P26.24 — remove worlds settings explanation
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** WorldsSection; this plan.
+
+**What:** Remove the paragraph explaining world-slot settings versus server
+settings from the Worlds tab.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — open Worlds and confirm
+the explanatory paragraph below the header is gone.
+
+**Batch:** Requested Worlds tab paragraph only.
+
+**Commit:** `P26.24: remove worlds settings explanation`
+
+Checks: inspected the paragraph removal; `git diff --check` passed.
+No tests added or run.
