@@ -118,12 +118,39 @@ export function remeasureAll(): void {
   });
 }
 
-/** Scrolls the anchor's nearest scroll container just enough to reveal it. */
-export function scrollAnchorIntoView(anchorId: string, behavior: ScrollBehavior = 'smooth'): void {
+/**
+ * Reveal targets inside their actual scrolling ancestors, rather than moving
+ * the entire sheet with scrollIntoView. Rechecking is safe after delayed mounts
+ * and layout changes; an already visible target does not move.
+ */
+export function scrollAnchorIntoView(anchorId: string): void {
   const node = elements.get(anchorId);
-  if (!node) return;
-  node.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior });
-  remeasureAll();
+  if (!node || !node.getClientRects().length) return;
+  const margin = 16;
+  for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+    const style = getComputedStyle(parent);
+    if (!/(auto|scroll)/.test(style.overflowY) || parent.scrollHeight <= parent.clientHeight)
+      continue;
+    const target = node.getBoundingClientRect();
+    const container = parent.getBoundingClientRect();
+    const top = Math.max(0, container.top + parent.clientTop) + margin;
+    const bottom =
+      Math.min(window.innerHeight, container.top + parent.clientTop + parent.clientHeight) - margin;
+    if (bottom <= top) continue;
+    // Large sections cannot fit: reveal their beginning, but do not keep
+    // pulling back while their beginning is already visible.
+    const oversized = target.height > bottom - top;
+    const delta = oversized
+      ? target.top > top || target.bottom < top
+        ? target.top - top
+        : 0
+      : target.top < top
+        ? target.top - top
+        : target.bottom > bottom
+          ? target.bottom - bottom
+          : 0;
+    if (Math.abs(delta) > 1) parent.scrollTop += delta;
+  }
 }
 
 /**

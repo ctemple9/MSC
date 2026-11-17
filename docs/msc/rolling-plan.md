@@ -932,3 +932,31 @@ the tour advances to Create Server.
 Checks: `npm run check` passed (0 errors, 10 existing CSS warnings).
 `npm run build` and `git diff --check` passed; existing build warnings remain.
 Touched Svelte formatting passed. No tests added or run.
+
+### P26.20 — automatically reveal active onboarding targets
+
+**Status:** Implemented; owner walkthrough verification pending.
+
+**Files:** TourOverlay; tourAnchors; this plan.
+
+**What:** Replace the single delayed scroll attempt with ongoing visibility
+checks in the existing tour geometry loop. Reveal each target inside its
+scrollable ancestors with 16 pixels of breathing room, leaving already visible
+targets stationary. This handles delayed mounting, changing fields, expanding
+sections and resizing without step-specific fixes. Oversized sections reveal
+their beginning. Suspend scrolling while the card is hidden, Java selection is
+pending, or the exit confirmation is open. Use immediate scrolling to avoid
+restarting animations during layout changes and respect reduced motion.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — walk through server
+creation onboarding, including version, Java, memory and the world disclosures.
+Each active target should automatically appear in the sheet content area.
+Resize to a shorter window and confirm the current target is revealed again.
+Hide a form tip and confirm the form can be freely scrolled.
+
+**Batch:** Shared onboarding target visibility only.
+
+**Commit:** `P26.20: automatically reveal active onboarding targets`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings);
+touched formatting and `git diff --check` passed. No tests added or run.

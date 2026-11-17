@@ -63,8 +63,6 @@
 
   let cardHidden = false;
   let lastIndex = -1;
-  let scrollRequest = 0;
-  let scrollFrame: number | undefined;
   let createCompletionHandled = false;
   function confirmTourExit(): void {
     const navigateBack = $tourExitRequest;
@@ -113,7 +111,6 @@
   $: if (stepIndex !== lastIndex) {
     cardHidden = false;
     lastIndex = stepIndex;
-    scrollRequest += 1;
     createCompletionHandled = false;
   }
 
@@ -157,7 +154,6 @@
   }
   onDestroy(() => {
     tourExitRequest.set(null);
-    if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
     activeTourStep.set(null);
     hiddenTourActions.set(null);
   });
@@ -166,9 +162,11 @@
   // resizing it -- e.g. Sheet.svelte's vertically-centered scrim shifting every
   // child upward as the create-server form grows the sheet taller. ResizeObserver
   // (tourAnchors.ts) only fires on the tracked element's own size changing, so
-  // this re-reads real positions every frame for as long as the tour is showing.
+  // this reveals and re-reads the active target each frame, including late mounts.
   onMount(() => {
     let frame = requestAnimationFrame(function tick() {
+      if (spotlightAnchor && !cardHidden && !$tourExitRequest && !$tourJavaSelectionPending)
+        scrollAnchorIntoView(spotlightAnchor);
       remeasureAll();
       frame = requestAnimationFrame(tick);
     });
@@ -199,23 +197,6 @@
   $: resolved = hasAnchor && !!anchorRect;
   $: blocking = !hasAnchor || !resolved;
   $: totalSteps = steps.length;
-
-  // A new step can replace wizard content in the same render pass. Wait two
-  // frames so the new anchor is mounted before revealing it in its scroll
-  // container.
-  $: if (spotlightAnchor && scrollRequest > 0) {
-    const request = scrollRequest;
-    const anchor = spotlightAnchor;
-    if (typeof window !== 'undefined') {
-      if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
-      scrollFrame = requestAnimationFrame(() => {
-        scrollFrame = requestAnimationFrame(() => {
-          if (request !== scrollRequest) return;
-          scrollAnchorIntoView(anchor, reduceMotion ? 'auto' : 'smooth');
-        });
-      });
-    }
-  }
 
   $: spot =
     resolved && anchorRect
