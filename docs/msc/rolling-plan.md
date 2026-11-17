@@ -763,3 +763,38 @@ engine and restart onboarding; check Crossplay → Xbox Broadcast (when enabled)
 Checks: `npm run check` passed (0 errors, existing CSS warnings); touched
 Svelte formatting, onboarding JSON parsing and `git diff --check` passed.
 No tests added or run.
+
+
+### P26.15 — browse provider modpacks from the import creation path
+
+**Status:** Implemented; owner interaction verification pending.
+
+**Files:** Wizard UploadStep; this plan.
+
+**What:** Shorten the native drop-zone label to Drop here. Add Browse Modpacks
+alongside the local source pickers, reusing the existing PackCatalogSheet with
+its Modrinth/CurseForge selector, project/version selection and key handling.
+Do not apply a preselected software/version filter before a pack is chosen.
+Pass the catalog's already-inspected staged archive into the same modpack
+summary/draft path as local archives, retaining its originating host API and
+wizard cleanup ownership. Existing Continue then follows Network → World →
+Confirm and creates from the selected pack's manifest. Keep parent navigation
+busy while the browser is open. Local folder/ZIP/archive actions remain available.
+Update the introductory copy to explain both local and provider starting points.
+No new browser or provisioning API. The existing guided tour stays on Start Fresh.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → Import or
+Create from Modpack → Browse Modpacks; choose a Modrinth pack/version and confirm
+the pack summary, detected loader/version and Network/World/Confirm flow.
+Repeat browsing with CurseForge (including its existing missing-key prompt).
+Cancel browsing to return to Upload; check local source pickers and Drop here.
+Only create a server when ready for that manual verification.
+
+**Batch:** This provider-browser entry point and drop copy only.
+
+**Commit:** `P26.15: browse modpacks from the import creation flow`
+
+Checks: `npm run check` and `npm run build` passed with existing CSS and
+import/chunk warnings; touched Svelte formatting and `git diff --check` passed.
+No tests or live provider downloads/server creation performed. Separate desktop
+lockfile change remains outside this step.

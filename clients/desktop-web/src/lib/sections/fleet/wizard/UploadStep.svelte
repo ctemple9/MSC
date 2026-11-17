@@ -20,7 +20,8 @@
   import type { Schema, ScreenApi } from '../../shared/types';
   import { errorMessage, mutate } from '../../shared/types';
   import { addonPaths } from '../../addons/model';
-  import { retainWizardUpload } from './model';
+  import { retainWizardUpload, retainWizardUploadApi } from './model';
+  import PackCatalogSheet from '../../components/PackCatalogSheet.svelte';
   import ModpackUploadProgress from '../../components/ModpackUploadProgress.svelte';
   import type { FileUploadProgress } from '../../../platform/types';
   import { reportTransferFailure } from '../../shared/transfer-notices';
@@ -30,13 +31,14 @@
   export let api: ScreenApi | undefined = undefined;
   export let draft: WizardDraft;
   export let onTransferBusy: (busy: boolean) => void = () => {};
-  $: onTransferBusy(isScanning || !!pendingModpackSource);
+  $: onTransferBusy(isScanning || !!pendingModpackSource || showPackCatalog);
   let serverProgress: FileUploadProgress | undefined;
   let serverSourceName = 'Server source';
   /** Called after an existing server folder/archive has been scanned. */
   export let onScanned: () => void = () => {};
 
   let isScanning = false;
+  let showPackCatalog = false;
   let disposed = false;
   let nativeAbort: AbortController | undefined;
   let nativeStage = 'Preparing server source…';
@@ -182,6 +184,27 @@
       { stagedUploadId },
     );
     if (pendingModpackSource) retainWizardUpload(draft, pendingModpackSource, stagedUploadId);
+    applyInspectedModpack(fileName, stagedUploadId, inspection);
+  }
+
+  function selectCatalogPack(
+    stagedUploadId: string,
+    name: string,
+    inspection: Schema['ModpackInspectionResultDTO'],
+    scoped: ScreenApi,
+  ): void {
+    if (disposed) throw new Error('The server creator has closed.');
+    retainWizardUploadApi(draft, scoped, stagedUploadId);
+    applyInspectedModpack(name, stagedUploadId, inspection);
+    scanError = undefined;
+    showPackCatalog = false;
+  }
+
+  function applyInspectedModpack(
+    fileName: string,
+    stagedUploadId: string,
+    inspection: Schema['ModpackInspectionResultDTO'],
+  ): void {
     const detected = flavorForLoader(inspection.loaderName);
     draft = {
       ...draft,
@@ -581,10 +604,10 @@
     </div>
   {:else}
     <div class="intro">
-      <h2>Drop your server folder, archive, or modpack</h2>
+      <h2>Import a server or start from a modpack</h2>
       <p>
-        Drop a server folder or server .zip to import an existing server. For a .mrpack or
-        CurseForge .zip modpack, use Choose Modpack below.
+        Drop a server folder or server .zip to import an existing server. Choose a local modpack
+        archive, or browse Modrinth and CurseForge to start a new server from a pack.
       </p>
     </div>
 
@@ -602,9 +625,7 @@
       }}
     >
       <p class="dropzone-title">
-        {supportsDrop
-          ? 'Drop server folder or server .zip here'
-          : 'Browse for a server folder, archive, or modpack'}
+        {supportsDrop ? 'Drop here' : 'Browse for a server folder, archive, or modpack'}
       </p>
       {#if !supportsDrop}
         <p class="hint">Drag a file into the window, or use Browse below.</p>
@@ -615,10 +636,23 @@
           >Choose Server .zip…</Button
         >
         <Button variant="secondary" onclick={() => void browseModpack()}>Choose Modpack…</Button>
+        <Button variant="secondary" disabled={!api} onclick={() => (showPackCatalog = true)}
+          >Browse Modpacks…</Button
+        >
       </div>
     </div>
   {/if}
 </div>
+
+{#if showPackCatalog && api}
+  <PackCatalogSheet
+    {api}
+    javaFlavor=""
+    minecraftVersion={undefined}
+    onClose={() => (showPackCatalog = false)}
+    onSelected={selectCatalogPack}
+  />
+{/if}
 
 {#if pendingModpackSource}
   <StagedUploadSheet
