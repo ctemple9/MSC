@@ -321,7 +321,7 @@
       <span class="chevron" aria-hidden="true">⌄</span>
     </summary>
     <div class="disclosure-body">
-      <div class="field-grid">
+      <div class="field-grid" class:simple-generation={mode === 'wizard'}>
         {#if mode !== 'wizard'}
           <label class="field-group">
             <span class="label">Minecraft Folder Name</span>
@@ -400,7 +400,7 @@
         {/if}
 
         {#if serverType === 'java'}
-          <label class="field-group">
+          <label class="field-group" class:inline-toggle={mode === 'wizard'}>
             <span class="label">Generate Structures</span>
             {#if unavailable('generation.structures')}
               <span class="unavailable">Unavailable: {reason('generation.structures')}</span>
@@ -745,6 +745,13 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px 18px;
+  }
+  .field-grid.simple-generation {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .simple-generation .generation-options {
+    gap: 6px;
   }
   .field-group {
     display: flex;

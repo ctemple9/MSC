@@ -571,3 +571,27 @@ formatting, Rust format check, engine Clippy, onboarding JSON parsing and
 `git diff --check` passed; Clippy reports existing warnings. No tests added or
 run, and no live world or service changes. Separate desktop lockfile change
 remains outside this step.
+
+
+### P26.8 — align the creation world-generation controls
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** WorldSettingsForm wizard layout; this plan.
+
+**What:** Give World Type the full available width in the creation wizard.
+Stack Generate Structures and Bonus Chest beneath it with both labels aligned
+left, switches aligned right and descriptions below. Reuse the existing inline
+toggle layout with consistent spacing, retaining the responsive single-column
+flow and onboarding anchor. No setting, default or creation behavior changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Add Server → World →
+World Generation; check the full-width selector and aligned switch rows at
+normal and narrow window widths. Confirm switches and type selection still work.
+
+**Batch:** This generation layout adjustment only.
+
+**Commit:** `P26.8: align world generation controls in creation`
+
+Checks: `npm run check` passed with 0 errors and existing CSS warnings;
+touched Svelte formatting and `git diff --check` passed. No tests added or run.
