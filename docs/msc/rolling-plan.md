@@ -1067,3 +1067,26 @@ asset set, then install the Windows/Mac desktop packages for physical acceptance
 **Commit:** `P26.25: prepare 0.1.46 beta release`
 
 No test suites authorized or run. Release workflow remains unchanged.
+
+### P26.26 — refresh README for 0.1.46
+
+**Status:** Implemented; owner documentation review pending.
+
+**Files:** README; this plan.
+
+**What:** Update published release links and update examples to 0.1.46.
+Refresh first-server instructions for Manage, inline Java selection, memory
+allocation and import modpack browsing. Explain the background service versus
+desktop/terminal controls using the agreed wording, document the header Engine
+button and unified Connection section, and remove the remaining MSC 2 wording
+from the handbook introduction.
+
+**Verify:** `git show --stat --oneline HEAD` — review the README changes and
+follow the 0.1.46 release and local release-notes links.
+
+**Batch:** README refresh only.
+
+**Commit:** `P26.26: refresh readme for 0.1.46`
+
+Checks: verified 0.1.46 is a published prerelease using GitHub's release API;
+local README link targets and `git diff --check` passed. No tests added or run.

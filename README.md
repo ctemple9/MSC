@@ -22,7 +22,7 @@ host.
 
 ## Download and install
 
-Download [MSC v0.1.45](https://github.com/ctemple9/MSC/releases/tag/v0.1.45)
+Download [MSC v0.1.46](https://github.com/ctemple9/MSC/releases/tag/v0.1.46)
 and choose the file for your computer. The desktop app includes the engine.
 
 - **Mac:** Open the `.dmg` and drag MSC to Applications.
@@ -33,28 +33,37 @@ and choose the file for your computer. The desktop app includes the engine.
 
 Update the macOS or Windows desktop app from its built-in updater. Update Linux
 packages with `apt` or `dnf`. For a headless install, run `msc update check`,
-then `msc update install --release-id 0.1.45`.
+then `msc update install --release-id 0.1.46`.
 
 ### What is in the download?
 
-The v0.1.45 download includes the desktop app, host-local CLI and full-screen
+The v0.1.46 download includes the desktop app, host-local CLI and full-screen
 `msc tui`, saved-terrain maps, and the server-management features below.
 The TUI runs locally on the engine host or through an SSH login to it.
 
 Desktop builds also include a Minecraft-style helmet in the system bar while
-the local engine runs, including after the desktop window closes. Use the local
-Background Service page to show or hide it. See the [indicator guide](docs/msc/engine-indicator.md).
+the local engine runs, including after the desktop window closes. Open **Engine**
+using the square **E** in the top right to show or hide it. See the
+[indicator guide](docs/msc/engine-indicator.md).
 
 ## Start your first server
 
-1. Open MSC, or use `msc` or `msc tui` on a headless host. The desktop app can
-   connect to a headless engine from another computer.
-2. Choose **Add Server**.
-3. Choose **Java** or **Bedrock**, then select the Minecraft version and server
-   software.
-4. Configure the world and connection method.
-5. Create and start the server.
-6. Complete the EULA and connection setup when MSC asks you to.
+1. Open MSC and start or connect to the background service. The desktop app can
+   control an engine on this computer or another one.
+2. Click **Manage** beside Start in the sidebar, then choose **Add Server**.
+3. Choose **Start Fresh** to configure a new Java or Bedrock server, or
+   **Import** to use an existing server, archive, or modpack. You can browse
+   Modrinth and CurseForge modpacks from either creation path.
+4. Select the server software and Minecraft version. For Java, specify a Java
+   executable using **Detect**, **Browse**, or **Install Java**. MSC shows the
+   required Java version and asks you to select Java before continuing.
+5. Set the RAM allocation, connection method, and first world settings, then
+   create the server.
+6. Click **Initiate** for its first start and complete the EULA and setup prompts.
+   After initial setup, use **Start** and **Stop** to control the server.
+
+The guided onboarding tour walks through creation and brings each highlighted
+section into view. On a headless host, use the local `msc` commands or `msc tui`.
 
 For a first Java server, **Paper** is a good default. For a first Bedrock
 server, choose **Bedrock Dedicated Server**.
@@ -135,8 +144,8 @@ not rebuild terrain already saved in the world.
 
 ### Learn how players can connect
 
-Getting players connected usually requires choosing a connection method. MSC
-2's built-in handbook explains the common options, what each one does, and what
+Getting players connected usually requires choosing a connection method. MSC's
+built-in handbook explains the common options, what each one does, and what
 you need to set up. Some options integrate with MSC; others require changes
 to your router or a separate third-party service.
 
@@ -154,6 +163,10 @@ to your router or a separate third-party service.
 - [**Xboxbroadcast**](content/help/handbook/xbox-broadcast.md), which helps
   Bedrock players on consoles find a reachable server through their Friends
   tab
+
+The sidebar’s **Connection** section shows the selected server’s connection
+addresses. playit.gg and Xbox Broadcast controls appear there when enabled for
+that server. Use the visibility toggle to show or hide addresses.
 
 MSC does not automatically make every network setup work. It explains the
 pieces involved and helps you understand what still needs to be configured.
@@ -175,36 +188,28 @@ is running out of room for Minecraft.
 
 ## How it works
 
-MSC has one part that runs your servers and several ways to control it.
+The background service, also called the engine, starts Minecraft and manages
+your servers, worlds, and files. Wherever the engine runs, that is where your
+Minecraft servers run. The server computer can be your Mac, Windows PC, or Linux
+computer.
 
-- **The server computer** runs the MSC engine and the Minecraft server. This
-  can be your Mac, Windows PC, Linux computer, or an old machine with no
-  monitor attached.
-- **The desktop app** gives you a graphical interface on the same computer or
-  another computer.
-- **The CLI** gives you task commands from a local terminal or an SSH login
-  shell on the engine host. It authenticates as the installing OS account;
-  remote host selection stays in the desktop app.
-- **The TUI** gives you a full-screen, keyboard-driven control surface on the
-  engine host, either in its local terminal or through SSH. It shares the CLI's
-  host-local authorization and engine API; use the desktop app to manage a
-  different host remotely.
+The desktop app is your control panel. Use it to create servers, change settings,
+and see what is happening. It is separate from the engine and can control one on
+this computer or another one. Open **Engine** using the square **E** in the top
+right to manage the service or connect to another host.
 
-The server keeps running when you close the desktop app or sign out. The app
-is a control panel; it is not the thing keeping Minecraft alive.
+The terminal offers two other ways to control the same engine: scriptable
+`msc` commands and the keyboard-driven `msc tui` interface. Both run on the
+engine host, either in a local terminal or through SSH, and authenticate as the
+installing OS account. Use the desktop app to connect directly to another host.
 
-## A simple way to think about it
+Closing the desktop window leaves the engine and your Minecraft servers running,
+like putting away a TV remote while the TV stays on. To stop a Minecraft server,
+click **Stop**. To stop the engine, click **Stop engine**. Or turn off the
+computer hosting it.
 
-If you are new to MSC, there are two computers to think about:
-
-1. The **host** is the computer that runs the Minecraft world. It can sit in a
-   closet with the lid closed and no monitor attached.
-2. The **control device** is the computer where you open the MSC app. For
-   CLI work, use a terminal on the host or an SSH login to that host.
-
-They can be the same computer. They can also be different computers. The
-players' consoles, phones, and gaming PCs are separate again: they connect to
-the Minecraft server but do not need MSC installed.
+The players' consoles, phones, and gaming PCs connect to Minecraft itself.
+Players do not need MSC installed.
 
 ## New here?
 
@@ -298,24 +303,24 @@ Swift is used for the macOS Bedrock runtime.
 
 ## Current release and support
 
-The latest published build is [MSC v0.1.45](https://github.com/ctemple9/MSC/releases/tag/v0.1.45),
+The latest published build is [MSC v0.1.46](https://github.com/ctemple9/MSC/releases/tag/v0.1.46),
 a prerelease. There is no stable release yet. Download the
 platform-specific installer or archive from that release page and verify its
 entry in `SHA256SUMS` before installing. The Phase 16 acceptance record
 (P16.29) is still open; this prerelease has not passed the full physical
 release acceptance gate.
 
-Read the [v0.1.45 release notes](docs/msc/release/v0.1.45.md) for the latest
+Read the [v0.1.46 release notes](docs/msc/release/v0.1.46.md) for the latest
 fixes and the [release history](docs/msc/release/) for earlier changes. On
 Intel macOS, use **Repair engine** after installing the updated app to register
 its matching engine and Bedrock helper before the next Bedrock start. Existing
 root-owned Bedrock data still requires a one-time ownership repair.
 
 **Windows 0.1.43/0.1.44:** if the built-in updater reports that it requires a
-machine-protected desktop directory, download the v0.1.45 MSI and install it
+machine-protected desktop directory, download the v0.1.46 MSI and install it
 manually. The correction must be in the desktop performing the update; the
-older updater cannot acquire it by retrying the same blocked update. This build
-also fixes error 33 when checking an already-running background indicator.
+older updater cannot acquire it by retrying the same blocked update. Releases
+from 0.1.45 also fix error 33 when checking an already-running background indicator.
 
 **macOS 0.1.25/0.1.26:** stop the Minecraft server, quit MSC, manually install
 v0.1.42 from its disk image, and repair the engine once. The older updater's helper
