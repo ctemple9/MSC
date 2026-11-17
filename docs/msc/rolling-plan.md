@@ -854,3 +854,30 @@ frontend formatting, Rust format check, engine Clippy, guide JSON parsing and
 `git diff --check` passed. No Java installation, live server creation or
 automated tests performed. Separate desktop lockfile change remains outside
 this step.
+
+
+### P26.17 — explain the engine and control panel on the welcome page
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** EngineSetupSection; this plan.
+
+**What:** Replace How does MSC work? with the three owner-approved explanations:
+the background service runs Minecraft wherever it is hosted; the desktop app
+and terminal interface control the same engine; closing the window leaves the
+engine and servers running, using the agreed TV remote analogy. End with the
+approved Stop / Stop Engine instructions and “Or turn off the computer.”
+Keep the numbered layout and use no hyphens/dashes in the new prose. Remove
+the old duplicate closing-window explanation heading.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — open Engine and read
+How does MSC work?; confirm the agreed text appears in the existing three-step
+layout and the stopping instructions sit beneath it.
+
+**Batch:** This Engine-page explanation only.
+
+**Commit:** `P26.17: explain the engine and control panel on the welcome page`
+
+Checks: final `npm run check` passed with 0 errors and existing CSS warnings;
+touched Svelte formatting and `git diff --check` passed. Removed the unused
+heading selector after replacing the old explanation. No tests added or run.

@@ -522,28 +522,34 @@
       <h2>How does MSC work?</h2>
       <ol class="architecture">
         <li>
-          <h3>You use the control panel</h3>
-          <p>This desktop app, or the CLI, is where you change settings and manage your servers.</p>
-        </li>
-        <li>
-          <h3>The engine does the work</h3>
+          <h3>The background service runs your servers</h3>
           <p>
-            It starts Minecraft, manages files and keeps logs on the computer hosting your servers.
+            The background service, also called the engine, starts Minecraft and manages your
+            servers, worlds, and files. Wherever the engine is running, that’s where your Minecraft
+            servers run, whether on this computer or another one.
           </p>
         </li>
         <li>
-          <h3>Minecraft runs on that computer</h3>
+          <h3>This app is your control panel</h3>
           <p>
-            The engine can be here, or on another computer. Your servers and worlds stay with their
-            engine.
+            Use this window to create servers, change settings, and see what’s happening. The app is
+            separate from the engine, so you can control it whether it’s running on this computer or
+            another one. If you prefer working in a terminal, MSC’s text interface (TUI) is another
+            remote for the same engine.
+          </p>
+        </li>
+        <li>
+          <h3>Closing the window leaves your servers running</h3>
+          <p>
+            Closing this window disconnects the control panel. The engine and your Minecraft servers
+            keep running, like putting away a TV remote while the TV stays on.
           </p>
         </li>
       </ol>
       <div class="connection-explanation">
-        <h3>What happens when you close MSC?</h3>
         <p>
-          <strong>Your servers keep running.</strong> Closing this window leaves the engine and Minecraft
-          running. To stop Minecraft, use the server’s Stop button. To stop the engine, use Stop engine.
+          To stop a Minecraft server, click <strong>Stop</strong>. To stop the engine, click
+          <strong>Stop Engine</strong>. Or turn off the computer.
         </p>
       </div>
       {#if !isCurrentLocalEngine && onPairAgain}
@@ -895,9 +901,6 @@
   .connection-explanation strong {
     font-weight: 500;
     color: var(--msc-text-primary);
-  }
-  .connection-explanation h3 {
-    font-size: 12px;
   }
   .remote-content {
     border-top: 1px solid var(--msc-hairline);
