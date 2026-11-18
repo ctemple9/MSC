@@ -1,6 +1,16 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import type { ScreenApi } from '../sections/shared/types';
+  import type { Schema, ScreenApi } from '../sections/shared/types';
+  import Button from '../components/base/Button.svelte';
+  import OnboardingCard from './OnboardingCard.svelte';
+  import AppTour from './AppTour.svelte';
+  import {
+    appTourStep,
+    readAppTour,
+    saveAppTour,
+    tourCreationClosed,
+    type AppTourCheckpoint,
+  } from './appTour';
   import SetupIntro from './SetupIntro.svelte';
   import TourOverlay from './TourOverlay.svelte';
   import {
@@ -14,6 +24,48 @@
 
   export let api: ScreenApi;
   export let engineReady = false;
+  export let hostId = '';
+  export let server: Schema['ServerDTO'] | undefined = undefined;
+  export let initiationVisible = false;
+  export let onPrepareTourStep: (id: string) => Promise<boolean> = async () => true;
+  let continuation: AppTourCheckpoint | null = null;
+  let continuationLoading = false;
+  let continuationError = '';
+  let explorationRequested = false;
+
+  function checkpoint(value: AppTourCheckpoint): void {
+    continuation = value;
+    saveAppTour(value);
+  }
+  async function continueAfterCreation(): Promise<void> {
+    if (continuationLoading) return;
+    continuationLoading = true;
+    continuationError = '';
+    const creationHostId = hostId;
+    const creationApi = api.snapshot?.() ?? api;
+    try {
+      if (!onboarding?.steps.some((step) => step.id === 'created-done')) {
+        onboarding = await creationApi.get<OnboardingGuide>('/v1/guides/onboarding');
+      }
+      if (!onboarding?.steps.some((step) => step.id === 'created-done')) {
+        continuationError = 'Restart or repair the engine to load the expanded tour, then retry.';
+        return;
+      }
+      const status = await creationApi.get<Schema['RemoteAPIStatus']>('/v1/status');
+      if (!status.activeServerId) throw new Error('No created server selected');
+      checkpoint({
+        hostId: creationHostId,
+        serverId: status.activeServerId,
+        step: explorationRequested ? 'console' : 'created-done',
+      });
+    } catch {
+      continuationError =
+        'The tour could not find the created server. You can retry without creating another server.';
+    } finally {
+      continuationLoading = false;
+    }
+  }
+
   export let onResetRecovery: () => void = () => {};
   let resetRecovery = false;
 
@@ -27,8 +79,22 @@
 
   $: stage = firstLaunchStage(state);
   $: onboardingOpen =
-    engineReady && ready && !resetRecovery && onboarding !== null && stage !== 'complete';
-  $: tourSteps = onboarding ? applicableTourSteps(onboarding.steps, $tourServerContext) : [];
+    engineReady &&
+    ready &&
+    !resetRecovery &&
+    onboarding !== null &&
+    stage !== 'complete' &&
+    (!continuation || $appTourStep !== null);
+  $: tourSteps = onboarding
+    ? applicableTourSteps(
+        onboarding.steps.filter(
+          (step) =>
+            step.order <=
+            (onboarding!.steps.find((entry) => entry.id === 'create')?.order ?? Infinity),
+        ),
+        $tourServerContext,
+      )
+    : [];
 
   function setPageScrollLocked(locked: boolean): void {
     if (typeof document === 'undefined' || !document.body) return;
@@ -60,6 +126,11 @@
     window.dispatchEvent(new CustomEvent('msc:setup-complete'));
   }
   function restart(): void {
+    continuation = null;
+    explorationRequested = false;
+    continuationError = '';
+    saveAppTour(null);
+    tourCreationClosed.set(false);
     tourIndex = 0;
     writeState({ ...state, tourComplete: false });
   }
@@ -88,6 +159,9 @@
         ]);
         onboarding = loadedOnboarding;
         state = readState(hostSetup.complete);
+        continuation = readAppTour();
+        if (continuation?.step === 'created-done')
+          checkpoint({ ...continuation, step: 'initiate' });
         resetRecovery = reset?.state === 'blocked' || reset?.state === 'pending';
         if (resetRecovery) onResetRecovery();
       } catch {
@@ -99,6 +173,27 @@
     };
     void load();
     const onRestart = () => restart();
+    const onExplore = () => {
+      if (!server) return;
+      explorationRequested = true;
+      continuationError = '';
+      const saved = readAppTour();
+      const consoleIndex = onboarding?.steps.findIndex((step) => step.id === 'console') ?? -1;
+      const explorationIds =
+        consoleIndex >= 0 ? onboarding!.steps.slice(consoleIndex).map((step) => step.id) : [];
+      const canResume =
+        saved &&
+        saved.hostId === hostId &&
+        saved.serverId === server.id &&
+        explorationIds.includes(saved.step) &&
+        saved.step !== 'done';
+      checkpoint(canResume ? saved : { hostId, serverId: server.id, step: 'console' });
+      writeState({ setupComplete: true, tourComplete: false });
+      if (!onboarding?.steps.some((step) => step.id === 'created-done')) {
+        continuationError = 'Restart or repair the engine to load the expanded tour, then retry.';
+      }
+    };
+    window.addEventListener('msc:explore-app', onExplore);
     const refreshRecovery = () => {
       void api
         .get<{ state: string }>('/v1/host/reset')
@@ -111,6 +206,7 @@
     window.addEventListener('msc:reset-recovery-closed', refreshRecovery);
     return () => {
       window.removeEventListener('msc:restart-tour', onRestart);
+      window.removeEventListener('msc:explore-app', onExplore);
       window.removeEventListener('msc:reset-recovery-closed', refreshRecovery);
     };
   });
@@ -130,14 +226,38 @@
         <SetupIntro {api} onComplete={completeSetup} />
       </section>
     </div>
-  {:else if stage === 'tour'}
+  {:else if stage === 'tour' && continuationError}
+    <div
+      class="gate-backdrop"
+      style="z-index:500"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Tour paused"
+    >
+      <OnboardingCard title="Tour paused" body={continuationError}>
+        <Button variant="secondary" onclick={completeTour}>Finish for now</Button>
+        <Button variant="primary" onclick={() => void continueAfterCreation()}>Retry</Button>
+      </OnboardingCard>
+    </div>
+  {:else if stage === 'tour' && continuation}
+    <AppTour
+      guide={onboarding}
+      checkpoint={continuation}
+      {hostId}
+      {server}
+      {initiationVisible}
+      onPrepare={onPrepareTourStep}
+      onCheckpoint={checkpoint}
+      onFinish={completeTour}
+    />
+  {:else if stage === 'tour' && !continuationLoading}
     <TourOverlay
       steps={tourSteps}
       stepIndex={tourIndex}
       skipLabel={onboarding.skip.label}
       onAdvance={advance}
       onSkip={completeTour}
-      onComplete={completeTour}
+      onComplete={() => void continueAfterCreation()}
     />
   {/if}
 {/if}

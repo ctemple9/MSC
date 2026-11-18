@@ -91,8 +91,8 @@ def check_structured_guides(topics: dict[str, str]) -> None:
     onboarding = load_json("content/guides/onboarding.json")
     steps = onboarding["steps"]
     if [step["order"] for step in steps] != list(range(EXPECTED["onboardingSteps"])):
-        fail("onboarding steps are not in their MSC 1 order")
-    if onboarding["skip"]["label"] != "Skip tour" or "Preferences" not in onboarding["skip"]["effect"]:
+        fail("onboarding steps are not in their recorded guide order")
+    if onboarding["skip"]["label"] != "Skip tour" or "Help & guides" not in onboarding["skip"]["effect"]:
         fail("onboarding skip/reopen wording is incomplete")
     if onboarding["reopen"]["persistenceKey"] != "msc_onboarding_tour_complete":
         fail("onboarding persistence key drifted from MSC 1")

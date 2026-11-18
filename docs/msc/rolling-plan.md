@@ -1613,3 +1613,85 @@ no live server operations performed. Existing progress parser/state tests alread
 cover the observation method; this change supplies it with the real stream rather
 than adding source-text or timing-based tests. Existing desktop lockfile ordering
 is excluded from this step.
+
+### P26.41 — continue onboarding through initiation and the app walkthrough
+
+**Status:** Implemented; owner full-flow and visual verification pending.
+
+**Files:** Guide content/source map/corpus count; FirstLaunchGate, AppTour and
+checkpoint state; TourOverlay/anchors/types; App and shell/sidebar/header;
+creator success action; Worlds and Help; focused continuation regression cases;
+existing guide-content checker metadata; this plan.
+
+**What:** Implement the owner-reviewed card copy and the subsequent amendment
+placing optional exploration after Connection addresses. Preserve the first
+28 creation cards, update the welcome copy to remove the two-minute promise,
+and replace the obsolete post-creation EULA/boot/Packs-tab tail with 27 cards:
+created Done; Initiate; Start/Stop; server selector/Manage; Connection; optional
+Explore MSC prompt; Console; Overview; Players; World slots; backups; world
+packs; conditional View Map; Performance; Components; server properties; server
+editor; Files; Maintenance; Quick commands; layout; Engine; Preferences;
+Help; Handbook; Router Guide; finish. Corpus now has 55 cards with complete
+source mappings. Keep copy/edition/flavor variants in engine-served guide data.
+
+Creation success no longer completes onboarding. Capture the actual created
+server from the originating API, keep its Done screen visible, and wait for
+successful wizard cleanup/closure before returning to the main controls.
+Highlight Initiate, then pause the tour during guided setup; hidden/in-progress
+or failed setup does not advance it. Successful completion and dismissal resume
+the basic controls cards. Discard returns to the Initiate introduction. Saved
+waiting checkpoints can reconcile a completed setup after reopening the app.
+Host/server changes pause the walkthrough instead of guiding another server.
+
+After Connection, show You’ve got the basics with Finish for now and Explore MSC.
+Exploration opens the relevant tabs/disclosures, highlights real controls,
+provides Back/Next/Finish, skips unavailable routes/map controls, and returns to
+Overview at the finish. Expand Console for its explanation and restore its prior
+visibility afterwards. Preserve address visibility. Tailor copy for Java/Bedrock,
+vanilla/plugin/modded software and configured connection helpers. Navigation
+never starts a server, changes settings, runs a command, installs a component,
+or creates/restores a backup. Opening actual setup remains a deliberate Initiate
+click, not an automatic tour action.
+
+Save continuation checkpoints in MSC-owned preferences separately from the
+legacy tour-complete flag. Help now offers Explore MSC; it resumes the optional
+section without repeating creation, while Restart the guide still restarts the
+full flow. Finish for now after the basics saves Console as the optional entry.
+Add bounded, keyboard-contained informational cards with Escape dismissal and
+focus restoration; required-action cards retain access to their real controls.
+Navigation/content failures provide explicit retry/finish UI rather than looping.
+An old engine corpus reports that restart/repair is needed instead of silently
+ending the expanded walkthrough. Update the existing content-checker's skip
+metadata expectation to match the actual Help entry point; no new workflow gate.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Repair engine if needed to
+load the new bundled guide, then Help → Onboarding → Restart the guide. Create a
+server and confirm the tour waits on the success Done screen, highlights Initiate,
+and disappears throughout its guided setup. Hide/resume setup; check a failure
+or discard when appropriate. After successful completion and Done, check Start/
+Stop → server selector → Connection → optional prompt. Finish for now, then use
+Help → Explore MSC to resume at Console. Walk all screens with Next/Back, including
+conditional View Map, both guide views and returning to Overview. Check keyboard
+navigation, console visibility restoration, paused host/server changes, saved
+continuation after app restart, and Java/Bedrock/flavor-specific text as available.
+Perform live setup/discard only deliberately as part of owner verification.
+
+**Batch:** This complete owner-approved onboarding continuation only; one commit.
+
+**Commit:** `P26.41: continue onboarding through initiation and the app walkthrough`
+
+Essential regression rationale: three local state cases protect the real
+initiation wait boundary, the owner-mandated optional prompt between Connection
+and Console, and refusing another host/server with the same-looking selection.
+They use guide data and pure transitions, with no timers, processes, network,
+browser rendering or source-text assertions; expected milliseconds. Added but
+not run: tests/help/app-tour.test.ts. No other tests added or run.
+
+Checks: final frontend `npm run check` passed (0 errors, 10 existing CSS warnings);
+`npm run build` passed with existing CSS/import/chunk warnings. Workspace Rust
+format check and engine Clippy passed with existing unused-variable/mut warnings.
+Touched frontend formatting and `git diff --check` passed. Inspected parsed guide
+card count, duplicate IDs and complete source-map coverage. The existing content
+checker/test suites were not run. Clippy's package-order-only root lockfile rewrite
+was restored; the pre-existing desktop lockfile ordering remains outside this step.
+No live server, engine repair, release, push or publication performed.

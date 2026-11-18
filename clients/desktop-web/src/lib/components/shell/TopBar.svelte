@@ -2,6 +2,7 @@
   // Window chrome: title, the running terrain banner, header actions, and the
   // tour actions when the guided-tour card is hidden. Tauri provides the titlebar.
   // docs/msc/renderings/shell.html, MSC 1 ContentView.swift top banner.
+  import { onboardingAnchor } from '../../help/tourAnchors';
   import ShellIcon from './ShellIcon.svelte';
   import RunningBannerGame from './RunningBannerGame.svelte';
   import Button from '../base/Button.svelte';
@@ -40,25 +41,28 @@
         >
       </div>
     {/if}
+    <div class="layout-controls" use:onboardingAnchor={'ob_tour_layout'}>
+      <button
+        type="button"
+        class="icon-btn"
+        aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+        onclick={onToggleSidebar}
+      >
+        <ShellIcon name="sidebar" />
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        aria-label={consoleCollapsed ? 'Show console' : 'Hide console'}
+        onclick={onToggleConsole}
+      >
+        <ShellIcon name="console" />
+      </button>
+    </div>
     <button
       type="button"
       class="icon-btn"
-      aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
-      onclick={onToggleSidebar}
-    >
-      <ShellIcon name="sidebar" />
-    </button>
-    <button
-      type="button"
-      class="icon-btn"
-      aria-label={consoleCollapsed ? 'Show console' : 'Hide console'}
-      onclick={onToggleConsole}
-    >
-      <ShellIcon name="console" />
-    </button>
-    <button
-      type="button"
-      class="icon-btn"
+      use:onboardingAnchor={'ob_tour_engine'}
       aria-label="Engine"
       title="Engine"
       disabled={!onEngine}
@@ -69,6 +73,7 @@
     <button
       type="button"
       class="icon-btn"
+      use:onboardingAnchor={'ob_tour_help'}
       aria-label="Help & guides"
       disabled={!onHelp}
       onclick={onHelp}
@@ -78,6 +83,7 @@
     <button
       type="button"
       class="icon-btn"
+      use:onboardingAnchor={'ob_tour_preferences'}
       aria-label="Preferences"
       disabled={!onSettings}
       onclick={onSettings}
@@ -137,6 +143,10 @@
     padding-right: 8px;
     margin-right: 4px;
     border-right: 1px solid var(--msc-hairline-faint);
+  }
+  .layout-controls {
+    display: flex;
+    gap: 4px;
   }
   .icon-btn {
     display: inline-flex;

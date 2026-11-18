@@ -28,6 +28,7 @@
   // here (`actionMenu`) rather than one per card.
   import { ApiError } from '../../api/client';
   import { onDestroy, onMount } from 'svelte';
+  import { onboardingAnchor } from '../../help/tourAnchors';
   import Icon from '../../components/base/Icon.svelte';
   import Button from '../../components/base/Button.svelte';
   import Badge from '../../components/base/Badge.svelte';
@@ -768,14 +769,19 @@
   {/key}
 {:else}
   <div class="worlds">
-    <section class="zone">
+    <section class="zone" use:onboardingAnchor={'ob_tour_world_slots'}>
       <div class="section-header">
         <div class="overline">
           <span class="msc-type-overline">World Slots</span>
         </div>
         <div class="header-actions">
           {#if selectedSlot?.isActive}
-            <Button size="sm" variant="secondary" onclick={() => (mapOpen = true)}>View Map</Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              anchorId="ob_tour_map"
+              onclick={() => (mapOpen = true)}>View Map</Button
+            >
           {/if}
           {#if isBedrock}
             <Button
@@ -884,7 +890,7 @@
       />
     {/if}
 
-    <section class="zone">
+    <section class="zone" use:onboardingAnchor={'ob_tour_world_packs'}>
       <div class="section-header">
         <div class="overline">
           <span class="msc-type-overline">{isBedrock ? 'World Packs' : 'Datapacks'}</span>
@@ -1096,25 +1102,27 @@
       />
     {/if}
 
-    <BackupsPanel
-      {backups}
-      slots={worlds.slots}
-      {selectedSlot}
-      activeSlotId={worlds.activeSlotId}
-      serverRunning={worlds.serverRunning}
-      {isBedrock}
-      config={backupConfig}
-      {busy}
-      confirmingDeleteId={confirmingBackupDeleteId}
-      onBackUpNow={() => void backUpNow()}
-      onRestore={(backup) => void restoreBackup(backup)}
-      onDeleteRequest={(id) => (confirmingBackupDeleteId = id)}
-      onDeleteConfirm={() => void deleteBackupConfirmed()}
-      onDeleteCancel={() => (confirmingBackupDeleteId = undefined)}
-      onToggleAuto={(enabled) => void toggleAuto(enabled)}
-      onIntervalChange={(minutes) => void changeInterval(minutes)}
-      onImportLegacy={(backup) => void importLegacyBackup(backup)}
-    />
+    <div use:onboardingAnchor={'ob_tour_backups'}>
+      <BackupsPanel
+        {backups}
+        slots={worlds.slots}
+        {selectedSlot}
+        activeSlotId={worlds.activeSlotId}
+        serverRunning={worlds.serverRunning}
+        {isBedrock}
+        config={backupConfig}
+        {busy}
+        confirmingDeleteId={confirmingBackupDeleteId}
+        onBackUpNow={() => void backUpNow()}
+        onRestore={(backup) => void restoreBackup(backup)}
+        onDeleteRequest={(id) => (confirmingBackupDeleteId = id)}
+        onDeleteConfirm={() => void deleteBackupConfirmed()}
+        onDeleteCancel={() => (confirmingBackupDeleteId = undefined)}
+        onToggleAuto={(enabled) => void toggleAuto(enabled)}
+        onIntervalChange={(minutes) => void changeInterval(minutes)}
+        onImportLegacy={(backup) => void importLegacyBackup(backup)}
+      />
+    </div>
   </div>
 {/if}
 

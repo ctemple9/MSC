@@ -1,52 +1,488 @@
 {
   "id": "first-launch-tour",
-  "source": {"path": "MSCmacOS/MSCmacOS Swift/OnboardingManager.swift", "symbols": ["OnboardingStep", "OnboardingManager"]},
+  "source": {
+    "path": "MSCmacOS/MSCmacOS Swift/OnboardingManager.swift",
+    "symbols": [
+      "OnboardingStep",
+      "OnboardingManager"
+    ]
+  },
   "presentationBoundary": "Content, order, branching, and persistence state are engine data. Spotlight placement, visual anchoring, and animation are client-owned.",
-  "reopen": {"label": "Restart this tour", "source": "OnboardingManager.reset()", "persistenceKey": "msc_onboarding_tour_complete"},
-  "skip": {"label": "Skip tour", "effect": "marks the tour complete; it can be reopened from Preferences", "source": "OnboardingOverlayView.fullScreenCard / OnboardingManager.complete()"},
+  "reopen": {
+    "label": "Restart this tour",
+    "source": "OnboardingManager.reset()",
+    "persistenceKey": "msc_onboarding_tour_complete"
+  },
+  "skip": {
+    "label": "Skip tour",
+    "effect": "marks the current tour complete; the app walkthrough can be resumed from Help & guides",
+    "source": "OnboardingOverlayView.fullScreenCard / OnboardingManager.complete()"
+  },
   "steps": [
-    {"order": 0, "id": "welcome", "title": "Welcome to MSC", "body": "Let's get your first Minecraft server online. This tour takes about two minutes. I'll guide you through each step.", "actionLabel": "Let's go →", "anchor": null, "requiresUserAction": false},
-    {"order": 1, "id": "manage-servers", "title": "Your Server List", "body": "Click Manage beside the Start button to open your server list.", "anchor": "ob_manage_servers", "requiresUserAction": true},
-    {"order": 2, "id": "create-server", "title": "Create a Server", "body": "Choose Add Server to open the server builder.", "anchor": "ob_create_server", "requiresUserAction": true},
-    {"order": 3, "id": "choose-path", "title": "Choose Your Path", "body": "Start Fresh sets up a brand new server from scratch. It is selected for you; click Continue to use it.", "anchor": "ob_wizard_path_picker", "requiresUserAction": true},
-    {"order": 4, "id": "server-type", "title": "Pick a Type", "body": "Java is for PC players. Bedrock is for mobile, console, and Windows players.", "anchor": "ob_server_type", "requiresUserAction": false},
-    {"order": 5, "id": "server-name", "title": "Name Your Server", "body": "This is a controller label; the world name is set later and can be different.", "anchor": "ob_server_name", "requiresUserAction": false},
-    {"order": 6, "id": "server-category", "title": "Standard or Modded?", "body": "Standard servers run plugins; modded servers require every player to install the same mods.", "anchor": "ob_server_category", "requiresUserAction": false, "when": "java"},
-    {"order": 7, "id": "server-flavor", "title": "Choose Your Software", "body": "Paper is recommended for standard servers; Fabric is recommended for modded servers.", "anchor": "ob_server_flavor", "requiresUserAction": false, "when": "java"},
-    {"order": 8, "id": "server-version", "title": "Pick a Version", "body": "The latest version is selected for most servers; choose a pinned version only when you need one.", "anchor": "ob_server_source", "requiresUserAction": false, "when": "java"},
-    {"order": 9, "id": "server-java", "title": "Choose Java for Your Server", "body": "The required Java version is shown here. Enter an executable path, use Detect to choose an installed runtime, Browse for one, or Install Java. This field starts blank and must be filled in before Continue is available. The choice applies only to this server.", "anchor": "ob_server_java", "requiresUserAction": false, "when": "java"},
-    {"order": 10, "id": "crossplay", "title": "Bedrock Cross-play", "body": "Enable this to let Bedrock players join a Java server through Geyser and Floodgate.", "anchor": "ob_server_crossplay", "requiresUserAction": false, "when": "java-standard-non-vanilla"},
-    {"order": 11, "id": "xbox-broadcast", "title": "Xbox Broadcast", "body": "Enable this to publish the server in the Xbox or console Friends tab.", "anchor": "ob_server_xbox_broadcast", "requiresUserAction": false, "when": "bedrock or java-crossplay"},
-    {"order": 12, "id": "server-memory", "title": "Allocate Server Memory", "body": "These fields set the server’s minimum and maximum RAM allocation in GB. The defaults are a starting point. Larger modpacks may need more, but leave memory for your operating system and Minecraft client. You can change these same values later in Edit Server. Review the allocation, then click Next to continue.", "anchor": "ob_server_memory", "requiresUserAction": false},
-    {"order": 13, "id": "server-settings", "title": "Review Your Settings", "body": "Review the server choices, then continue to connectivity.", "anchor": "ob_server_settings", "requiresUserAction": true},
-    {"order": 14, "id": "connectivity", "title": "How Will Friends Connect?", "body": "Port forwarding uses your router. A Playit tunnel works without router access and adds relay latency.", "anchor": "ob_server_connectivity", "requiresUserAction": false},
-    {"order": 15, "id": "ports", "title": "Set Your Ports", "body": "The default Java and Bedrock ports work for most setups; change them only when running multiple servers.", "anchor": "ob_server_connectivity_ports", "requiresUserAction": false},
-    {"order": 16, "id": "network-continue", "title": "Ready to Continue", "body": "Connectivity is configured. Continue to set up the world.", "anchor": "ob_wizard_continue", "requiresUserAction": true},
-    {"order": 17, "id": "world-essentials-expand", "title": "Open Essentials", "body": "Expand Essentials to choose your world's name, seed, difficulty, and default game mode.", "anchor": "ob_world_essentials", "requiresUserAction": true},
-    {"order": 18, "id": "world-essentials", "title": "Essentials", "body": "Set your first world's name, seed, difficulty, and default game mode. These work like normal Minecraft world settings; you can keep the defaults.", "anchor": "ob_world_essentials", "requiresUserAction": true},
-    {"order": 19, "id": "world-generation-expand", "title": "Open World Generation", "body": "Expand World Generation to choose the terrain and starting options.", "anchor": "ob_world_generation", "requiresUserAction": true},
-    {"order": 20, "id": "world-generation", "title": "World Generation", "body": "Choose a world type and whether to generate structures or a bonus chest, where supported. Default creates normal terrain; Superflat uses a flat grass preset. Keep the defaults for a normal survival world.", "anchor": "ob_world_generation", "requiresUserAction": true},
-    {"order": 21, "id": "world-gameplay-expand", "title": "Open Gameplay Rules", "body": "Expand Gameplay Rules to review the settings for this world.", "anchor": "ob_world_gameplay", "requiresUserAction": true},
-    {"order": 22, "id": "world-gameplay", "title": "Gameplay Rules", "body": "These rules belong to this world, not the server. Keep the defaults or adjust them for the way you want to play.", "anchor": "ob_world_gameplay", "requiresUserAction": true},
-    {"order": 23, "id": "world-packs-expand", "title": "Open Packs", "body": "Expand Packs to see how to add packs to your first world.", "anchor": "ob_world_packs", "requiresUserAction": true},
-    {"order": 24, "id": "world-packs", "title": "Packs", "body": "Java worlds use datapacks; Bedrock worlds use behavior and resource packs. Browse packs or import your own files here. Selected packs install after the server is created. You can leave this empty and add packs later in Worlds.", "anchor": "ob_world_packs", "requiresUserAction": true},
-    {"order": 25, "id": "world-review", "title": "Nice, Your World Is Configured", "body": "Review your world settings, then click Continue when you are ready.", "anchor": null, "requiresUserAction": true},
-    {"order": 26, "id": "add-ons", "title": "Add Plugins or Mods", "body": "Plugins and mods are optional. Browse Modrinth or import files now, or add them after creation. Click Okay to return to the builder.", "anchor": "ob_wizard_body", "requiresUserAction": false, "hideCard": true, "when": "java-with-add-on-kind"},
-    {"order": 27, "id": "create", "title": "Create It", "body": "Click Okay to return to the summary, then choose Create Server when you are ready.", "anchor": "ob_confirm_page", "requiresUserAction": true, "hideCard": true},
-    {"order": 28, "id": "dismiss-manage", "title": "Back to Home", "body": "The server is ready. Return to the main screen.", "anchor": "ob_manage_done", "requiresUserAction": true},
-    {"order": 29, "id": "accept-eula", "title": "Accept the EULA", "body": "Minecraft requires EULA acceptance before a server can start.", "anchor": "ob_accept_eula", "requiresUserAction": true},
-    {"order": 30, "id": "start", "title": "Start Your Server", "body": "Start the server for the first time.", "anchor": "ob_start_button", "requiresUserAction": true},
-    {"order": 31, "id": "console", "title": "Watch It Boot", "body": "When the log says Done, the server is ready for players.", "anchor": "ob_console_panel", "requiresUserAction": false},
-    {"order": 32, "id": "continue-details", "title": "Continue into Details?", "body": "The server is up. Continue for a quick tour of the Details workspace, or finish the tour.", "anchor": "ob_console_panel", "requiresUserAction": false},
-    {"order": 33, "id": "expand-details", "title": "Make More Room", "body": "Move the divider to give the Details workspace room.", "anchor": "ob_console_divider_handle", "requiresUserAction": false},
-    {"order": 34, "id": "overview", "title": "Overview", "body": "Overview is the live home base for status, connections, and server health.", "anchor": "ob_details_overview_tab", "requiresUserAction": false},
-    {"order": 35, "id": "players", "title": "Players", "body": "Players shows the online roster and player tools.", "anchor": "ob_details_players_tab", "requiresUserAction": false},
-    {"order": 36, "id": "worlds", "title": "Worlds", "body": "Worlds manages slots, imports, and backups.", "anchor": "ob_details_worlds_tab", "requiresUserAction": false},
-    {"order": 37, "id": "packs", "title": "Packs", "body": "Packs manages resource packs for this server.", "anchor": "ob_details_packs_tab", "requiresUserAction": false},
-    {"order": 38, "id": "performance", "title": "Performance", "body": "Performance shows TPS, memory, CPU, and server health.", "anchor": "ob_details_performance_tab", "requiresUserAction": false},
-    {"order": 39, "id": "components", "title": "Components", "body": "Components manages server software, add-ons, and helpers.", "anchor": "ob_details_components_tab", "requiresUserAction": false},
-    {"order": 40, "id": "settings", "title": "Settings", "body": "Settings changes core server options; changes are saved explicitly.", "anchor": "ob_details_settings_tab", "requiresUserAction": false},
-    {"order": 41, "id": "files", "title": "Files", "body": "Files browses server configs, logs, and world data.", "anchor": "ob_details_files_tab", "requiresUserAction": false},
-    {"order": 42, "id": "done", "title": "You're All Set", "body": "The port-forwarding guide can help friends outside the network join. You can restart this tour from Preferences.", "anchor": null, "requiresUserAction": false, "actionLabel": "Finish"}
-  ]
+    {
+      "order": 0,
+      "id": "welcome",
+      "title": "Welcome to MSC",
+      "body": "Let’s create your first Minecraft server. You can finish after setup or continue with a tour of MSC.",
+      "actionLabel": "Let's go →",
+      "anchor": null,
+      "requiresUserAction": false
+    },
+    {
+      "order": 1,
+      "id": "manage-servers",
+      "title": "Your Server List",
+      "body": "Click Manage beside the Start button to open your server list.",
+      "anchor": "ob_manage_servers",
+      "requiresUserAction": true
+    },
+    {
+      "order": 2,
+      "id": "create-server",
+      "title": "Create a Server",
+      "body": "Choose Add Server to open the server builder.",
+      "anchor": "ob_create_server",
+      "requiresUserAction": true
+    },
+    {
+      "order": 3,
+      "id": "choose-path",
+      "title": "Choose Your Path",
+      "body": "Start Fresh sets up a brand new server from scratch. It is selected for you; click Continue to use it.",
+      "anchor": "ob_wizard_path_picker",
+      "requiresUserAction": true
+    },
+    {
+      "order": 4,
+      "id": "server-type",
+      "title": "Pick a Type",
+      "body": "Java is for PC players. Bedrock is for mobile, console, and Windows players.",
+      "anchor": "ob_server_type",
+      "requiresUserAction": false
+    },
+    {
+      "order": 5,
+      "id": "server-name",
+      "title": "Name Your Server",
+      "body": "This is a controller label; the world name is set later and can be different.",
+      "anchor": "ob_server_name",
+      "requiresUserAction": false
+    },
+    {
+      "order": 6,
+      "id": "server-category",
+      "title": "Standard or Modded?",
+      "body": "Standard servers run plugins; modded servers require every player to install the same mods.",
+      "anchor": "ob_server_category",
+      "requiresUserAction": false,
+      "when": "java"
+    },
+    {
+      "order": 7,
+      "id": "server-flavor",
+      "title": "Choose Your Software",
+      "body": "Paper is recommended for standard servers; Fabric is recommended for modded servers.",
+      "anchor": "ob_server_flavor",
+      "requiresUserAction": false,
+      "when": "java"
+    },
+    {
+      "order": 8,
+      "id": "server-version",
+      "title": "Pick a Version",
+      "body": "The latest version is selected for most servers; choose a pinned version only when you need one.",
+      "anchor": "ob_server_source",
+      "requiresUserAction": false,
+      "when": "java"
+    },
+    {
+      "order": 9,
+      "id": "server-java",
+      "title": "Choose Java for Your Server",
+      "body": "The required Java version is shown here. Enter an executable path, use Detect to choose an installed runtime, Browse for one, or Install Java. This field starts blank and must be filled in before Continue is available. The choice applies only to this server.",
+      "anchor": "ob_server_java",
+      "requiresUserAction": false,
+      "when": "java"
+    },
+    {
+      "order": 10,
+      "id": "crossplay",
+      "title": "Bedrock Cross-play",
+      "body": "Enable this to let Bedrock players join a Java server through Geyser and Floodgate.",
+      "anchor": "ob_server_crossplay",
+      "requiresUserAction": false,
+      "when": "java-standard-non-vanilla"
+    },
+    {
+      "order": 11,
+      "id": "xbox-broadcast",
+      "title": "Xbox Broadcast",
+      "body": "Enable this to publish the server in the Xbox or console Friends tab.",
+      "anchor": "ob_server_xbox_broadcast",
+      "requiresUserAction": false,
+      "when": "bedrock or java-crossplay"
+    },
+    {
+      "order": 12,
+      "id": "server-memory",
+      "title": "Allocate Server Memory",
+      "body": "These fields set the server’s minimum and maximum RAM allocation in GB. The defaults are a starting point. Larger modpacks may need more, but leave memory for your operating system and Minecraft client. You can change these same values later in Edit Server. Review the allocation, then click Next to continue.",
+      "anchor": "ob_server_memory",
+      "requiresUserAction": false
+    },
+    {
+      "order": 13,
+      "id": "server-settings",
+      "title": "Review Your Settings",
+      "body": "Review the server choices, then continue to connectivity.",
+      "anchor": "ob_server_settings",
+      "requiresUserAction": true
+    },
+    {
+      "order": 14,
+      "id": "connectivity",
+      "title": "How Will Friends Connect?",
+      "body": "Port forwarding uses your router. A Playit tunnel works without router access and adds relay latency.",
+      "anchor": "ob_server_connectivity",
+      "requiresUserAction": false
+    },
+    {
+      "order": 15,
+      "id": "ports",
+      "title": "Set Your Ports",
+      "body": "The default Java and Bedrock ports work for most setups; change them only when running multiple servers.",
+      "anchor": "ob_server_connectivity_ports",
+      "requiresUserAction": false
+    },
+    {
+      "order": 16,
+      "id": "network-continue",
+      "title": "Ready to Continue",
+      "body": "Connectivity is configured. Continue to set up the world.",
+      "anchor": "ob_wizard_continue",
+      "requiresUserAction": true
+    },
+    {
+      "order": 17,
+      "id": "world-essentials-expand",
+      "title": "Open Essentials",
+      "body": "Expand Essentials to choose your world's name, seed, difficulty, and default game mode.",
+      "anchor": "ob_world_essentials",
+      "requiresUserAction": true
+    },
+    {
+      "order": 18,
+      "id": "world-essentials",
+      "title": "Essentials",
+      "body": "Set your first world's name, seed, difficulty, and default game mode. These work like normal Minecraft world settings; you can keep the defaults.",
+      "anchor": "ob_world_essentials",
+      "requiresUserAction": true
+    },
+    {
+      "order": 19,
+      "id": "world-generation-expand",
+      "title": "Open World Generation",
+      "body": "Expand World Generation to choose the terrain and starting options.",
+      "anchor": "ob_world_generation",
+      "requiresUserAction": true
+    },
+    {
+      "order": 20,
+      "id": "world-generation",
+      "title": "World Generation",
+      "body": "Choose a world type and whether to generate structures or a bonus chest, where supported. Default creates normal terrain; Superflat uses a flat grass preset. Keep the defaults for a normal survival world.",
+      "anchor": "ob_world_generation",
+      "requiresUserAction": true
+    },
+    {
+      "order": 21,
+      "id": "world-gameplay-expand",
+      "title": "Open Gameplay Rules",
+      "body": "Expand Gameplay Rules to review the settings for this world.",
+      "anchor": "ob_world_gameplay",
+      "requiresUserAction": true
+    },
+    {
+      "order": 22,
+      "id": "world-gameplay",
+      "title": "Gameplay Rules",
+      "body": "These rules belong to this world, not the server. Keep the defaults or adjust them for the way you want to play.",
+      "anchor": "ob_world_gameplay",
+      "requiresUserAction": true
+    },
+    {
+      "order": 23,
+      "id": "world-packs-expand",
+      "title": "Open Packs",
+      "body": "Expand Packs to see how to add packs to your first world.",
+      "anchor": "ob_world_packs",
+      "requiresUserAction": true
+    },
+    {
+      "order": 24,
+      "id": "world-packs",
+      "title": "Packs",
+      "body": "Java worlds use datapacks; Bedrock worlds use behavior and resource packs. Browse packs or import your own files here. Selected packs install after the server is created. You can leave this empty and add packs later in Worlds.",
+      "anchor": "ob_world_packs",
+      "requiresUserAction": true
+    },
+    {
+      "order": 25,
+      "id": "world-review",
+      "title": "Nice, Your World Is Configured",
+      "body": "Review your world settings, then click Continue when you are ready.",
+      "anchor": null,
+      "requiresUserAction": true
+    },
+    {
+      "order": 26,
+      "id": "add-ons",
+      "title": "Add Plugins or Mods",
+      "body": "Plugins and mods are optional. Browse Modrinth or import files now, or add them after creation. Click Okay to return to the builder.",
+      "anchor": "ob_wizard_body",
+      "requiresUserAction": false,
+      "hideCard": true,
+      "when": "java-with-add-on-kind"
+    },
+    {
+      "order": 27,
+      "id": "create",
+      "title": "Create It",
+      "body": "Click Okay to return to the summary, then choose Create Server when you are ready.",
+      "anchor": "ob_confirm_page",
+      "requiresUserAction": true,
+      "hideCard": true
+    },
+    {
+      "order": 28,
+      "id": "created-done",
+      "title": "Your server is created",
+      "body": "Your server has been added to MSC. Click Done to return to the server controls.",
+      "anchor": "ob_created_done",
+      "requiresUserAction": true
+    },
+    {
+      "order": 29,
+      "id": "initiate",
+      "title": "Prepare your server",
+      "body": "Initiate runs the one-time setup for this server. It creates the server files and world, helps you finish any enabled connections, then stops the server. Click Initiate to begin.",
+      "anchor": "ob_start_button",
+      "requiresUserAction": true
+    },
+    {
+      "order": 30,
+      "id": "start-controls",
+      "title": "Starting and stopping",
+      "body": "Your one-time setup is complete. Use Start whenever you want to play, and Stop when you’re finished. Closing this window leaves the background service and any running servers running.",
+      "anchor": "ob_start_button",
+      "requiresUserAction": false
+    },
+    {
+      "order": 31,
+      "id": "server-controls",
+      "title": "Your servers",
+      "body": "Use this selector to switch between servers and hosts. Manage opens your server list, where you can add and organize servers.",
+      "anchor": "ob_tour_server_controls",
+      "requiresUserAction": false
+    },
+    {
+      "order": 32,
+      "id": "connection",
+      "title": "Connection addresses",
+      "body": "Find the addresses players use to join here. People on your network use a local address; people elsewhere need a public connection. Use the visibility control to show or hide addresses.",
+      "anchor": "ob_tour_connection",
+      "requiresUserAction": false
+    },
+    {
+      "order": 33,
+      "id": "explore-choice",
+      "title": "You’ve got the basics!",
+      "body": "You’ve created and prepared your server, and know where to start it and find its connection addresses. Would you like to tour the rest of MSC?",
+      "anchor": null,
+      "requiresUserAction": false,
+      "actionLabel": "Explore MSC"
+    },
+    {
+      "order": 34,
+      "id": "console",
+      "title": "The console",
+      "body": "The console shows server output and startup progress. Expand it to read messages, search or filter the log, and send commands. You can leave it collapsed while the server starts.",
+      "anchor": "ob_console_panel",
+      "requiresUserAction": false
+    },
+    {
+      "order": 35,
+      "id": "overview",
+      "title": "Overview",
+      "body": "Overview brings together connection information, live server statistics, players, the active world, chat, and your notes. Live information updates while the server is running.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 36,
+      "id": "players",
+      "title": "Players",
+      "body": "See who’s online, review session activity, and inspect saved player data. Available player actions depend on the server and your permissions.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 37,
+      "id": "worlds",
+      "title": "World slots",
+      "body": "World slots let you keep different worlds for this server. Create or import a world, select a slot to manage it, and activate the world you want to play.",
+      "anchor": "ob_tour_world_slots",
+      "requiresUserAction": false
+    },
+    {
+      "order": 38,
+      "id": "backups",
+      "title": "World backups",
+      "body": "Backups belong to the selected world slot. Create a backup before an important change, and use this area to review backups or restore an earlier copy.",
+      "anchor": "ob_tour_backups",
+      "requiresUserAction": false
+    },
+    {
+      "order": 39,
+      "id": "world-packs-detail",
+      "title": "World packs",
+      "body": "Datapacks change features and behavior in this world. Browse or import packs here, then manage the packs attached to the selected world slot.",
+      "anchor": "ob_tour_world_packs",
+      "requiresUserAction": false
+    },
+    {
+      "order": 40,
+      "id": "world-map",
+      "title": "View your world",
+      "body": "View Map opens a map of terrain saved in the active world. Areas players haven’t explored may not have saved terrain to display.",
+      "anchor": "ob_tour_map",
+      "requiresUserAction": false
+    },
+    {
+      "order": 41,
+      "id": "performance",
+      "title": "Performance",
+      "body": "Check the server process’s CPU and memory use, uptime, and available performance measurements. Use this view when investigating lag or deciding whether the server needs more resources.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 42,
+      "id": "components",
+      "title": "Components",
+      "body": "Manage the server software and its plugins here. Browse or import plugins, review installed versions, and use the available update controls.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 43,
+      "id": "settings",
+      "title": "Server properties",
+      "body": "Settings contains this server’s Minecraft properties. Review your changes and use Save Changes to apply them. Some changes require a server restart.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 44,
+      "id": "edit-server",
+      "title": "Edit the server setup",
+      "body": "Open the server editor from this header to change MSC’s server configuration, such as its name, connection options, and applicable runtime settings.",
+      "anchor": "ob_tour_edit_server",
+      "requiresUserAction": false
+    },
+    {
+      "order": 45,
+      "id": "files",
+      "title": "Server files",
+      "body": "Browse the server’s folders and preview files here, including configuration files and logs. The files belong to the selected host, which may be another computer.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 46,
+      "id": "maintenance",
+      "title": "Maintenance shortcuts",
+      "body": "Directory and Logs open the server folder or its logs folder in the host’s file manager where supported.",
+      "anchor": "ob_tour_maintenance",
+      "requiresUserAction": false
+    },
+    {
+      "order": 47,
+      "id": "quick-commands",
+      "title": "Quick commands",
+      "body": "These shortcuts control time, weather, difficulty, game mode, and other supported actions. Availability depends on the server’s state and capabilities.",
+      "anchor": "ob_tour_quick_commands",
+      "requiresUserAction": false
+    },
+    {
+      "order": 48,
+      "id": "layout",
+      "title": "Make room",
+      "body": "Use these header controls to show or hide the sidebar and console. You can also drag the divider above an expanded console to resize it.",
+      "anchor": "ob_tour_layout",
+      "requiresUserAction": false
+    },
+    {
+      "order": 49,
+      "id": "engine",
+      "title": "The engine",
+      "body": "The engine runs your Minecraft servers. This page manages the local background service and connections to other hosts. Stopping the engine is different from stopping one Minecraft server.",
+      "anchor": "ob_tour_engine",
+      "requiresUserAction": false
+    },
+    {
+      "order": 50,
+      "id": "preferences",
+      "title": "App preferences",
+      "body": "Preferences contains MSC’s app options, update controls, service settings, and storage tools. These are separate from a Minecraft server’s Settings tab.",
+      "anchor": "ob_tour_preferences",
+      "requiresUserAction": false
+    },
+    {
+      "order": 51,
+      "id": "help",
+      "title": "Help and guides",
+      "body": "Use the question mark to open MSC’s Handbook, Router Guide, and onboarding guide whenever you need help.",
+      "anchor": "ob_tour_help",
+      "requiresUserAction": false
+    },
+    {
+      "order": 52,
+      "id": "handbook",
+      "title": "Server Handbook",
+      "body": "The Handbook explains Minecraft server concepts and MSC features. Browse the topics whenever you want more detail about something in the app.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 53,
+      "id": "router",
+      "title": "Router Guide",
+      "body": "The Router Guide explains how players outside your network can reach your server through port forwarding, and helps troubleshoot connection problems. A Playit tunnel is another option when you don’t have router access.",
+      "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 54,
+      "id": "done",
+      "title": "You’re ready",
+      "body": "You know where to start your server, find connection addresses, manage worlds, and get help. Return to Overview whenever you want a quick view of your server.",
+      "anchor": null,
+      "requiresUserAction": false,
+      "actionLabel": "Finish"
+    }
+  ],
+  "variants": {
+    "initiate-simple": "Initiate runs the one-time setup for this server. It creates the server files and world, then stops the server. Click Initiate to begin.",
+    "connection-playit": "Your Playit controls and tunnel address also appear here.",
+    "connection-broadcast": "Xbox Broadcast controls also appear here.",
+    "packs-bedrock": "Behavior and resource packs belong to the selected world slot. Browse or import packs here, then manage which packs the world uses.",
+    "performance-java": "TPS means ticks per second. Minecraft normally targets 20 TPS.",
+    "performance-bedrock": "Available measurements depend on the Bedrock runtime.",
+    "components-vanilla": "Review the installed Minecraft server version and available server-software actions here. Vanilla does not load plugins or mods.",
+    "components-modded": "Manage the server loader and its mods here. Browse or import compatible mods and review installed versions. Some mods also need to be installed by players.",
+    "components-bedrock": "Review the installed Bedrock server runtime and its available version-management actions here. World behavior and resource packs are managed under Worlds.",
+    "components-helpers": "Installed Geyser and Floodgate components also appear here.",
+    "edit-java": "This is also where you change Java and memory allocation."
+  }
 }

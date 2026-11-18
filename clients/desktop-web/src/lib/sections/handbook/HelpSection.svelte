@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { appTourStep } from '../../help/appTour';
   // MSC 1 ServerHandbookView.swift /
   // RouterPortForwardGuideSheet.swift, rebuilt to the S0 disciplined system
   // (docs/msc/antiAIslop.md) as one screen with a segmented switcher, since
@@ -144,6 +145,9 @@
     saveLaunchState({ ...launchState, tourComplete: true });
   }
 
+  $: if ($appTourStep === 'handbook' || $appTourStep === 'help') activeView = 'handbook';
+  $: if ($appTourStep === 'router') activeView = 'router';
+
   function selectView(next: View): void {
     activeView = next;
     if (next === 'onboard' && onboarding) {
@@ -168,6 +172,11 @@
           onchange={(value) => selectView(value as View)}
         />
       </div>
+      <Button
+        size="sm"
+        variant="secondary"
+        onclick={() => window.dispatchEvent(new CustomEvent('msc:explore-app'))}>Explore MSC</Button
+      >
       <Card padding="18px">
         {#if activeView === 'handbook'}
           <HandbookBrowser
@@ -217,7 +226,7 @@
               {/if}
             {:else}
               <p class="msc-type-body muted">
-                The guided server creation flow is here whenever you need it.
+                Restart server creation below, or choose Explore MSC for the app walkthrough.
               </p>
               <Button size="sm" variant="secondary" onclick={restartTour}>Restart the guide</Button>
             {/if}

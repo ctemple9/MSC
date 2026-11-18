@@ -33,6 +33,8 @@
   export let steps: readonly OnboardingStep[] = [];
   export let stepIndex: number;
   export let skipLabel = 'Skip tour';
+  export let appWalkthrough = false;
+  export let onBack: (() => void) | undefined = undefined;
   export let onAdvance: (userActionCompleted?: boolean) => void;
   export let onSkip: () => void;
   export let onComplete: () => void = () => onSkip();
@@ -42,6 +44,7 @@
   const CARD_WIDTH = 320;
   const CARD_EST_HEIGHT = 190;
   const ACTION_ANCHORS: Readonly<Record<string, string>> = {
+    initiate: 'ob_start_button',
     'manage-servers': 'ob_manage_servers',
     'create-server': 'ob_create_server',
     'choose-path': 'ob_wizard_continue',
@@ -93,6 +96,38 @@
           event.preventDefault();
           first?.focus();
         }
+      }
+    }
+    node.addEventListener('keydown', handleKey);
+    return {
+      destroy: () => {
+        node.removeEventListener('keydown', handleKey);
+        if (previousFocus instanceof HTMLElement && previousFocus.isConnected)
+          previousFocus.focus();
+      },
+    };
+  }
+
+  function focusWalkthrough(node: HTMLElement): { destroy: () => void } {
+    if (step?.requiresUserAction) return { destroy: () => {} };
+    const previousFocus = document.activeElement;
+    node.querySelector('button')?.focus();
+    function handleKey(event: KeyboardEvent): void {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        onSkip();
+      }
+      if (event.key !== 'Tab') return;
+      const buttons = [...node.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
       }
     }
     node.addEventListener('keydown', handleKey);
@@ -233,6 +268,7 @@
     role={$tourExitRequest || !cardHidden ? 'dialog' : undefined}
     aria-modal={$tourExitRequest || !cardHidden ? 'true' : undefined}
     aria-live="polite"
+    aria-label={step.title}
   >
     {#if $tourExitRequest}
       <div class="dim-block" aria-hidden="true"></div>
@@ -263,6 +299,26 @@
       </div>
     {:else if cardHidden}
       <!-- The hidden-card controls are rendered in TopBar. -->
+    {:else if appWalkthrough}
+      <div
+        class={`walkthrough-card ${hasAnchor && cardPos ? 'anchored-card' : 'bookend-card'}`}
+        use:focusWalkthrough
+        style={hasAnchor && cardPos
+          ? `top:${cardPos.top}px; left:${cardPos.left}px; width:${CARD_WIDTH}px;`
+          : undefined}
+      >
+        {#if hasAnchor && cardPos}<h3>{step.title}</h3>{:else}<h2>{step.title}</h2>{/if}
+        <p>{step.body}</p>
+        <div class="actions">
+          {#if onBack}<Button variant="secondary" size="sm" onclick={onBack}>Back</Button>{/if}
+          <Button variant="secondary" size="sm" onclick={onSkip}>{skipLabel}</Button>
+          {#if !step.requiresUserAction}
+            <Button variant="primary" size="sm" onclick={() => onAdvance(false)}
+              >{step.actionLabel ?? 'Next'}</Button
+            >
+          {/if}
+        </div>
+      </div>
     {:else if REVIEW_STEP_IDS.has(step.id)}
       <div class="bookend-card">
         <h2>{step.title}</h2>
@@ -340,6 +396,10 @@
 {/if}
 
 <style>
+  .walkthrough-card {
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
   .tour-root {
     position: fixed;
     inset: 0;

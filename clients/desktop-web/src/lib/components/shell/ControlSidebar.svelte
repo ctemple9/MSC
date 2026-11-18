@@ -3,6 +3,7 @@
   // three collapsible sections, all real now (P12.21, P12.22).
   // docs/msc/renderings/shell.html, MSC 1 SidebarView.swift.
   import Button from '../base/Button.svelte';
+  import { appTourStep } from '../../help/appTour';
   import OnboardingCard from '../../help/OnboardingCard.svelte';
   import Menu from '../base/Menu.svelte';
   import Icon from '../base/Icon.svelte';
@@ -121,6 +122,10 @@
   };
   let avatarEditionSwitcherVisible = true;
 
+  $: if ($appTourStep === 'connection') expanded = { ...expanded, Connection: true };
+  $: if ($appTourStep === 'maintenance') expanded = { ...expanded, Maintenance: true };
+  $: if ($appTourStep === 'quick-commands') expanded = { ...expanded, 'Quick commands': true };
+
   function toggle(section: (typeof DISCLOSURE_SECTIONS)[number]): void {
     const nextExpanded = !expanded[section];
     expanded = { ...expanded, [section]: nextExpanded };
@@ -235,7 +240,7 @@
 
 <aside class="sidebar" aria-label="Server controls">
   <div class="scroll">
-    <div class="block">
+    <div class="block" use:onboardingAnchor={'ob_tour_server_controls'}>
       <p class="overline">Server controls</p>
 
       <button
@@ -283,7 +288,14 @@
     </div>
 
     {#each visibleSections as section (section)}
-      <div class="disclosure">
+      <div
+        class="disclosure"
+        use:onboardingAnchor={section === 'Connection'
+          ? 'ob_tour_connection'
+          : section === 'Maintenance'
+            ? 'ob_tour_maintenance'
+            : 'ob_tour_quick_commands'}
+      >
         <div class="disclosure-header">
           <button
             type="button"

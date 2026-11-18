@@ -1141,6 +1141,11 @@
       initiationComplete = false;
       await refreshServerSnapshot();
       statusPollError = 'Setup progress discarded. The existing world was kept.';
+      window.dispatchEvent(
+        new CustomEvent('msc:tour-initiation-discarded', {
+          detail: { hostId, serverId: server.id },
+        }),
+      );
     } catch (error) {
       statusPollError = `Could not discard setup: ${error instanceof Error ? error.message : String(error)}`;
     } finally {
@@ -1160,9 +1165,51 @@
     }
   }
 
+  async function prepareAppTour(id: string): Promise<boolean> {
+    if (id === 'created-done') return true;
+    manageOpen = false;
+    const routes: Record<string, string> = {
+      initiate: 'home',
+      'start-controls': 'home',
+      'server-controls': 'home',
+      connection: 'home',
+      overview: 'home',
+      players: 'players-online',
+      worlds: 'worlds',
+      backups: 'worlds',
+      'world-packs-detail': 'worlds',
+      'world-map': 'worlds',
+      performance: 'performance',
+      components: 'components',
+      settings: 'settings',
+      files: 'files',
+      engine: 'engine-setup',
+      help: 'handbook',
+      handbook: 'handbook',
+      router: 'handbook',
+      done: 'home',
+    };
+    const sectionId = routes[id];
+    if (sectionId) {
+      if (
+        PRIMARY_TABS.some((tab) => tab.id === sectionId) &&
+        !primaryTabs.some((tab) => tab.id === sectionId && tab.available)
+      )
+        return false;
+      await selectSection(sectionId);
+      return activeSection === sectionId;
+    }
+    return true;
+  }
+
   function closeInitiation(): void {
     initiationVisible = false;
     if (initiationComplete) {
+      window.dispatchEvent(
+        new CustomEvent('msc:tour-initiation-finished', {
+          detail: { hostId, serverId: initiationServer?.id },
+        }),
+      );
       initiationServer = undefined;
       initiationComplete = false;
     }
@@ -1634,6 +1681,10 @@
   <FirstLaunchGate
     api={screenApi}
     engineReady={engineReadiness === 'ready'}
+    {hostId}
+    server={activeServer}
+    {initiationVisible}
+    onPrepareTourStep={prepareAppTour}
     onResetRecovery={() => {
       resetOpen = true;
     }}

@@ -231,6 +231,7 @@ export type OnboardingGuide = {
   reopen: { label: string; persistenceKey: string };
   skip: { label: string; effect: string };
   steps: readonly OnboardingStep[];
+  variants?: Record<string, string>;
 };
 
 export type OnboardingStep = {

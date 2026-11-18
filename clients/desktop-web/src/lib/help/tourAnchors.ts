@@ -12,6 +12,21 @@ import { writable } from 'svelte/store';
  * rather than showing a coach mark with nothing to highlight.
  */
 export const KNOWN_TOUR_ANCHOR_IDS: ReadonlySet<string> = new Set([
+  'ob_created_done',
+  'ob_tour_server_controls',
+  'ob_tour_connection',
+  'ob_tour_maintenance',
+  'ob_tour_quick_commands',
+  'ob_tour_content',
+  'ob_tour_world_slots',
+  'ob_tour_backups',
+  'ob_tour_world_packs',
+  'ob_tour_map',
+  'ob_tour_edit_server',
+  'ob_tour_layout',
+  'ob_tour_engine',
+  'ob_tour_preferences',
+  'ob_tour_help',
   'ob_manage_servers',
   'ob_server_picker',
   'ob_create_server',

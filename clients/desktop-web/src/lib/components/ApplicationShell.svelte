@@ -6,6 +6,7 @@
   // sidebar selection.
   import type { ConsoleLine } from '../sections/console/model';
   import type { StartupProgress } from '../lifecycle/serverLifecycle';
+  import { appTourStep } from '../help/appTour';
   import TopBar from './shell/TopBar.svelte';
   import ControlSidebar from './shell/ControlSidebar.svelte';
   import DetailsHeader from './shell/DetailsHeader.svelte';
@@ -74,6 +75,15 @@
   let sidebarCollapsed =
     typeof localStorage !== 'undefined' && localStorage.getItem(SIDEBAR_KEY) === '1';
   let consoleCollapsed = true;
+  let consoleBeforeTour: boolean | undefined;
+  $: if ($appTourStep === 'console') {
+    if (consoleBeforeTour === undefined) consoleBeforeTour = consoleCollapsed;
+    consoleCollapsed = false;
+  } else if (consoleBeforeTour !== undefined) {
+    consoleCollapsed = consoleBeforeTour;
+    consoleBeforeTour = undefined;
+  }
+  $: if ($appTourStep) sidebarCollapsed = false;
   let consoleHeight = DEFAULT_CONSOLE_HEIGHT;
 
   let dragStartY: number | null = null;
@@ -186,7 +196,7 @@
         <TabStrip {tabs} activeId={activeSection} {bannerColor} onSelect={selectSection} />
       </div>
 
-      <section class="content" aria-live="polite">
+      <section class="content" aria-live="polite" use:onboardingAnchor={'ob_tour_content'}>
         <slot />
       </section>
 

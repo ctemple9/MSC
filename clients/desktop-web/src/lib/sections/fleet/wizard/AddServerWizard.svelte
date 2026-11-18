@@ -32,7 +32,8 @@
   // worlds/WorldConversionWizard.svelte's identical `onClose={... ?
   // undefined : onClose}` precedent for a durable operation already
   // in flight.
-  import { onDestroy, tick } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
+  import { tourCreationClosed } from '../../../help/appTour';
   import Sheet from '../../../components/base/Sheet.svelte';
   import Button from '../../../components/base/Button.svelte';
   import {
@@ -80,6 +81,8 @@
   } from './model';
 
   export let api: ScreenApi | undefined = undefined;
+  onMount(() => tourCreationClosed.set(false));
+
   export let onClose: () => void;
   /** Called once the real create operation succeeds, so the caller can
    *  refresh its own server list -- mirrors `ManageSheet.svelte`'s existing
@@ -263,6 +266,7 @@
       }
     }
     draft.stagedInputs = [];
+    if (createSucceeded) tourCreationClosed.set(true);
     onClose();
   }
 
@@ -575,7 +579,12 @@
       {/if}
       <div class="spacer"></div>
       {#if createSucceeded}
-        <Button variant="primary" onclick={closeWizard}>Done</Button>
+        <Button
+          variant="primary"
+          anchorId="ob_created_done"
+          announceOnboardingAction={false}
+          onclick={closeWizard}>Done</Button
+        >
       {:else if isConfirmStep}
         <Button
           variant="primary"

@@ -2,6 +2,7 @@
   // Selected-server identity row: name, type/flavor badges, and directory path.
   // Wash = one of the four sanctioned bannerColor spots.
   // docs/msc/renderings/shell.html, MSC 1 DetailsHeaderSectionView.swift.
+  import { onboardingAnchor } from '../../help/tourAnchors';
   import Badge from '../base/Badge.svelte';
   import { bannerColorAccent } from '../../styles/bannerColor';
 
@@ -19,7 +20,13 @@
   <div class="wash" aria-hidden="true"></div>
   <div class="row">
     {#if onEditServer}
-      <button type="button" class="name name-button" title="Edit server" onclick={onEditServer}>
+      <button
+        type="button"
+        class="name name-button"
+        use:onboardingAnchor={'ob_tour_edit_server'}
+        title="Edit server"
+        onclick={onEditServer}
+      >
         {serverName}
       </button>
     {:else}
