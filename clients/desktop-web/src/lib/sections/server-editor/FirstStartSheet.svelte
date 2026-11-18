@@ -3,6 +3,11 @@
   // the existing routes and renders their truth; credentials stay inside
   // PlayitSetupSheet and never enter this coordinator's state.
   import { onDestroy, onMount } from 'svelte';
+  import {
+    initiationMilestones,
+    observedStartupMilestones,
+    type InitiationMilestone,
+  } from './initiationProgress';
   import { waitForRunningState } from '../../lifecycle/serverLifecycle';
   import Sheet from '../../components/base/Sheet.svelte';
   import Button from '../../components/base/Button.svelte';
@@ -23,6 +28,7 @@
 
   export let api: ScreenApi | undefined = undefined;
   export let serverName: string;
+  export let javaFlavor = 'vanilla';
   export let serverType: 'java' | 'bedrock';
   export let localPort: number;
   export let hostAddress: string | undefined = undefined;
@@ -48,20 +54,90 @@
 
   let phase: Phase = 'eula';
   let showConsole = false;
-  let progressPhase: Phase = 'eula';
-  let operationProgress: number | undefined;
+  let milestones: InitiationMilestone[] = [];
+  let extensionNames: string[] = [];
+  let progressPass: 'one' | 'two' = 'one';
+  let progressConsoleKeys = new Set<string>();
+  let progressStartedAt = Infinity;
 
-  function updateProgress(operation: Schema['OperationDTO']): void {
-    const count = operation.progress;
-    progressPhase = phase;
-    operationProgress =
-      count && Number.isFinite(count.current) && Number.isFinite(count.total) && count.total > 0
-        ? Math.max(0, Math.min(1, count.current / count.total))
-        : undefined;
+  $: finishedMilestones = milestones.filter((step) => step.done).length;
+  $: progressValue = milestones.length ? finishedMilestones / milestones.length : 0;
+  $: nextMilestone = milestones.find((step) => !step.done)?.label ?? 'Finishing setup';
+
+  function markMilestones(ids: readonly string[]): void {
+    milestones = milestones.map((step) => (ids.includes(step.id) ? { ...step, done: true } : step));
   }
 
-  $: progressValue =
-    phase === 'complete' ? 1 : progressPhase === phase ? operationProgress : undefined;
+  function settleStartup(pass: 'one' | 'two', stopped = false): void {
+    // A ready operation settles earlier loading stages even when a flavor emits
+    // no recognizable log line. It does not certify every third-party add-on.
+    markMilestones(
+      milestones
+        .filter(
+          (step) => step.id.startsWith(`${pass}:`) && (stopped || !step.id.endsWith(':stopped')),
+        )
+        .map((step) => step.id),
+    );
+  }
+
+  function updateProgress(operation: Schema['OperationDTO']): void {
+    if (operation.progress && operation.progress.current > 0)
+      markMilestones([`${progressPass}:launch`]);
+    if (
+      /server is ready|stopping the server|transports are ready/i.test(operation.statusLine ?? '')
+    )
+      settleStartup(progressPass);
+  }
+
+  async function prepareProgress(): Promise<void> {
+    extensionNames = [];
+    if (api && serverType === 'java') {
+      const [components, addons] = await Promise.all([
+        api.get<Schema['ComponentsStatusDTO']>('/v1/components').catch(() => null),
+        api.get<Schema['AddonsResponseDTO']>('/v1/addons?local=true').catch(() => null),
+      ]);
+      const installed =
+        components?.components.filter(
+          (item) => item.installedVersion !== undefined || item.installedLabel !== undefined,
+        ) ?? [];
+      const enabled = addons?.addons.filter((item) => item.isEnabled) ?? [];
+      for (const helper of ['Geyser', 'Floodgate']) {
+        if (
+          installed.some((item) => item.name.toLowerCase().includes(helper.toLowerCase())) ||
+          enabled.some((item) =>
+            `${item.displayName} ${item.jarStem}`.toLowerCase().includes(helper.toLowerCase()),
+          )
+        )
+          extensionNames.push(helper);
+      }
+      if (enabled.some((item) => !/geyser|floodgate/i.test(`${item.displayName} ${item.jarStem}`)))
+        extensionNames.push(
+          ['fabric', 'forge', 'neoforge', 'quilt'].includes(javaFlavor.toLowerCase())
+            ? 'mods'
+            : 'plugins',
+        );
+    }
+    milestones = initiationMilestones(serverType, javaFlavor, extensionNames);
+  }
+
+  function consoleTimestamp(value: string): number {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : Date.parse(value);
+  }
+
+  async function beginProgressPass(pass: 'one' | 'two'): Promise<void> {
+    // Snapshot the engine tail before spawning so old runs and Clear cannot
+    // advance this run. Console output is observed separately from its display.
+    progressStartedAt = Infinity;
+    await refreshConsole();
+    progressConsoleKeys = new Set(consoleLines.map(consoleLineKey));
+    // Use engine timestamps, since a remote host's clock can differ from ours.
+    const timestamps = consoleLines
+      .map((line) => consoleTimestamp(line.ts))
+      .filter(Number.isFinite);
+    progressStartedAt = timestamps.length ? Math.max(...timestamps) : -Infinity;
+    progressPass = pass;
+  }
   let operationId = '';
   let statusLine = '';
   let error = '';
@@ -201,6 +277,28 @@
     const clearVersion = consoleClearVersion;
     try {
       const fetchedLines = await api.get<ConsoleLine[]>(livePaths.tail);
+      if (busy) {
+        const ids: string[] = [];
+        for (const line of fetchedLines) {
+          const key = consoleLineKey(line);
+          const timestamp = consoleTimestamp(line.ts);
+          if (
+            progressConsoleKeys.has(key) ||
+            !Number.isFinite(timestamp) ||
+            timestamp <= progressStartedAt ||
+            line.level === 'error' ||
+            (line.origin && line.origin !== 'server')
+          )
+            continue;
+          progressConsoleKeys.add(key);
+          ids.push(
+            ...observedStartupMilestones(line.text, extensionNames).map(
+              (id) => `${progressPass}:${id}`,
+            ),
+          );
+        }
+        if (ids.length) markMilestones(ids);
+      }
       if (clearVersion === consoleClearVersion) {
         consoleLines = consoleLinesAfterClear(
           fetchedLines,
@@ -281,6 +379,7 @@
           serverId: activeServerId,
         });
       }
+      await prepareProgress();
       await startPassOne();
     } catch (caught) {
       failWithMessage(caught);
@@ -289,8 +388,8 @@
 
   async function startPassOne(): Promise<void> {
     if (!api) return;
-    operationProgress = undefined;
     phase = 'starting-pass-one';
+    await beginProgressPass('one');
     statusLine = 'Starting the server to create its configuration and world files…';
     const accepted = await mutate<Schema['SimpleResult']>(api, fleetMutationPaths.start);
     operationId = accepted.operationId ?? '';
@@ -342,6 +441,7 @@
   }
 
   async function prepareTransportSetup(): Promise<void> {
+    settleStartup('one', true);
     phase = 'transport-setup';
     playitChoiceRequired = false;
     broadcastChoiceRequired = broadcastEnabled;
@@ -484,8 +584,9 @@
 
   async function startPassTwo(): Promise<void> {
     if (!api) return;
-    operationProgress = undefined;
     phase = 'starting-pass-two';
+    await beginProgressPass('two');
+    markMilestones(['connections']);
     statusLine = 'Starting the server with the selected connections…';
     passTwoStartedAt = Date.now();
     stopRequested = false;
@@ -671,6 +772,7 @@
         return;
       }
       if (operation.state === 'succeeded') {
+        settleStartup('two');
         await finishComplete();
         return;
       }
@@ -738,6 +840,7 @@
         // First-start completion remains available if diagnosis is unreachable.
       }
     }
+    settleStartup('two', true);
     phase = 'complete';
     showBroadcastAuth = false;
     showPlayitSetup = false;
@@ -1003,8 +1106,11 @@
       />
     </div>
   {/if}
-  {#if busy || phase === 'complete'}
+  {#if busy || phase === 'transport-setup'}
     <div class="initiation-progress">
+      <p class="progress-caption">
+        {nextMilestone} <span>{finishedMilestones}/{milestones.length} milestones</span>
+      </p>
       <progress max="1" value={progressValue} aria-label={statusLine || 'Initiation progress'}
       ></progress>
     </div>
@@ -1206,6 +1312,19 @@
   }
   .initiation-progress {
     margin-top: 16px;
+  }
+  .progress-caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 12px;
+    margin: 0 0 8px;
+    color: var(--msc-text-secondary);
+    font-size: 12px;
+  }
+  .progress-caption span {
+    color: var(--msc-text-tertiary);
+    font-variant-numeric: tabular-nums;
   }
   .initiation-progress progress {
     display: block;

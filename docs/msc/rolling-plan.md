@@ -1392,3 +1392,55 @@ and Clear when expanded. A retry must not inherit a previous pass's progress.
 Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. No tests added or run; no live
 initiation performed. The pre-existing desktop lockfile change is excluded.
+
+### P26.36 — measure initiation by flavor-aware setup milestones
+
+**Status:** Implemented; owner initiation walkthrough verification pending.
+
+**Files:** App; FirstStartSheet; initiationProgress presentation model; this plan.
+
+**What:** Replace raw operation fractions (process spawn reported 1/2, causing
+an immediate 50% display) with a single count of setup milestones across both
+passes and the intervening connection choices. Each pass tracks runtime launch,
+applicable loader initialization, installed extension loading stages, world
+preparation, engine readiness and confirmed shutdown. Thread the server's actual
+Java flavor into the sheet. Fabric/Forge/NeoForge/Quilt receive a loader stage;
+Bedrock uses its own runtime label without Java loader/plugin stages. Read
+existing local component/add-on inventories once before initiation: installed
+Geyser and Floodgate receive separate stages, other enabled add-ons are grouped
+as mods or plugins. Unavailable inventories fall back to core runtime stages
+rather than preventing initiation.
+
+Use current-run server log hints for loading/world activity, and engine operation
+results for authoritative ready/failure/stop outcomes. Logs are presentation hints,
+not new readiness gates or proof that every mod works. A confirmed ready signal
+settles earlier loading stages when a flavor does not emit a recognizable log.
+Existing final helper diagnosis remains authoritative and unchanged. Keep the
+next milestone and completed/total count visible. Progress represents setup
+stages, not a prediction of remaining time. No engine lifecycle or timeout changes.
+
+Snapshot console identities and engine timestamps before each pass; ignore older
+history, error lines and non-server origins. Track hints independently of Clear,
+use engine timestamps to avoid remote clock differences, and claim pass-two
+state before awaiting its snapshot so connection refreshes cannot launch it twice.
+Hide the progress bar entirely on completion or failure; retain Show console.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — initiate an uninitialized
+server: confirm progress starts at zero and spawn advances one milestone, not
+50%. Check the next-stage caption, connection-choice pause, second pass, and
+hidden bar on completion. Compare vanilla/Paper, an installed-loader modded
+server, enabled/disabled add-ons, Geyser/Floodgate when installed, and Bedrock
+as available. Reuse a server with old logs to confirm they do not advance a new
+attempt; Clear must not reset/replay milestones. Confirm failure/retry retains
+its existing behavior and does not falsely report success.
+
+**Batch:** Initiation milestone presentation and completed-bar removal only.
+
+**Commit:** `P26.36: track initiation progress across runtime milestones`
+
+Checks: final `npm run check` passed (0 errors, 10 existing CSS warnings),
+`npm run build` passed with existing CSS/import/chunk warnings; touched frontend
+formatting and `git diff --check` passed. No tests added or run; no live initiation,
+provider downloads or installed server changes. Flavor-specific physical
+walkthroughs remain owner verification. Pre-existing desktop lockfile ordering
+is excluded from this step.

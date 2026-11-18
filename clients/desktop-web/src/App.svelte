@@ -1425,6 +1425,7 @@
   <FirstStartSheet
     api={screenApi}
     serverName={initiationServer.name}
+    javaFlavor={initiationServer.javaFlavor ?? 'vanilla'}
     serverType={initiationServer.serverType === 'bedrock' ? 'bedrock' : 'java'}
     localPort={initiationServer.gamePort ??
       (initiationServer.serverType === 'bedrock' ? 19132 : 25565)}
