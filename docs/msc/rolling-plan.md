@@ -1168,7 +1168,7 @@ performed. Owner retains execution of the removal preview and destructive action
 
 ### P26.29 — publish 0.1.47 with Windows metrics and uninstall fixes
 
-**Status:** Release prepared; publication and owner platform verification pending.
+**Status:** Publication failed; superseded by the owner-requested P26.30 correction.
 
 **Files:** Engine/desktop version manifests and lockfiles; release notes; this plan.
 
@@ -1196,3 +1196,38 @@ The previous release workflow succeeded; the new tag did not exist remotely.
 
 No tests authorized or run; release workflow unchanged. Prior implementation
 formatting, Clippy and Windows CLI build passed with existing warnings.
+
+Release run 44229679279 failed on all four platforms at release identity
+validation before Rust release builds or packaging. The frontend bundle identity
+remained at 0.1.46 while the other declarations and tag were 0.1.47. All failed
+job logs were inspected. No release was published and the tag was not moved.
+
+### P26.30 — correct release identity and publish 0.1.48
+
+**Status:** Release prepared; publication and owner platform verification pending.
+
+**Files:** Engine/desktop manifests and lockfiles; frontend bundle identity;
+release notes; this plan.
+
+**What:** Correct the omitted frontend bundle version and synchronize all nine
+release version declarations at 0.1.48. Publish the same bounded Windows CPU/RAM
+and MSI uninstall discovery fixes with a new tag; retain the failed 0.1.47 tag.
+Inspect the workflow's actual identity expressions locally before pushing.
+Keep the existing build-only workflow, nine packages, checksums and signed update
+metadata. Expected hosted-build cost remains approximately 36–40 minutes;
+identity correction resolves the observed failure, while downstream release
+builds, packaging and notarization remain unverified until this run completes.
+
+**Verify:** `gh release view v0.1.48` — confirm the published prerelease has all
+nine packages, checksums and signed update metadata. Owner Windows acceptance
+of CPU/RAM readings and complete-uninstall preview remains pending.
+
+**Batch:** This corrected release only; README follows as P26.31 after publication.
+
+**Commit:** `P26.30: synchronize 0.1.48 release identity`
+
+Checks: parsed Rust/JSON manifests and lockfiles, and extracted the bundle
+identity using the workflow's version-line pattern; all nine declarations agree
+on 0.1.48. `git diff --check` passed. The new tag does not exist remotely.
+
+No tests authorized or run. No workflow gates added or changed.
