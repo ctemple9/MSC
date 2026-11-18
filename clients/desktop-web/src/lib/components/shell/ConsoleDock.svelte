@@ -32,6 +32,11 @@
     visibleConsoleLines,
   } from '../../sections/console/model';
 
+  export let onConsoleOutput: (
+    hostId: string,
+    serverId: string | undefined,
+    lines: readonly ConsoleLine[],
+  ) => void = () => {};
   export let collapsed = false;
   export let startupProgress: StartupProgress | undefined = undefined;
   export let onToggle: () => void;
@@ -130,11 +135,14 @@
     const currentApi = api;
     if (!currentApi) return;
     const version = clearVersion;
+    const outputHostId = hostId;
+    const outputServerId = activeServerId;
     try {
       const tailPath = `${livePaths.tail}&hideAuto=${hideAuto}`;
       const fetchedLines = await currentApi.get<ConsoleLine[]>(tailPath);
       if (version === clearVersion) {
         lines = consoleLinesAfterClear(fetchedLines, clearedAt, clearedLineKeys);
+        onConsoleOutput(outputHostId, outputServerId, fetchedLines);
       }
     } catch {
       // Engine unreachable this cycle — keep showing the last known buffer.
@@ -197,6 +205,8 @@
       maxHistory: 200,
       dedupeKey: consoleLineKey,
       onUpdate: (history) => {
+        if (!componentMounted || generation !== feedGeneration || api !== currentApi) return;
+        onConsoleOutput(connectedHostId, connectedServerId, history);
         lines = consoleLinesAfterClear([...history], clearedAt, clearedLineKeys);
       },
       onState: (state) => {

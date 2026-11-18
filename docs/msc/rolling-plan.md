@@ -1571,3 +1571,45 @@ Checks: final `npm run check` passed (0 errors, 10 existing CSS warnings) and
 check caught completion cleanup placed in the wrong scope; corrected before final
 checks. Touched formatting and `git diff --check` passed. No tests run and no live
 servers started/stopped. Existing desktop lockfile ordering is excluded.
+
+### P26.40 — update startup milestones from live console output
+
+**Status:** Implemented; owner fast-start walkthrough verification pending.
+
+**Files:** App; ApplicationShell; ConsoleDock; this plan.
+
+**What:** Investigate the reported vanilla 1/3 transition using the existing
+server's latest.log, without starting/stopping it. The recorded run emitted
+Preparing level, Preparing spawn area and Done within roughly one second;
+Done reported 0.429 seconds. These messages already match the milestone parser,
+but the separate once-per-second progress tail reader could miss their visible
+intermediate states before operation readiness completed the progress.
+
+Feed the existing console WebSocket history updates directly into the active
+host/server startup tracker, including while collapsed. Keep bounded polling
+as fallback and retain baseline/history/error/helper filtering in the tracker.
+Forward fetched output before local Clear filtering so hiding console text does
+not suppress progress. Ignore callbacks from obsolete stream generations and
+capture poll request host/server identities to avoid cross-host progress. Remove
+the tracker at readiness/final cleanup so later output cannot resurrect the bar.
+No synthetic progress holds or minimum-duration delays: very fast servers may
+still pass intermediate stages briefly. No extra streams, timers or engine changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — start an initialized
+vanilla server with Console collapsed. Check the existing live feed updates the
+milestones/messages as preparation lines arrive and clears the bar at readiness.
+Expand Console to compare real output if needed. Check Clear and switching
+hosts/servers do not replay old progress. A sub-second preparation stage may be
+brief; startup must not be delayed to make it linger.
+
+**Batch:** Live console delivery into existing normal-start progress only.
+
+**Commit:** `P26.40: advance startup progress from live console output`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. Final request-identity and
+obsolete-stream guards were inspected after that check. No tests added or run;
+no live server operations performed. Existing progress parser/state tests already
+cover the observation method; this change supplies it with the real stream rather
+than adding source-text or timing-based tests. Existing desktop lockfile ordering
+is excluded from this step.

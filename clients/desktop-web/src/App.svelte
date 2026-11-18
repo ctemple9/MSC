@@ -477,6 +477,21 @@
   let statusPollTimer: ReturnType<typeof setInterval> | undefined;
   let statusPollError = '';
   let lifecycleRequests: ReadonlySet<string> = new Set();
+  const startupTrackers = new Map<string, StartupMilestones>();
+
+  function recordStartupConsole(
+    host: string,
+    server: string | undefined,
+    lines: readonly ConsoleLine[],
+  ): void {
+    if (!server) return;
+    const key = serverRunKey(host, server);
+    const tracker = startupTrackers.get(key);
+    if (!tracker) return;
+    tracker.observe(lines);
+    setStartupProgress(key, tracker.snapshot());
+  }
+
   let startupProgressByRun: ReadonlyMap<string, StartupProgress> = new Map();
   $: startupProgress = startupProgressByRun.get(currentRunKey);
 
@@ -969,6 +984,7 @@
           installedStartupExtensions(flavor, components, addons),
           baseline,
         );
+        startupTrackers.set(key, startupMilestones);
         setStartupProgress(key, startupMilestones.snapshot());
       }
       const accepted = await actionClient.requestJson<Schema['SimpleResult']>(
@@ -1010,6 +1026,7 @@
       applyServerStatus(nextStatus);
       if (action === 'start' && nextStatus.running) {
         startupMilestones?.ready();
+        startupTrackers.delete(key);
         setStartupProgress(key);
       }
       if (action === 'start' && nextStatus.running && actionServer?.serverType === 'java') {
@@ -1063,7 +1080,10 @@
     } finally {
       const requests = new Set(lifecycleRequests);
       requests.delete(key);
-      if (action === 'start') setStartupProgress(key);
+      if (action === 'start') {
+        startupTrackers.delete(key);
+        setStartupProgress(key);
+      }
       lifecycleRequests = requests;
       if (isCurrent()) {
         statusMonitor.reset();
@@ -1359,6 +1379,7 @@
   {stopping}
   {lifecycleBusy}
   {startupProgress}
+  onConsoleOutput={recordStartupConsole}
   statusNotice={statusPollError}
   connected={!!capabilities}
   {capabilities}
