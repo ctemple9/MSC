@@ -22,7 +22,7 @@ host.
 
 ## Download and install
 
-Download [MSC v0.1.46](https://github.com/ctemple9/MSC/releases/tag/v0.1.46)
+Download [MSC v0.1.48](https://github.com/ctemple9/MSC/releases/tag/v0.1.48)
 and choose the file for your computer. The desktop app includes the engine.
 
 - **Mac:** Open the `.dmg` and drag MSC to Applications.
@@ -33,11 +33,11 @@ and choose the file for your computer. The desktop app includes the engine.
 
 Update the macOS or Windows desktop app from its built-in updater. Update Linux
 packages with `apt` or `dnf`. For a headless install, run `msc update check`,
-then `msc update install --release-id 0.1.46`.
+then `msc update install --release-id 0.1.48`.
 
 ### What is in the download?
 
-The v0.1.46 download includes the desktop app, host-local CLI and full-screen
+The v0.1.48 download includes the desktop app, host-local CLI and full-screen
 `msc tui`, saved-terrain maps, and the server-management features below.
 The TUI runs locally on the engine host or through an SSH login to it.
 
@@ -303,21 +303,24 @@ Swift is used for the macOS Bedrock runtime.
 
 ## Current release and support
 
-The latest published build is [MSC v0.1.46](https://github.com/ctemple9/MSC/releases/tag/v0.1.46),
+The latest published build is [MSC v0.1.48](https://github.com/ctemple9/MSC/releases/tag/v0.1.48),
 a prerelease. There is no stable release yet. Download the
 platform-specific installer or archive from that release page and verify its
 entry in `SHA256SUMS` before installing. The Phase 16 acceptance record
 (P16.29) is still open; this prerelease has not passed the full physical
 release acceptance gate.
 
-Read the [v0.1.46 release notes](docs/msc/release/v0.1.46.md) for the latest
+This release restores Windows server CPU and RAM readings in Overview and
+Performance, and fixes Windows package detection during complete uninstall.
+
+Read the [v0.1.48 release notes](docs/msc/release/v0.1.48.md) for the latest
 fixes and the [release history](docs/msc/release/) for earlier changes. On
 Intel macOS, use **Repair engine** after installing the updated app to register
 its matching engine and Bedrock helper before the next Bedrock start. Existing
 root-owned Bedrock data still requires a one-time ownership repair.
 
 **Windows 0.1.43/0.1.44:** if the built-in updater reports that it requires a
-machine-protected desktop directory, download the v0.1.46 MSI and install it
+machine-protected desktop directory, download the v0.1.48 MSI and install it
 manually. The correction must be in the desktop performing the update; the
 older updater cannot acquire it by retrying the same blocked update. Releases
 from 0.1.45 also fix error 33 when checking an already-running background indicator.

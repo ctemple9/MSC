@@ -1204,7 +1204,7 @@ job logs were inspected. No release was published and the tag was not moved.
 
 ### P26.30 — correct release identity and publish 0.1.48
 
-**Status:** Release prepared; publication and owner platform verification pending.
+**Status:** Published; owner platform verification pending.
 
 **Files:** Engine/desktop manifests and lockfiles; frontend bundle identity;
 release notes; this plan.
@@ -1231,3 +1231,34 @@ identity using the workflow's version-line pattern; all nine declarations agree
 on 0.1.48. `git diff --check` passed. The new tag does not exist remotely.
 
 No tests authorized or run. No workflow gates added or changed.
+
+Publication evidence: run 44231049047 succeeded on all four platform builds and
+the publish job. GitHub reports v0.1.48 as a published prerelease with all nine
+desktop/headless packages, SHA256SUMS, signed update manifest and detached
+signature, and release notes. The 0.1.47 tag remains unchanged.
+
+### P26.31 — update README for published 0.1.48
+
+**Status:** Implemented; owner documentation review pending.
+
+**Files:** README; this plan.
+
+**What:** Point current downloads, headless update command, release notes and
+Windows manual-update guidance to published 0.1.48. Summarize restored Windows
+CPU/RAM readings and corrected current-product MSI discovery during complete
+uninstall. Preserve historical recovery guidance and physical acceptance limits.
+
+**Verify:** `git show --stat --oneline HEAD` — review README and follow its
+0.1.48 release and release-notes links.
+
+**Batch:** README and release-publication evidence only.
+
+**Commit:** `P26.31: update readme for published 0.1.48`
+
+Checks: GitHub confirms a published prerelease with nine nonempty uploaded
+packages and all required metadata. SHA256SUMS lists exactly those nine packages
+and agrees with GitHub's recorded SHA-256 digests. README local links and
+`git diff --check` passed. Installer contents and physical behavior remain for
+owner verification; packages were not installed or executed.
+
+No tests added or run; no workflow changes or installed application changes.
