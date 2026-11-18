@@ -1127,3 +1127,41 @@ No tests added or run; no running server or installed service modified.
 Separate reported uninstall issue: Windows MSI discovery still filters for the
 old DisplayName MSC, while current packages use Minecraft Server Controller.
 That finding is outside this metrics step.
+
+### P26.28 — recognize current Windows packages during uninstall
+
+**Status:** Implemented; owner uninstall preview and interaction verification pending.
+
+**Files:** Infrastructure native uninstall discovery; this plan.
+
+**What:** Accept Minecraft Server Controller as well as the older MSC Windows
+MSI DisplayName. Retain publisher, WindowsInstaller and product-GUID checks;
+do not invoke registry-supplied uninstall commands. Explain an unrecognized
+installation as a verification failure rather than asserting that a downloaded
+package is a developer checkout. Read-only registry inspection confirmed this
+computer has Minecraft Server Controller 0.1.46, Publisher ctemple,
+WindowsInstaller 1, in C:\Program Files\Minecraft Server Controller.
+Build a corrected local CLI so the owner can preview/remove that installation
+without replacing installed files or waiting for another published release.
+
+**Verify:** `.\target\debug\msc.exe uninstall --dry-run` — run from the
+repository root. Confirm the Windows MSI is listed as verified and the preview
+has no blocked installation finding. This command removes nothing. If choosing
+complete removal afterwards, close the desktop and use
+`.\target\debug\msc.exe uninstall --danger`; review its inventory and type the
+requested confirmation only when ready to permanently delete local worlds,
+backups and MSC data. Windows Settings package removal is a different operation
+and does not perform the complete local data cleanup.
+
+**Batch:** This Windows uninstall discovery correction only.
+
+**Commit:** `P26.28: recognize current windows packages during uninstall`
+
+Checks: `cargo fmt --all`, `cargo clippy -p msc-engine`,
+`cargo build -p msc-engine --bin msc` and `git diff --check` passed.
+Existing Windows compiler/Clippy warnings remain outside the changed code.
+The corrected executable is target/debug/msc.exe; the installed desktop and its
+bundled CLI remain unchanged. Discarded Cargo's unrelated lockfile reordering.
+
+No tests added or run. No uninstall, service stop or installed-file replacement
+performed. Owner retains execution of the removal preview and destructive action.

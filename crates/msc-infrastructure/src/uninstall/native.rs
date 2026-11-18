@@ -194,7 +194,7 @@ pub fn discover(
         });
     }
     if installations.is_empty() {
-        request.findings.push(Entry { kind: EntryKind::Installation, path: None, identity: "Desktop/package installation".into(), evidence: "Local package/bundle inspection found no MSC desktop package".into(), state: if options.desktop_origin.is_some() { EntryState::Blocked } else { EntryState::Missing }, problem: options.desktop_origin.as_ref().map(|_| "This desktop is not a verified installed package. Uninstall from the installed app; developer checkouts are protected.".into()) });
+        request.findings.push(Entry { kind: EntryKind::Installation, path: None, identity: "Desktop/package installation".into(), evidence: "Local package/bundle inspection found no MSC desktop package".into(), state: if options.desktop_origin.is_some() { EntryState::Blocked } else { EntryState::Missing }, problem: options.desktop_origin.as_ref().map(|_| "MSC could not verify a local desktop installation. Its package registration may be missing or unrecognized; developer checkouts are protected.".into()) });
     }
     // Resolve archives before treating an otherwise absent desktop as an error.
     let mut preliminary = inventory(&StdFileSystem, &request);
@@ -370,13 +370,14 @@ pub fn inspect_installations(
     {
         // WindowsInstaller=1 and a GUID key are required. Never execute an
         // arbitrary UninstallString from the registry or use Win32_Product.
+        // Recognize the current product name and retain discovery of older MSC packages.
         let output = capture(
             "powershell.exe",
             &[
                 "-NoProfile",
                 "-NonInteractive",
                 "-Command",
-                "$ErrorActionPreference='Stop'; Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'MSC' -and $_.Publisher -in @('ctemple','Cameron Temple') -and $_.WindowsInstaller -eq 1 } | ForEach-Object { $_.PSChildName }",
+                "$ErrorActionPreference='Stop'; Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -in @('Minecraft Server Controller','MSC') -and $_.Publisher -in @('ctemple','Cameron Temple') -and $_.WindowsInstaller -eq 1 } | ForEach-Object { $_.PSChildName }",
             ],
         )?;
         for product in output
