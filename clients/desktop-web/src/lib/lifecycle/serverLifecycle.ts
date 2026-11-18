@@ -1,3 +1,5 @@
+export type StartupProgress = { label: string; value?: number };
+
 export type RunningSnapshot = { running: boolean };
 
 /** Coalesces status reads and discards responses from an invalidated context. */

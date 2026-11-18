@@ -1328,3 +1328,37 @@ Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. No tests added or run and no
 live server creation performed. Pre-existing desktop lockfile ordering is
 excluded from this step.
+
+### P26.34 — keep console visibility and show startup progress in its heading
+
+**Status:** Implemented; owner interaction verification pending.
+
+**Files:** App; ApplicationShell; ConsoleDock; lifecycle presentation type; this plan.
+
+**What:** Remove Start's automatic console expansion. Preserve the user's
+collapsed or expanded state and manual toggle/resize controls. Display a small
+progress bar and status text beside Console in the dock heading in both states.
+Reuse the existing start-operation polling, with count-based fill when the engine
+supplies valid progress and an indeterminate bar during the initial request or
+readiness wait. No simulated percentages or extra polling. Scope progress by
+host/server, clear it in startup cleanup on success/failure, and preserve the
+existing startup failure sheet. Truncate long status text with the full message
+available on hover. No stop/start behavior or engine timing changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — collapse Console and start
+an initialized server: it must remain collapsed with progress beside Console.
+Expand it during startup and confirm progress stays in the heading; manually
+collapse it again. Confirm progress clears after startup, Start leaves an already
+expanded console open, and switching servers/hosts does not show another server's
+progress. Check failure cleanup when a real startup failure is available, and
+check heading layout at narrow window widths.
+
+**Batch:** Console visibility on Start and inline startup progress only.
+
+**Commit:** `P26.34: show startup progress without expanding the console`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+frontend formatting and `git diff --check` passed. No tests added or run; no live
+servers started or stopped. Existing operation/status polling is reused rather
+than adding timing-sensitive progress tests. Pre-existing desktop lockfile
+ordering remains outside this step.

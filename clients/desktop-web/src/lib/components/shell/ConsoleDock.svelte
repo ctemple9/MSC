@@ -3,6 +3,7 @@
   // buffered stream, command input + Send, copy/clear. docs/msc/renderings/shell.html,
   // MSC 1 ConsoleView/ConsoleManager, ~/Documents/MSCSS/Main View.
   import { onDestroy, onMount } from 'svelte';
+  import type { StartupProgress } from '../../lifecycle/serverLifecycle';
   import { ApiError } from '../../api/client';
   import Button from '../base/Button.svelte';
   import Toggle from '../base/Toggle.svelte';
@@ -32,6 +33,7 @@
   } from '../../sections/console/model';
 
   export let collapsed = false;
+  export let startupProgress: StartupProgress | undefined = undefined;
   export let onToggle: () => void;
   // Explicit pixel height while expanded — undefined lets the collapsed
   // header-only row size itself naturally.
@@ -427,6 +429,13 @@
       </svg>
     </button>
     <span class="label">Console</span>
+    {#if startupProgress}
+      <div class="startup-progress" title={startupProgress.label}>
+        <progress max="1" value={startupProgress.value} aria-label={startupProgress.label}
+        ></progress>
+        <span class="startup-label">{startupProgress.label}</span>
+      </div>
+    {/if}
     {#if !collapsed}
       <div class="search-field">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -768,6 +777,29 @@
     text-transform: uppercase;
     color: var(--msc-text-tertiary);
     flex-shrink: 0;
+  }
+  .startup-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 0 1 320px;
+    overflow: hidden;
+  }
+  .startup-progress progress {
+    width: 100px;
+    min-width: 48px;
+    height: 4px;
+    flex: 0 1 100px;
+    accent-color: var(--msc-text-secondary);
+  }
+  .startup-label {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    color: var(--msc-text-secondary);
   }
   .search-field {
     display: flex;

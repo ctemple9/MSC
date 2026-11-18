@@ -4,6 +4,7 @@
   // docs/msc/antiAIslop.md. bannerColor appears in exactly four places: the
   // running terrain banner, the header wash, the selected tab pill, and (later)
   // sidebar selection.
+  import type { StartupProgress } from '../lifecycle/serverLifecycle';
   import TopBar from './shell/TopBar.svelte';
   import ControlSidebar from './shell/ControlSidebar.svelte';
   import DetailsHeader from './shell/DetailsHeader.svelte';
@@ -29,6 +30,7 @@
   export let running = false;
   export let stopping = false;
   export let lifecycleBusy = false;
+  export let startupProgress: StartupProgress | undefined = undefined;
   export let statusNotice = '';
   export let connected = false;
   export let capabilities: Schema['CapabilitiesDTO'] | null = null;
@@ -88,7 +90,6 @@
   }
 
   function handleLifecycle(action: 'start' | 'stop'): void {
-    if (action === 'start') setConsoleCollapsed(false);
     onLifecycle(action);
   }
 
@@ -199,6 +200,7 @@
       {/if}
 
       <ConsoleDock
+        {startupProgress}
         collapsed={consoleCollapsed}
         onToggle={toggleConsole}
         height={consoleCollapsed ? undefined : consoleHeight}

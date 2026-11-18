@@ -54,7 +54,11 @@
   import ResetSheet from './lib/sections/app-settings/ResetSheet.svelte';
   import { restoreAccent } from './lib/styles/accent';
   import { bannerColorFor } from './lib/styles/bannerColor';
-  import { ServerStatusMonitor, waitForRunningState } from './lib/lifecycle/serverLifecycle';
+  import {
+    ServerStatusMonitor,
+    waitForRunningState,
+    type StartupProgress,
+  } from './lib/lifecycle/serverLifecycle';
   import { PRIMARY_TABS } from './lib/navigation/primaryTabs';
   import { selectAvailableServerId } from './lib/navigation/serverSelection';
   import {
@@ -471,6 +475,15 @@
   let statusPollTimer: ReturnType<typeof setInterval> | undefined;
   let statusPollError = '';
   let lifecycleRequests: ReadonlySet<string> = new Set();
+  let startupProgressByRun: ReadonlyMap<string, StartupProgress> = new Map();
+  $: startupProgress = startupProgressByRun.get(currentRunKey);
+
+  function setStartupProgress(key: string, progress?: StartupProgress): void {
+    const next = new Map(startupProgressByRun);
+    if (progress) next.set(key, progress);
+    else next.delete(key);
+    startupProgressByRun = next;
+  }
   let pendingStops: ReadonlyMap<string, number | undefined> = new Map();
   $: currentRunKey = serverRunKey(hostId, selectedServerId);
   $: stopping = pendingStops.has(currentRunKey);
@@ -780,6 +793,7 @@
   async function waitForStartOperation(
     operationId: string,
     actionClient: ApiClient,
+    onProgress: (operation: Schema['OperationDTO']) => void,
   ): Promise<Schema['OperationDTO'] | undefined> {
     const deadline = Date.now() + 10_000;
     for (;;) {
@@ -787,6 +801,7 @@
         'GET',
         `/v1/operations/${encodeURIComponent(operationId)}`,
       );
+      onProgress(operation);
       if (
         operation.state === 'succeeded' ||
         operation.state === 'failed' ||
@@ -915,6 +930,7 @@
     statusPollError = '';
     let acceptedStop = false;
     if (action === 'stop') recordStop(key, status.pid);
+    else setStartupProgress(key, { label: 'Starting server…' });
     try {
       const accepted = await actionClient.requestJson<Schema['SimpleResult']>(
         'POST',
@@ -922,7 +938,21 @@
       );
       acceptedStop = action === 'stop';
       if (action === 'start' && accepted.operationId) {
-        const operation = await waitForStartOperation(accepted.operationId, actionClient);
+        const operation = await waitForStartOperation(
+          accepted.operationId,
+          actionClient,
+          (update) => {
+            const count = update.progress;
+            const value =
+              count &&
+              Number.isFinite(count.current) &&
+              Number.isFinite(count.total) &&
+              count.total > 0
+                ? Math.max(0, Math.min(1, count.current / count.total))
+                : undefined;
+            setStartupProgress(key, { label: update.statusLine || 'Starting server…', value });
+          },
+        );
         if (!isCurrent()) return;
         if (operation?.state === 'failed' || operation?.state === 'cancelled') {
           startupFailure = {
@@ -934,6 +964,7 @@
           return;
         }
       }
+      if (action === 'start') setStartupProgress(key, { label: 'Waiting for server readiness…' });
       const nextStatus = await waitForRunningState(
         () => actionClient.requestJson<Schema['RemoteAPIStatus']>('GET', '/v1/status'),
         action === 'start',
@@ -997,6 +1028,7 @@
     } finally {
       const requests = new Set(lifecycleRequests);
       requests.delete(key);
+      if (action === 'start') setStartupProgress(key);
       lifecycleRequests = requests;
       if (isCurrent()) {
         statusMonitor.reset();
@@ -1291,6 +1323,7 @@
   running={status.running}
   {stopping}
   {lifecycleBusy}
+  {startupProgress}
   statusNotice={statusPollError}
   connected={!!capabilities}
   {capabilities}
