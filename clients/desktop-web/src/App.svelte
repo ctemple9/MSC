@@ -10,6 +10,7 @@
   import ApplicationShell from './lib/components/ApplicationShell.svelte';
   import { Button, Field, Sheet } from './lib/components/base';
   import FirstLaunchGate from './lib/help/FirstLaunchGate.svelte';
+  import InstallWelcome from './lib/help/InstallWelcome.svelte';
   import SplashGate from './lib/help/SplashGate.svelte';
   import { createClientRouter } from './routes/router';
   import UnknownSection from './routes/UnknownSection.svelte';
@@ -1536,6 +1537,9 @@
 {/if}
 
 <SplashGate onComplete={completeSplash} />
+{#if splashComplete && isDesktopShell && engineReadiness === 'missing' && hosts.every((host) => host.id === localEngineHostId)}
+  <InstallWelcome />
+{/if}
 {#if splashComplete && clientReady}
   <FirstLaunchGate
     api={screenApi}

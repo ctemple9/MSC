@@ -14,6 +14,7 @@
   // Button component (solid neutral fill, no gradient/capsule).
   import { onDestroy, onMount } from 'svelte';
   import Button from '../components/base/Button.svelte';
+  import OnboardingCard from './OnboardingCard.svelte';
   import {
     anchorFrames,
     ONBOARDING_ANCHOR_ACTION_EVENT,
@@ -272,18 +273,14 @@
         </div>
       </div>
     {:else if !hasAnchor}
-      <div class="bookend-card">
-        <h2>{step.title}</h2>
-        <p>{step.body}</p>
-        <div class="actions center">
-          {#if stepIndex === 0}
-            <Button variant="secondary" size="sm" onclick={onSkip}>{skipLabel}</Button>
-          {/if}
-          <Button variant="primary" onclick={() => onAdvance(false)}
-            >{step.actionLabel ?? 'Continue'}</Button
-          >
-        </div>
-      </div>
+      <OnboardingCard title={step.title} body={step.body}>
+        {#if stepIndex === 0}
+          <Button variant="secondary" size="sm" onclick={onSkip}>{skipLabel}</Button>
+        {/if}
+        <Button variant="primary" onclick={() => onAdvance(false)}
+          >{step.actionLabel ?? 'Continue'}</Button
+        >
+      </OnboardingCard>
     {:else if !resolved}
       <div class="bookend-card">
         <h2>{step.title}</h2>

@@ -1262,3 +1262,39 @@ and agrees with GitHub's recorded SHA-256 digests. README local links and
 owner verification; packages were not installed or executed.
 
 No tests added or run; no workflow changes or installed application changes.
+
+### P26.32 — welcome new desktop users before engine installation
+
+**Status:** Implemented; owner visual and first-launch verification pending.
+
+**Files:** App; InstallWelcome; shared OnboardingCard; TourOverlay; this plan.
+
+**What:** Display a client-owned welcome card after the splash in the Tauri
+app when its local engine is not installed and no remote host is saved.
+Show “Welcome to MSC!” and “Please install the engine or connect to a host to
+get started.” with one Okay button. Share the centered card component with
+the tour invitation so dimensions, typography, surface and actions match.
+Remember dismissal in the MSC client preferences independently of tour completion;
+no engine API is required. Focus Okay, contain Tab and allow Escape to dismiss,
+restoring prior focus afterwards. Installed/stopped/unavailable engines and saved
+remote-host users do not receive this installation prompt. The existing engine
+setup and later tour sequence remain available. Clearing MSC client preferences
+also clears the welcome dismissal; no live preferences were changed here.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — on a fresh desktop client
+profile with no installed engine or saved remote host, confirm the welcome appears
+after the splash and matches the tour invitation. Click Okay, restart, and confirm
+it stays dismissed. Check keyboard focus, Tab and Escape, installation/host
+connection access after dismissal, and the later tour invitation after setup.
+Use a separate clean environment rather than uninstalling a working engine merely
+to check this prompt.
+
+**Batch:** This pre-installation welcome card only.
+
+**Commit:** `P26.32: welcome desktop users before engine installation`
+
+Checks: `npm run check` passed with 0 errors and 10 existing CSS warnings;
+`npm run build` passed with existing CSS/import/chunk warnings. Touched Svelte
+formatting and `git diff --check` passed. No tests added or run; physical first-run
+verification remains with Cameron. The pre-existing desktop lockfile ordering
+change is excluded from this step.
