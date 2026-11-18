@@ -1165,3 +1165,34 @@ bundled CLI remain unchanged. Discarded Cargo's unrelated lockfile reordering.
 
 No tests added or run. No uninstall, service stop or installed-file replacement
 performed. Owner retains execution of the removal preview and destructive action.
+
+### P26.29 — publish 0.1.47 with Windows metrics and uninstall fixes
+
+**Status:** Release prepared; publication and owner platform verification pending.
+
+**Files:** Engine/desktop version manifests and lockfiles; release notes; this plan.
+
+**What:** Publish the Windows process-metrics and MSI discovery corrections as
+0.1.47 through the existing build-only workflow. Preserve all nine packages,
+checksums and signed update metadata. Read-only inspection before release found
+no installed desktop MSI, service, running MSC processes, or MSC installation/
+data trees on Cameron's Windows computer. A retained worker report records an
+earlier partial removal with MSI error 1603; current inspection found no remaining
+registered package or installation directory. This does not assert acceptance
+of every uninstall continuation or of the new release's physical behavior.
+
+**Verify:** `gh release view v0.1.47` — confirm the published prerelease contains
+all nine packages, checksums and signed update metadata; install the matching
+Windows build to verify CPU/RAM and complete-uninstall preview.
+
+**Batch:** Version, release notes, tag push and publication only. Update README
+as P26.30 after publication is confirmed.
+
+**Commit:** `P26.29: prepare 0.1.47 windows fixes release`
+
+Checks: parsed both Rust manifests/lockfiles and desktop JSON manifests;
+all eight version declarations agree on 0.1.47. `git diff --check` passed.
+The previous release workflow succeeded; the new tag did not exist remotely.
+
+No tests authorized or run; release workflow unchanged. Prior implementation
+formatting, Clippy and Windows CLI build passed with existing warnings.

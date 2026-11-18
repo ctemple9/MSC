@@ -2410,7 +2410,7 @@ dependencies = [
 
 [[package]]
 name = "msc-desktop-web"
-version = "0.1.46"
+version = "0.1.47"
 dependencies = [
  "ed25519-dalek",
  "fs2",
