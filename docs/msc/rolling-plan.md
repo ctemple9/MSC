@@ -1444,3 +1444,37 @@ formatting and `git diff --check` passed. No tests added or run; no live initiat
 provider downloads or installed server changes. Flavor-specific physical
 walkthroughs remain owner verification. Pre-existing desktop lockfile ordering
 is excluded from this step.
+
+### P26.37 — offer hidden initiation through the main Resume button
+
+**Status:** Implemented; owner interaction verification pending.
+
+**Files:** ControlSidebar; this plan.
+
+**What:** Remove the separate hidden-first-start explanation and action block
+from the sidebar. When the selected server has hidden initiation, replace its
+main Start/Initiate/Stop control with Resume. Resume opens the shared onboarding
+card presentation with Resume setup and Discard setup choices. Explain that
+discard stops the setup server and keeps its world; use the existing parent
+resume/discard handlers without changing engine operations. Keep Resume available
+while the hidden setup runs, preserving ordinary Start/Initiate/Stop behavior
+otherwise and the existing discard/control-permission guards. Focus Resume setup,
+contain Tab, dismiss on Escape without changing setup, and restore focus. Clear
+the choice when selection changes or hidden initiation is no longer available.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — start Initiate, close the
+setup sheet and confirm the sidebar has Resume with no extra setup section.
+Click Resume: check the small onboarding-style card, keyboard focus and Escape.
+Resume setup must reopen the existing sheet with progress intact; hide it again
+and deliberately choose Discard setup to verify the existing stop/discard flow
+keeps the world. Check switching servers does not offer another server's hidden
+setup and normal Start/Initiate/Stop controls return when appropriate.
+
+**Batch:** Hidden-initiation sidebar control and choice card only.
+
+**Commit:** `P26.37: offer resume or discard from the main server control`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. No tests added or run; no live
+setup discarded and no server stopped. Pre-existing desktop lockfile ordering
+is excluded from this step.

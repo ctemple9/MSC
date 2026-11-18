@@ -3,6 +3,7 @@
   // three collapsible sections, all real now (P12.21, P12.22).
   // docs/msc/renderings/shell.html, MSC 1 SidebarView.swift.
   import Button from '../base/Button.svelte';
+  import OnboardingCard from '../../help/OnboardingCard.svelte';
   import Menu from '../base/Menu.svelte';
   import Icon from '../base/Icon.svelte';
   import VisibilityIcon from '../base/VisibilityIcon.svelte';
@@ -130,8 +131,55 @@
   }
 
   $: activeServer = servers.find((server) => server.id === activeServerId);
-  $: startLabel = activeServer?.firstStartRequired ? 'Initiate' : 'Start';
+  $: startLabel = canResumeInitiation
+    ? 'Resume'
+    : activeServer?.firstStartRequired
+      ? 'Initiate'
+      : 'Start';
   $: canResumeInitiation = initiationHidden && initiationServerId === activeServerId;
+
+  let resumeChoiceContext: string | null = null;
+  $: selectedContext = `${activeHostId}:${activeServerId ?? ''}`;
+  $: if (!canResumeInitiation || (resumeChoiceContext && resumeChoiceContext !== selectedContext))
+    resumeChoiceContext = null;
+
+  function chooseSetup(resume: boolean): void {
+    if (!canResumeInitiation || discardingInitiation) return;
+    resumeChoiceContext = null;
+    if (resume) onResumeInitiation();
+    else onDiscardInitiation();
+  }
+
+  function focusResumeChoice(node: HTMLElement): { destroy: () => void } {
+    const previousFocus = document.activeElement;
+    node.querySelector('button')?.focus();
+    function handleKey(event: KeyboardEvent): void {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        resumeChoiceContext = null;
+      } else if (event.key === 'Tab') {
+        const buttons = [...node.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+        const first = buttons[0];
+        const last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    }
+    node.addEventListener('keydown', handleKey);
+    return {
+      destroy: () => {
+        node.removeEventListener('keydown', handleKey);
+        if (previousFocus instanceof HTMLElement && previousFocus.isConnected)
+          previousFocus.focus();
+      },
+    };
+  }
 
   // Only supported server flavors expose Xbox Broadcast connection details.
   $: showXboxBroadcast =
@@ -169,7 +217,12 @@
   }
 
   function startOrInitiate(): void {
-    if (stopping || lifecycleBusy || discardingInitiation) return;
+    if (discardingInitiation) return;
+    if (canResumeInitiation) {
+      resumeChoiceContext = selectedContext;
+      return;
+    }
+    if (stopping || lifecycleBusy) return;
     if (running) {
       onLifecycle('stop');
     } else if (activeServer?.firstStartRequired) {
@@ -208,18 +261,17 @@
 
       <div class="control-row">
         <Button
-          variant={running ? 'stop' : 'start'}
+          variant={running && !canResumeInitiation ? 'stop' : 'start'}
           size="sm"
           disabled={!canControl ||
             !activeServer ||
-            stopping ||
-            lifecycleBusy ||
+            (!canResumeInitiation && (stopping || lifecycleBusy)) ||
             discardingInitiation}
           onclick={startOrInitiate}
           anchorId="ob_start_button"
         >
-          <ShellIcon name={running ? 'stop' : 'play'} size={13} />
-          {stopping ? 'Stopping…' : running ? 'Stop' : startLabel}
+          <ShellIcon name={running && !canResumeInitiation ? 'stop' : 'play'} size={13} />
+          {canResumeInitiation ? 'Resume' : stopping ? 'Stopping…' : running ? 'Stop' : startLabel}
         </Button>
         <Button variant="secondary" size="sm" onclick={onManage} anchorId="ob_manage_servers"
           >Manage</Button
@@ -227,31 +279,6 @@
       </div>
       {#if statusNotice}
         <p class="status-notice" role="status">{statusNotice}</p>
-      {/if}
-      {#if canResumeInitiation}
-        <div class="initiation-notice" role="status">
-          <span
-            >First-start setup is hidden. Resume it or discard its progress; your world stays.</span
-          >
-          <div class="initiation-actions">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={discardingInitiation}
-              onclick={onResumeInitiation}
-            >
-              Resume setup
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={discardingInitiation}
-              onclick={onDiscardInitiation}
-            >
-              {discardingInitiation ? 'Stopping…' : 'Discard setup'}
-            </Button>
-          </div>
-        </div>
       {/if}
     </div>
 
@@ -358,6 +385,24 @@
   </div>
 </aside>
 
+{#if resumeChoiceContext && canResumeInitiation}
+  <div
+    class="resume-choice"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Resume setup?"
+    use:focusResumeChoice
+  >
+    <OnboardingCard
+      title="Resume setup?"
+      body="Continue the one-time setup, or discard its progress. Discarding stops the setup server and keeps your world."
+    >
+      <Button variant="primary" onclick={() => chooseSetup(true)}>Resume setup</Button>
+      <Button variant="secondary" onclick={() => chooseSetup(false)}>Discard setup</Button>
+    </OnboardingCard>
+  </div>
+{/if}
+
 <style>
   .status-notice {
     margin: 8px 0 0;
@@ -443,20 +488,11 @@
     flex: 1 1 0;
     min-width: 0;
   }
-  .initiation-notice {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 8px;
-    padding: 9px;
-    color: var(--msc-text-secondary);
-    background: var(--msc-tier-surface);
-    font-size: 11px;
-    line-height: 1.4;
-  }
-  .initiation-actions {
-    display: flex;
-    gap: 8px;
+  .resume-choice {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(0, 0, 0, 0.72);
   }
   .disclosure {
     border-top: 1px solid var(--msc-hairline-subtle);
