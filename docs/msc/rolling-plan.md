@@ -1478,3 +1478,46 @@ Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. No tests added or run; no live
 setup discarded and no server stopped. Pre-existing desktop lockfile ordering
 is excluded from this step.
+
+### P26.38 — count only initiation passes the engine performs
+
+**Status:** Implemented; owner initiation verification pending.
+
+**Files:** FirstStartSheet; initiationProgress; focused milestone regression tests;
+this plan.
+
+**What:** Fix the reported 3/9-then-complete display. The engine's
+FirstStartCoordinator requires a second pass only when Playit or Xbox Broadcast
+is applicable; a helper-free first run returns firstStartComplete directly.
+The previous presentation always counted both passes and connection setup, and
+its direct-completion branch only settled pass two. Build the initial denominator
+from the configured transports, label helper-free work First run, and settle the
+actual pass from successful structured results before entering completion.
+Honor direct completion even when two passes were initially expected by removing
+unperformed second-pass/connection milestones. Settle ordinary successful first
+starts at readiness and retain confirmed-stop separation. If an existing-world
+recovery actually enters connection setup, expand its plan for that real second
+run. Recognize the engine's pass-one-ready status line as an intermediate hint.
+Keep the completed-screen progress bar hidden and retain flavor/helper stages.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — initiate a fresh
+vanilla/Paper/Purpur server with Playit and Xbox Broadcast disabled. Confirm it
+counts only first-run milestones (4 without optional stages), advances at ready,
+and hides the bar at completion. Compare an initiation with a transport enabled:
+its two-pass stages must remain, with pass-one completion not completing pass two.
+Check an existing-world retry follows its actual recovery path.
+
+**Batch:** Initiation denominator and successful-pass settlement only.
+
+**Commit:** `P26.38: align initiation milestones with actual engine passes`
+
+Essential regression rationale: pure progress-state cases protect the specific
+reported false denominator and wrong-pass settlement, including early direct
+completion and preserving unfinished second-pass work. Existing first-start
+coverage checks source text and does not exercise these state transitions.
+Tests use local values, no timers, processes, filesystem or network; expected
+milliseconds. Added but not run: tests/screens/initiation-progress.test.ts.
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+frontend/test formatting and `git diff --check` passed. No tests run and no live
+server operations performed. Existing desktop lockfile ordering is excluded.

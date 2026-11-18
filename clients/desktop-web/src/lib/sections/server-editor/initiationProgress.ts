@@ -4,6 +4,7 @@ export function initiationMilestones(
   serverType: string,
   flavor: string,
   extensions: readonly string[],
+  needsSecondPass: boolean,
 ): InitiationMilestone[] {
   const modded = ['fabric', 'forge', 'neoforge', 'quilt'].includes(flavor.toLowerCase());
   const runtime = serverType === 'bedrock' ? 'Bedrock' : flavor || 'Java';
@@ -17,8 +18,16 @@ export function initiationMilestones(
   ];
   return [
     ...startup.map(([id, label]) => ({ id: `one:${id}`, label: `Pass 1: ${label}`, done: false })),
-    { id: 'connections', label: 'Finish connection choices', done: false },
-    ...startup.map(([id, label]) => ({ id: `two:${id}`, label: `Pass 2: ${label}`, done: false })),
+    ...(needsSecondPass
+      ? [
+          { id: 'connections', label: 'Finish connection choices', done: false },
+          ...startup.map(([id, label]) => ({
+            id: `two:${id}`,
+            label: `Pass 2: ${label}`,
+            done: false,
+          })),
+        ]
+      : []),
   ];
 }
 
@@ -51,4 +60,27 @@ export function observedStartupMilestones(
     if (named) milestones.push(`extension-${index}`);
   });
   return milestones;
+}
+
+/** Successful operation results settle stages even when console messages were missed. */
+export function settleInitiationPass(
+  milestones: readonly InitiationMilestone[],
+  pass: 'one' | 'two',
+  stopped: boolean,
+): InitiationMilestone[] {
+  return milestones.map((step) =>
+    step.id.startsWith(`${pass}:`) && (stopped || !step.id.endsWith(':stopped'))
+      ? { ...step, done: true }
+      : step,
+  );
+}
+
+/** Full completion in the first run means the engine skipped connection setup/pass two. */
+export function completeInitiationRun(
+  milestones: readonly InitiationMilestone[],
+  pass: 'one' | 'two',
+): InitiationMilestone[] {
+  const applicable =
+    pass === 'one' ? milestones.filter((step) => step.id.startsWith('one:')) : milestones;
+  return settleInitiationPass(applicable, pass, true);
 }

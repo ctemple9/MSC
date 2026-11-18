@@ -5,6 +5,8 @@
   import { onDestroy, onMount } from 'svelte';
   import {
     initiationMilestones,
+    settleInitiationPass,
+    completeInitiationRun,
     observedStartupMilestones,
     type InitiationMilestone,
   } from './initiationProgress';
@@ -60,6 +62,9 @@
   let progressConsoleKeys = new Set<string>();
   let progressStartedAt = Infinity;
 
+  $: needsSecondPass = milestones.length
+    ? milestones.some((step) => step.id.startsWith('two:'))
+    : playitEnabled || broadcastEnabled;
   $: finishedMilestones = milestones.filter((step) => step.done).length;
   $: progressValue = milestones.length ? finishedMilestones / milestones.length : 0;
   $: nextMilestone = milestones.find((step) => !step.done)?.label ?? 'Finishing setup';
@@ -71,20 +76,16 @@
   function settleStartup(pass: 'one' | 'two', stopped = false): void {
     // A ready operation settles earlier loading stages even when a flavor emits
     // no recognizable log line. It does not certify every third-party add-on.
-    markMilestones(
-      milestones
-        .filter(
-          (step) => step.id.startsWith(`${pass}:`) && (stopped || !step.id.endsWith(':stopped')),
-        )
-        .map((step) => step.id),
-    );
+    milestones = settleInitiationPass(milestones, pass, stopped);
   }
 
   function updateProgress(operation: Schema['OperationDTO']): void {
     if (operation.progress && operation.progress.current > 0)
       markMilestones([`${progressPass}:launch`]);
     if (
-      /server is ready|stopping the server|transports are ready/i.test(operation.statusLine ?? '')
+      /server is ready|pass one is ready|stopping the server|transports are ready/i.test(
+        operation.statusLine ?? '',
+      )
     )
       settleStartup(progressPass);
   }
@@ -117,7 +118,12 @@
             : 'plugins',
         );
     }
-    milestones = initiationMilestones(serverType, javaFlavor, extensionNames);
+    milestones = initiationMilestones(
+      serverType,
+      javaFlavor,
+      extensionNames,
+      playitEnabled || broadcastEnabled,
+    );
   }
 
   function consoleTimestamp(value: string): number {
@@ -413,9 +419,12 @@
       (operation.result.firstStartComplete === true ||
         operation.result.firstStartComplete === 'true')
     ) {
+      settleStartup('one', true);
+      milestones = completeInitiationRun(milestones, 'one');
       await finishComplete();
       return;
     }
+    settleStartup('one');
     if (
       operation.result?.firstStartPass1Complete !== true &&
       operation.result?.firstStartPass1Complete !== 'true'
@@ -441,6 +450,14 @@
   }
 
   async function prepareTransportSetup(): Promise<void> {
+    // An existing-world recovery may require a second run even without helpers.
+    // Follow that actual path rather than leave its work outside the denominator.
+    if (!milestones.some((step) => step.id.startsWith('two:'))) {
+      const previous = new Set(milestones.filter((step) => step.done).map((step) => step.id));
+      milestones = initiationMilestones(serverType, javaFlavor, extensionNames, true).map(
+        (step) => ({ ...step, done: previous.has(step.id) }),
+      );
+    }
     settleStartup('one', true);
     phase = 'transport-setup';
     playitChoiceRequired = false;
@@ -840,7 +857,7 @@
         // First-start completion remains available if diagnosis is unreachable.
       }
     }
-    settleStartup('two', true);
+    milestones = completeInitiationRun(milestones, progressPass);
     phase = 'complete';
     showBroadcastAuth = false;
     showPlayitSetup = false;
@@ -910,7 +927,7 @@
     </div>
   {:else if phase === 'starting-pass-one'}
     <div class="stack">
-      <p class="msc-type-overline">Pass 1 of 2</p>
+      <p class="msc-type-overline">{needsSecondPass ? 'Pass 1 of 2' : 'First run'}</p>
       <h2>Creating the server files</h2>
       <p class="copy">
         The engine is waiting for the server-ready signal before it stops the first run.
