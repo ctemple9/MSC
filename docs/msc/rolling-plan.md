@@ -1298,3 +1298,33 @@ Checks: `npm run check` passed with 0 errors and 10 existing CSS warnings;
 formatting and `git diff --check` passed. No tests added or run; physical first-run
 verification remains with Cameron. The pre-existing desktop lockfile ordering
 change is excluded from this step.
+
+### P26.33 — compact the server creation success screen
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** AddServerWizard; ConfirmStep; this plan.
+
+**What:** On successful creation, switch the wizard from its fixed 740-pixel
+large sheet to the content-sized small sheet and remove the completed step
+tracker. Release the wizard/content height and scrolling constraints so Done
+sits directly beneath the result with normal spacing. Keep the server-created
+heading, warnings and import-specific guidance. Fresh-world success now reads:
+“Your server is ready for its first start. Choose Initiate in the server controls
+to finish setup.” Earlier steps retain their existing dimensions and navigation.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — create a server when
+ready for manual verification; confirm the success sheet is compact, has no step
+tracker, and shows its heading, guidance and right-aligned Done without the
+large blank area. Confirm Done closes the wizard and earlier pages retain their
+large working layout. Check a narrow/short window and retained creation warnings
+or import guidance when applicable.
+
+**Batch:** Success-screen presentation and fresh-world guidance only.
+
+**Commit:** `P26.33: compact the server creation success screen`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. No tests added or run and no
+live server creation performed. Pre-existing desktop lockfile ordering is
+excluded from this step.

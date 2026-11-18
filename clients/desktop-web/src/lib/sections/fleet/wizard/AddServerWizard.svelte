@@ -466,31 +466,33 @@
 
 <Sheet
   title="Add Server"
-  size="lg"
-  height="740px"
+  size={createSucceeded ? 'sm' : 'lg'}
+  height={createSucceeded ? undefined : '740px'}
   onClose={isCreating || transferBusy || showJavaRecovery || showJavaSelection || showJavaInstall
     ? undefined
     : closeWizard}
 >
-  <div class="wizard" use:onboardingAnchor={'ob_wizard_sheet'}>
-    <div class="steps" role="list" aria-label="Add Server progress">
-      {#each labels as label, index (label)}
-        {@const stepNum = index + 1}
-        <div class="step" role="listitem">
-          <span
-            class="dot"
-            class:done={stepNum < currentStep}
-            class:current={stepNum === currentStep}
-          >
-            {#if stepNum < currentStep}✓{:else}{stepNum}{/if}
-          </span>
-          <span class="label" class:seen={stepNum <= currentStep}>{label}</span>
-        </div>
-        {#if stepNum < totalSteps}
-          <div class="connector" class:done={stepNum < currentStep}></div>
-        {/if}
-      {/each}
-    </div>
+  <div class="wizard" class:completed={createSucceeded} use:onboardingAnchor={'ob_wizard_sheet'}>
+    {#if !createSucceeded}
+      <div class="steps" role="list" aria-label="Add Server progress">
+        {#each labels as label, index (label)}
+          {@const stepNum = index + 1}
+          <div class="step" role="listitem">
+            <span
+              class="dot"
+              class:done={stepNum < currentStep}
+              class:current={stepNum === currentStep}
+            >
+              {#if stepNum < currentStep}✓{:else}{stepNum}{/if}
+            </span>
+            <span class="label" class:seen={stepNum <= currentStep}>{label}</span>
+          </div>
+          {#if stepNum < totalSteps}
+            <div class="connector" class:done={stepNum < currentStep}></div>
+          {/if}
+        {/each}
+      </div>
+    {/if}
 
     <div class="content" bind:this={contentElement}>
       {#if currentStep === 1}
@@ -695,6 +697,14 @@
     gap: 20px;
     height: 100%;
     min-height: 0;
+  }
+
+  .wizard.completed {
+    height: auto;
+  }
+  .wizard.completed .content {
+    flex: none;
+    overflow: visible;
   }
 
   /* Step counter -- shape kept from the oracle's chips, color stripped to

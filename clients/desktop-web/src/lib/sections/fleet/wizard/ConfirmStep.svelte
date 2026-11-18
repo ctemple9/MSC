@@ -98,8 +98,8 @@
           Open Server Settings to review defaults.{#if !draft.importEulaAccepted}
             The EULA still needs to be accepted before this server can start.{/if}
         {:else if draft.worldSourceMode === 'fresh'}
-          Open Server Settings to review defaults, then choose Initiate in the server controls for
-          the one-time file, world, and connection setup.
+          Your server is ready for its first start. Choose Initiate in the server controls to finish
+          setup.
         {:else if draft.javaCategory === 'modded'}
           Add mods in the Components tab before starting — world-gen mods must be present on first
           boot.
