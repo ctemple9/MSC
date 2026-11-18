@@ -1695,3 +1695,38 @@ card count, duplicate IDs and complete source-map coverage. The existing content
 checker/test suites were not run. Clippy's package-order-only root lockfile rewrite
 was restored; the pre-existing desktop lockfile ordering remains outside this step.
 No live server, engine repair, release, push or publication performed.
+
+### P26.42 — center tour actions and keep highlight borders visible
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** TourOverlay; this plan.
+
+**What:** Center action rows on all app-walkthrough cards, including the
+You’ve got the basics choice. Replace the footer Finish tour action with a
+neutral top-right X carrying the Finish tour accessible label and tooltip.
+Keep Back/Next below the text and retain the optional prompt's explicit
+Finish for now / Explore MSC choices. Reserve heading space for X on anchored
+cards. Initial keyboard focus stays on a navigation button rather than X;
+existing Tab containment, Escape and checkpoint/finish behavior remain.
+
+Clamp padded spotlight edges to a four-pixel viewport inset and use border-box
+sizing, so highlighting a full-width tab pane or console cannot clip its right
+or bottom outline outside the app window. No guide copy/content or lifecycle
+changes; no engine repair is needed for these client-side presentation fixes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Help → Explore MSC;
+check the optional prompt's centered actions when returning with Back, the
+Console/tab cards' centered Back/Next row and top-right X, and all four outline
+edges on Overview and the other tabs. Resize the window, check keyboard focus,
+and confirm X finishes the walkthrough while saving the existing checkpoint.
+
+**Batch:** Reported walkthrough action alignment, finish control and clipped
+spotlight borders only.
+
+**Commit:** `P26.42: align tour actions and contain spotlight borders`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. No tests added or run for this
+presentation-only correction. Owner visual verification remains pending.
+Pre-existing desktop lockfile ordering is excluded from this step.

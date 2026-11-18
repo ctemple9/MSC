@@ -111,7 +111,7 @@
   function focusWalkthrough(node: HTMLElement): { destroy: () => void } {
     if (step?.requiresUserAction) return { destroy: () => {} };
     const previousFocus = document.activeElement;
-    node.querySelector('button')?.focus();
+    node.querySelector<HTMLButtonElement>('.actions button')?.focus();
     function handleKey(event: KeyboardEvent): void {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -234,15 +234,16 @@
   $: blocking = !hasAnchor || !resolved;
   $: totalSteps = steps.length;
 
-  $: spot =
-    resolved && anchorRect
-      ? {
-          top: anchorRect.top - PAD,
-          left: anchorRect.left - PAD,
-          width: anchorRect.width + PAD * 2,
-          height: anchorRect.height + PAD * 2,
-        }
-      : null;
+  $: spot = (() => {
+    if (!resolved || !anchorRect) return null;
+    // Padding around a full-width pane must not push its outline off-screen.
+    const inset = 4;
+    const left = Math.max(inset, anchorRect.left - PAD);
+    const top = Math.max(inset, anchorRect.top - PAD);
+    const right = Math.min(viewportW - inset, anchorRect.left + anchorRect.width + PAD);
+    const bottom = Math.min(viewportH - inset, anchorRect.top + anchorRect.height + PAD);
+    return { left, top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+  })();
 
   $: cardPos = (() => {
     if (!spot) return null;
@@ -307,11 +308,31 @@
           ? `top:${cardPos.top}px; left:${cardPos.left}px; width:${CARD_WIDTH}px;`
           : undefined}
       >
+        {#if skipLabel === 'Finish tour'}
+          <button
+            type="button"
+            class="finish-tour"
+            aria-label="Finish tour"
+            title="Finish tour"
+            onclick={onSkip}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+              ><path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              /></svg
+            >
+          </button>
+        {/if}
         {#if hasAnchor && cardPos}<h3>{step.title}</h3>{:else}<h2>{step.title}</h2>{/if}
         <p>{step.body}</p>
-        <div class="actions">
+        <div class="actions center">
           {#if onBack}<Button variant="secondary" size="sm" onclick={onBack}>Back</Button>{/if}
-          <Button variant="secondary" size="sm" onclick={onSkip}>{skipLabel}</Button>
+          {#if skipLabel !== 'Finish tour'}
+            <Button variant="secondary" size="sm" onclick={onSkip}>{skipLabel}</Button>
+          {/if}
           {#if !step.requiresUserAction}
             <Button variant="primary" size="sm" onclick={() => onAdvance(false)}
               >{step.actionLabel ?? 'Next'}</Button
@@ -400,6 +421,33 @@
     max-height: calc(100vh - 32px);
     overflow-y: auto;
   }
+  .finish-tour {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--msc-text-secondary);
+    cursor: pointer;
+  }
+  .finish-tour:hover {
+    background: var(--msc-neutral-elevated);
+    color: var(--msc-text-primary);
+  }
+  .finish-tour:focus-visible {
+    outline: 2px solid var(--msc-text-secondary);
+    outline-offset: 1px;
+  }
+  .walkthrough-card.anchored-card h3 {
+    padding-right: 24px;
+  }
   .tour-root {
     position: fixed;
     inset: 0;
@@ -414,6 +462,7 @@
   }
   .spotlight {
     position: fixed;
+    box-sizing: border-box;
     border: 2px solid rgba(255, 255, 255, 0.85);
     border-radius: var(--msc-radius-2);
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.72);
