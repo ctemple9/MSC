@@ -1521,3 +1521,53 @@ milliseconds. Added but not run: tests/screens/initiation-progress.test.ts.
 Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
 frontend/test formatting and `git diff --check` passed. No tests run and no live
 server operations performed. Existing desktop lockfile ordering is excluded.
+
+### P26.39 — use startup milestones in the main console heading
+
+**Status:** Implemented; owner startup walkthrough verification pending.
+
+**Files:** App; ConsoleDock; lifecycle progress presentation/model; focused startup
+progress regression cases; this plan.
+
+**What:** Replace normal Start's raw operation fraction with a single-runtime
+milestone tracker, reusing initiation's flavor stages and console-hint parser.
+Exclude pass labels, connection choices, second runs and shutdown. Detect installed
+Geyser/Floodgate and enabled other add-ons from local component/add-on inventories;
+include the applicable mod-loader stage and group other extensions as mods/plugins.
+Show the next-step explanation beside Console, with completed/total count, in
+both collapsed and expanded states. Examples include Starting paper, Initializing
+the mod loader, Loading Geyser, Preparing the world and Waiting for the server-ready
+signal. No simulated time-based percentage and no console auto-expansion.
+
+Capture the pre-start console tail and ignore older engine timestamps/known lines,
+error output and non-server origins. During the existing operation/readiness
+loops, read progress hints at most once per second; no independent timers. Engine
+operation/status readiness settles earlier loading stages even when a flavor
+omits recognizable messages. Clear progress at confirmed running state and on
+failure/final cleanup. Retain host/server scoping and startup diagnosis behavior.
+Inventory lookup failure falls back to core runtime stages. No engine changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — start an initialized
+server with Console collapsed. Check milestone fill/count and explanatory messages
+beside Console, no automatic expansion, and progress disappearing on readiness.
+Compare an installed-loader server, Geyser/Floodgate or other enabled add-ons,
+and Bedrock when available. Check older logs do not pre-fill startup, switching
+servers does not show another server's progress, failure clears the indicator,
+and the expanded/narrow heading still permits console controls.
+
+**Batch:** Normal-start console milestone progress and explanatory messages only.
+
+**Commit:** `P26.39: show runtime milestones in the main console heading`
+
+Essential regression rationale: normal startup must never inherit initiation's
+shutdown/connection denominator or the engine's 1/2 spawn fraction. Two pure cases
+protect single-run accounting, readiness settlement and ignoring stale/error/helper
+logs while retaining loader/extension stages. Existing initiation tests do not
+exercise this normal-start tracker. Local inputs only, no timers/network/processes;
+expected milliseconds. Added but not run: tests/screens/startup-progress.test.ts.
+
+Checks: final `npm run check` passed (0 errors, 10 existing CSS warnings) and
+`npm run build` passed with existing CSS/import/chunk warnings. An initial type
+check caught completion cleanup placed in the wrong scope; corrected before final
+checks. Touched formatting and `git diff --check` passed. No tests run and no live
+servers started/stopped. Existing desktop lockfile ordering is excluded.

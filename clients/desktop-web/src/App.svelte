@@ -59,6 +59,8 @@
     waitForRunningState,
     type StartupProgress,
   } from './lib/lifecycle/serverLifecycle';
+  import { StartupMilestones, installedStartupExtensions } from './lib/lifecycle/startupProgress';
+  import { livePaths, type ConsoleLine } from './lib/sections/console/model';
   import { PRIMARY_TABS } from './lib/navigation/primaryTabs';
   import { selectAvailableServerId } from './lib/navigation/serverSelection';
   import {
@@ -793,7 +795,7 @@
   async function waitForStartOperation(
     operationId: string,
     actionClient: ApiClient,
-    onProgress: (operation: Schema['OperationDTO']) => void,
+    onProgress: (operation: Schema['OperationDTO']) => Promise<void>,
   ): Promise<Schema['OperationDTO'] | undefined> {
     const deadline = Date.now() + 10_000;
     for (;;) {
@@ -801,7 +803,7 @@
         'GET',
         `/v1/operations/${encodeURIComponent(operationId)}`,
       );
-      onProgress(operation);
+      await onProgress(operation);
       if (
         operation.state === 'succeeded' ||
         operation.state === 'failed' ||
@@ -929,9 +931,46 @@
     statusMonitor.reset();
     statusPollError = '';
     let acceptedStop = false;
+    let startupMilestones: StartupMilestones | undefined;
+    let lastProgressTailAt = 0;
+    const refreshStartupProgress = async () => {
+      if (!startupMilestones) return;
+      if (Date.now() - lastProgressTailAt >= 1000) {
+        lastProgressTailAt = Date.now();
+        const lines = await actionClient
+          .requestJson<ConsoleLine[]>('GET', livePaths.tail)
+          .catch(() => []);
+        startupMilestones.observe(lines);
+      }
+      setStartupProgress(key, startupMilestones.snapshot());
+    };
     if (action === 'stop') recordStop(key, status.pid);
-    else setStartupProgress(key, { label: 'Starting server…' });
+    else setStartupProgress(key, { label: 'Checking startup components…', value: 0 });
     try {
+      if (action === 'start') {
+        const [components, addons, baseline] = await Promise.all([
+          actionServer?.serverType === 'java'
+            ? actionClient
+                .requestJson<Schema['ComponentsStatusDTO']>('GET', '/v1/components')
+                .catch(() => null)
+            : Promise.resolve(null),
+          actionServer?.serverType === 'java'
+            ? actionClient
+                .requestJson<Schema['AddonsResponseDTO']>('GET', '/v1/addons?local=true')
+                .catch(() => null)
+            : Promise.resolve(null),
+          actionClient.requestJson<ConsoleLine[]>('GET', livePaths.tail).catch(() => []),
+        ]);
+        if (!isCurrent()) return;
+        const flavor = actionServer?.javaFlavor ?? 'vanilla';
+        startupMilestones = new StartupMilestones(
+          actionServer?.serverType ?? 'java',
+          flavor,
+          installedStartupExtensions(flavor, components, addons),
+          baseline,
+        );
+        setStartupProgress(key, startupMilestones.snapshot());
+      }
       const accepted = await actionClient.requestJson<Schema['SimpleResult']>(
         'POST',
         action === 'start' ? '/v1/start' : '/v1/stop',
@@ -941,16 +980,9 @@
         const operation = await waitForStartOperation(
           accepted.operationId,
           actionClient,
-          (update) => {
-            const count = update.progress;
-            const value =
-              count &&
-              Number.isFinite(count.current) &&
-              Number.isFinite(count.total) &&
-              count.total > 0
-                ? Math.max(0, Math.min(1, count.current / count.total))
-                : undefined;
-            setStartupProgress(key, { label: update.statusLine || 'Starting server…', value });
+          async (update) => {
+            startupMilestones?.operation(update);
+            await refreshStartupProgress();
           },
         );
         if (!isCurrent()) return;
@@ -964,11 +996,10 @@
           return;
         }
       }
-      if (action === 'start') setStartupProgress(key, { label: 'Waiting for server readiness…' });
-      const nextStatus = await waitForRunningState(
-        () => actionClient.requestJson<Schema['RemoteAPIStatus']>('GET', '/v1/status'),
-        action === 'start',
-      );
+      const nextStatus = await waitForRunningState(async () => {
+        if (action === 'start') await refreshStartupProgress();
+        return actionClient.requestJson<Schema['RemoteAPIStatus']>('GET', '/v1/status');
+      }, action === 'start');
       observeServerRun(
         actionHostId,
         nextStatus.activeServerId ?? actionServerId,
@@ -977,6 +1008,10 @@
       if (action === 'stop' && !nextStatus.running) clearStop(key);
       if (!isCurrent()) return;
       applyServerStatus(nextStatus);
+      if (action === 'start' && nextStatus.running) {
+        startupMilestones?.ready();
+        setStartupProgress(key);
+      }
       if (action === 'start' && nextStatus.running && actionServer?.serverType === 'java') {
         try {
           const diagnosis = await actionClient.requestJson<Schema['HealthProblemsResponseDTO']>(

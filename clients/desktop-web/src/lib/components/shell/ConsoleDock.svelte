@@ -434,6 +434,9 @@
         <progress max="1" value={startupProgress.value} aria-label={startupProgress.label}
         ></progress>
         <span class="startup-label">{startupProgress.label}</span>
+        {#if startupProgress.total !== undefined}
+          <span class="startup-count">{startupProgress.completed}/{startupProgress.total}</span>
+        {/if}
       </div>
     {/if}
     {#if !collapsed}
@@ -792,6 +795,12 @@
     height: 4px;
     flex: 0 1 100px;
     accent-color: var(--msc-text-secondary);
+  }
+  .startup-count {
+    flex-shrink: 0;
+    color: var(--msc-text-tertiary);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
   }
   .startup-label {
     min-width: 0;

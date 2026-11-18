@@ -1,4 +1,4 @@
-export type StartupProgress = { label: string; value?: number };
+export type StartupProgress = { label: string; value?: number; completed?: number; total?: number };
 
 export type RunningSnapshot = { running: boolean };
 
