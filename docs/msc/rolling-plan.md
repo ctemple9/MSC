@@ -1362,3 +1362,33 @@ frontend formatting and `git diff --check` passed. No tests added or run; no liv
 servers started or stopped. Existing operation/status polling is reused rather
 than adding timing-sensitive progress tests. Pre-existing desktop lockfile
 ordering remains outside this step.
+
+### P26.35 — lead initiation with progress and collapse its console
+
+**Status:** Implemented; owner interaction verification pending.
+
+**Files:** FirstStartSheet; this plan.
+
+**What:** Replace the always-visible first-start console with a closed-by-default
+Show console disclosure, switching its label to Hide console when opened.
+Retain the live buffered output and Clear action inside. Show a full-width
+progress bar while initiation is busy and a completed bar on success. Use the
+existing first/second-pass operation counts when available, otherwise show
+indeterminate progress; reset count state between passes/retries and do not
+reuse counts during another phase. Existing status messages, connection choices,
+errors and retry behavior remain visible independently of console expansion.
+No extra polling or engine changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Initiate a new server when
+ready for manual verification. Confirm progress appears during server preparation,
+the console starts hidden, and Show console/Hide console toggle live output
+without interrupting setup. Check both passes, connection selection, completion,
+and Clear when expanded. A retry must not inherit a previous pass's progress.
+
+**Batch:** Initiation progress and optional console presentation only.
+
+**Commit:** `P26.35: show initiation progress with an optional console`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. No tests added or run; no live
+initiation performed. The pre-existing desktop lockfile change is excluded.

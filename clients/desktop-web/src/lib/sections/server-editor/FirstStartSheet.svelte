@@ -47,6 +47,21 @@
   type TransportKey = 'playit' | 'broadcast';
 
   let phase: Phase = 'eula';
+  let showConsole = false;
+  let progressPhase: Phase = 'eula';
+  let operationProgress: number | undefined;
+
+  function updateProgress(operation: Schema['OperationDTO']): void {
+    const count = operation.progress;
+    progressPhase = phase;
+    operationProgress =
+      count && Number.isFinite(count.current) && Number.isFinite(count.total) && count.total > 0
+        ? Math.max(0, Math.min(1, count.current / count.total))
+        : undefined;
+  }
+
+  $: progressValue =
+    phase === 'complete' ? 1 : progressPhase === phase ? operationProgress : undefined;
   let operationId = '';
   let statusLine = '';
   let error = '';
@@ -274,6 +289,7 @@
 
   async function startPassOne(): Promise<void> {
     if (!api) return;
+    operationProgress = undefined;
     phase = 'starting-pass-one';
     statusLine = 'Starting the server to create its configuration and world files…';
     const accepted = await mutate<Schema['SimpleResult']>(api, fleetMutationPaths.start);
@@ -281,6 +297,7 @@
     if (!operationId) throw new Error('The engine did not return a first-start operation.');
     const operation = await pollOperation(api, operationId, (tick) => {
       statusLine = tick.statusLine ?? statusLine;
+      updateProgress(tick);
     });
     if (operation?.state !== 'succeeded') {
       if (operation) {
@@ -467,6 +484,7 @@
 
   async function startPassTwo(): Promise<void> {
     if (!api) return;
+    operationProgress = undefined;
     phase = 'starting-pass-two';
     statusLine = 'Starting the server with the selected connections…';
     passTwoStartedAt = Date.now();
@@ -646,6 +664,7 @@
         `/v1/operations/${encodeURIComponent(operationId)}`,
       );
       statusLine = operation.statusLine ?? statusLine;
+      updateProgress(operation);
       await Promise.all([refreshPlayit(), refreshBroadcast()]);
       if (operation.state === 'failed' || operation.state === 'cancelled') {
         failWithOperation(operation, 'server_start_failed');
@@ -984,36 +1003,45 @@
       />
     </div>
   {/if}
+  {#if busy || phase === 'complete'}
+    <div class="initiation-progress">
+      <progress max="1" value={progressValue} aria-label={statusLine || 'Initiation progress'}
+      ></progress>
+    </div>
+  {/if}
   {#if phase !== 'eula'}
-    <section class="console-panel" aria-label="First-start console">
-      <div class="console-header">
-        <span>Console</span>
-        <div class="console-header-actions">
-          <span class="console-live">Live</span>
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={!consoleLines.length}
-            onclick={clearConsole}>Clear</Button
-          >
-        </div>
-      </div>
-      <div class="console-body" aria-live="polite">
-        {#if consoleLines.length}
-          {#each consoleLines.slice(-80) as line, index (line.ts + '-' + index)}
-            <p
-              class="console-line"
-              class:error={line.level === 'error'}
-              class:warn={line.level === 'warn'}
+    <details class="console-disclosure" bind:open={showConsole}>
+      <summary>{showConsole ? 'Hide console' : 'Show console'}</summary>
+      <section class="console-panel" aria-label="First-start console">
+        <div class="console-header">
+          <span>Console</span>
+          <div class="console-header-actions">
+            <span class="console-live">Live</span>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!consoleLines.length}
+              onclick={clearConsole}>Clear</Button
             >
-              {line.text}
-            </p>
-          {/each}
-        {:else}
-          <p class="console-empty">Waiting for console output…</p>
-        {/if}
-      </div>
-    </section>
+          </div>
+        </div>
+        <div class="console-body" aria-live="polite">
+          {#if consoleLines.length}
+            {#each consoleLines.slice(-80) as line, index (line.ts + '-' + index)}
+              <p
+                class="console-line"
+                class:error={line.level === 'error'}
+                class:warn={line.level === 'warn'}
+              >
+                {line.text}
+              </p>
+            {/each}
+          {:else}
+            <p class="console-empty">Waiting for console output…</p>
+          {/if}
+        </div>
+      </section>
+    </details>
   {/if}
 </Sheet>
 
@@ -1175,6 +1203,28 @@
   }
   .connection-note strong {
     font-size: inherit;
+  }
+  .initiation-progress {
+    margin-top: 16px;
+  }
+  .initiation-progress progress {
+    display: block;
+    width: 100%;
+    height: 6px;
+    accent-color: var(--msc-text-secondary);
+  }
+  .console-disclosure {
+    margin-top: 14px;
+  }
+  .console-disclosure summary {
+    width: fit-content;
+    color: var(--msc-text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .console-disclosure summary:focus-visible {
+    outline: 2px solid var(--msc-text-secondary);
+    outline-offset: 4px;
   }
   .console-panel {
     display: flex;
