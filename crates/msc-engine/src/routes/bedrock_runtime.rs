@@ -171,6 +171,8 @@ impl BedrockRuntimeHandle {
 
 #[derive(Clone)]
 pub struct BedrockRuntimeSelection {
+    #[cfg(target_os = "macos")]
+    helper_recovery_enabled: bool,
     eligibility: Arc<Mutex<BedrockRuntimeEligibility>>,
     runtime: Arc<Mutex<BedrockRuntimeHandle>>,
     bound_server_dir: Arc<Mutex<Option<PathBuf>>>,
@@ -249,7 +251,8 @@ impl BedrockRuntimeSelection {
                                 format!("Bedrock helper unavailable: {error}"),
                             ),
                             BedrockRuntimeHandle::Unavailable,
-                        ),
+                        )
+                        .with_helper_recovery(),
                     }
                 }
                 MacosSidecarMode::DevelopmentProcess => {
@@ -323,6 +326,47 @@ impl BedrockRuntimeSelection {
             },
             BedrockRuntimeHandle::Unavailable,
         )
+    }
+
+    #[cfg(target_os = "macos")]
+    fn with_helper_recovery(mut self) -> Self {
+        self.helper_recovery_enabled = true;
+        self
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn refresh_helper_if_unavailable(&self, server_dir: PathBuf) {
+        if !self.helper_recovery_enabled
+            || BedrockHost::current() != BedrockHost::MacosIntel
+            || !matches!(macos_sidecar_mode(), MacosSidecarMode::Helper)
+        {
+            return;
+        }
+        let mut runtime = self.runtime.lock().unwrap();
+        // Only recover a transport that never connected. Never replace an
+        // existing runtime or take ownership away from a bound server.
+        if !matches!(*runtime, BedrockRuntimeHandle::Unavailable) {
+            return;
+        }
+        let mut refreshed = runtime_eligibility(&runtime_paths(server_dir));
+        match SidecarSocketTransport::connect(macos_helper_socket_path()) {
+            Ok(transport) => {
+                *runtime =
+                    BedrockRuntimeHandle::Macos(Box::new(MacosBedrockRuntime::with_eligibility(
+                        MacosBedrockTransport::Helper(transport),
+                        refreshed.clone(),
+                    )));
+            }
+            Err(error) => {
+                refreshed = unavailable_eligibility(
+                    BedrockHost::MacosIntel,
+                    BedrockRuntimeBackend::Sidecar,
+                    error.reason_code(),
+                    format!("Bedrock helper unavailable: {error}"),
+                );
+            }
+        }
+        *self.eligibility.lock().unwrap() = refreshed;
     }
 
     pub fn state_dto(&self) -> BedrockRuntimeStateDto {
@@ -571,6 +615,8 @@ impl BedrockRuntimeSelection {
 
     fn new(eligibility: BedrockRuntimeEligibility, runtime: BedrockRuntimeHandle) -> Self {
         Self {
+            #[cfg(target_os = "macos")]
+            helper_recovery_enabled: false,
             eligibility: Arc::new(Mutex::new(eligibility)),
             runtime: Arc::new(Mutex::new(runtime)),
             bound_server_dir: Arc::new(Mutex::new(None)),

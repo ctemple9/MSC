@@ -789,14 +789,16 @@ fn elevated_pair_install_command(
 /usr/bin/install -o root -g wheel -m 644 {kernel} \"$helper_stage/vmlinuz-kata\"; \
 /usr/bin/install -o root -g wheel -m 644 {initramfs} \"$helper_stage/appliance-initramfs.gz\"; \
 /usr/bin/plutil -lint {plist} >/dev/null; \
-/usr/bin/install -d -o root -g wheel -m 755 {helper_root_parent} {runtime_root} /var/log/msc; \
+/usr/bin/install -d -o root -g wheel -m 755 {helper_root_parent} {runtime_root} /var/log/msc2; \
 if [ -e {helper_plist} ]; then /bin/launchctl bootout system {helper_plist} >/dev/null 2>&1 || true; fi; \
 if [ -e {engine_plist} ]; then /bin/launchctl bootout system {engine_plist} >/dev/null 2>&1 || true; fi; \
 /bin/rm -rf {helper_root}; /bin/mv \"$helper_stage\" {helper_root}; \
 /usr/bin/install -o root -g wheel -m 644 {plist} {helper_plist}; \
 /usr/bin/install -o root -g wheel -m 644 {temporary_engine} {engine_plist}; \
-/bin/launchctl enable {engine_target}; /bin/launchctl bootstrap system {helper_plist}; /bin/launchctl bootstrap system {engine_plist}; \
-/bin/launchctl kickstart -k {helper_target}; /bin/launchctl kickstart -k {engine_target}; \
+/bin/launchctl enable {helper_target}; /bin/launchctl enable {engine_target}; \
+/bin/launchctl bootstrap system {helper_plist}; \
+attempt=0; until [ -S {helper_socket} ] && /usr/bin/nc -z -w 1 -U {helper_socket} >/dev/null 2>&1; do attempt=$((attempt + 1)); if [ \"$attempt\" -ge 40 ]; then echo 'MSC could not start the Bedrock helper. Installation is incomplete; retry setup.' >&2; exit 1; fi; /bin/sleep 0.25; done; \
+/bin/launchctl bootstrap system {engine_plist}; \
 /bin/launchctl print {helper_target} >/dev/null",
             binary = shell_quote(&binary),
             kernel = shell_quote(&kernel),
@@ -808,6 +810,7 @@ if [ -e {engine_plist} ]; then /bin/launchctl bootout system {engine_plist} >/de
             helper_root = shell_quote(BEDROCK_HELPER_INSTALL_ROOT),
             helper_root_parent = shell_quote("/Library/Application Support/MSC 2"),
             runtime_root = shell_quote(BEDROCK_HELPER_RUNTIME_ROOT),
+            helper_socket = shell_quote(BEDROCK_HELPER_SOCKET_PATH),
             helper_target = shell_quote(&format!("system/{BEDROCK_HELPER_SERVICE_NAME}")),
             engine_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
         )

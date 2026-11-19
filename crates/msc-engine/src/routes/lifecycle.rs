@@ -1246,6 +1246,24 @@ impl LifecycleRoutesState {
     }
 
     pub fn bedrock_runtime_state(&self) -> msc_api::dto::BedrockRuntimeStateDto {
+        #[cfg(target_os = "macos")]
+        {
+            let active_id = self.inner.app_config.active_server_id();
+            let server_dir = self
+                .inner
+                .app_config
+                .servers()
+                .into_iter()
+                .find(|server| {
+                    Some(server.id.as_str()) == active_id.as_deref()
+                        && server.server_type == ServerType::Bedrock
+                })
+                .map(|server| PathBuf::from(server.server_dir))
+                .unwrap_or_else(|| self.inner.app_config.servers_root());
+            self.inner
+                .bedrock_runtime
+                .refresh_helper_if_unavailable(server_dir);
+        }
         self.inner.bedrock_runtime.state_dto()
     }
 

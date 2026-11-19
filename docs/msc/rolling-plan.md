@@ -2463,3 +2463,34 @@ Validation: parse and compare all release version declarations, confirm lockfile
 package identities and release notes, inspect existing workflow version extraction
 and complete-artifact publication, and check diff whitespace before commit/tag/push.
 No Rust source changes or tests. README retains its previously confirmed release.
+
+
+### P26.60 — make first-time Bedrock setup wait and recover
+
+**Status:** Implemented; owner verification pending.
+**Files:** macOS service installation; Swift Bedrock helper listener; engine
+Bedrock runtime selection/status; desktop SetupIntro; this plan.
+**What:** Restore the existing `/var/log/msc2` helper log directory required by
+its launchd plist. Enable/start the helper before the engine and wait, bounded to
+40 attempts, for a listening socket using macOS netcat; remove redundant forced
+restarts immediately after bootstrap. A helper that starts after reboot recreates
+its volatile socket parent directory. Capability/status reads retry only a production macOS Intel helper transport
+that failed its initial connection; existing/bound runtimes and test fixtures are
+retained.
+Setup rechecks transient helper readiness, discards stale host responses and stops
+polling on destruction. A persistent local failure offers Retry Bedrock setup
+inside the sheet with administrator/restart explanation; remote failures identify
+the host-side repair action. Check again refreshes readiness without restarting.
+**Verify:** `cd clients/desktop-web && npx tauri dev` — on an Intel Mac, install
+with administrator approval and confirm first-time Server Type offers Bedrock
+without reopening/repairing. Reboot and confirm Bedrock remains available. For a
+controlled helper startup failure, confirm setup updates automatically once the
+helper starts and offers an inline recovery action if it stays unavailable; a
+remote host must never trigger local repair. Do not interrupt live servers.
+**Batch:** Owner-requested Bedrock correction; separate from Dock follow-up.
+**Commit:** P26.60: recover bedrock readiness during first-time setup
+
+Validation: Swift helper Release build passed; Svelte check passed with zero
+errors and ten existing warnings. Rust formatting and targeted Clippy passed
+(`cargo clippy --locked -p msc-engine -p msc-platform-macos -- -D warnings`). No tests added or run; no installed service changed, release or
+publication. Owner physical acceptance remains pending.

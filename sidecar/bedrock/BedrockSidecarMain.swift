@@ -146,6 +146,12 @@ private final class UnixSocketListener: @unchecked Sendable {
     init(path: String, owner: uid_t, group: gid_t) throws {
         self.path = path
         self.descriptor = -1
+        // /var/run is cleared at boot; launchd must be able to restart us
+        // without requiring another desktop installation transaction.
+        try FileManager.default.createDirectory(
+            atPath: (path as NSString).deletingLastPathComponent,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o755])
         try Self.prepareSocketPath(path)
 
         let descriptor = socket(AF_UNIX, SOCK_STREAM, 0)

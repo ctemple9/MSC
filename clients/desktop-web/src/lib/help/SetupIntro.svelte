@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
+  import { LOCAL_HOST_ID } from '../hosts/types';
   import Sheet from '../components/base/Sheet.svelte';
   import Button from '../components/base/Button.svelte';
   import Card from '../components/base/Card.svelte';
@@ -64,6 +65,14 @@
   let wantsJava = true;
   let wantsBedrock = false;
   let capabilities: Capabilities | null = null;
+  let capabilitiesBusy = false;
+  let bedrockRepairBusy = false;
+  let bedrockRecoveryMessage = '';
+  let bedrockChecks = 0;
+  let disposed = false;
+  onDestroy(() => {
+    disposed = true;
+  });
   let serversRoot = '';
   let javaPath = 'java';
   let rootStatus: 'checking' | 'ready' | 'unavailable' | 'unknown' = 'checking';
@@ -91,6 +100,8 @@
     bedrockAdvertisement?.runtime?.state === 'available' ||
     bedrockAdvertisement?.runtime?.state === 'provisioning_required' ||
     (bedrockAdvertisement?.runtime === undefined && bedrockAdvertisement?.supported === true);
+  $: helperUnavailable = bedrockAdvertisement?.runtime?.reasonCode?.startsWith('helper_') === true;
+  $: localHelperRecovery = helperUnavailable && api?.hostId?.() === LOCAL_HOST_ID;
   $: bedrockProvisioning = bedrockAdvertisement?.runtime?.state === 'provisioning_required';
   $: bedrockReason =
     bedrockAdvertisement?.runtime?.message ??
@@ -144,6 +155,16 @@
       }
     }
     void probeHost();
+    const timer = setInterval(() => {
+      if (
+        !bedrockReady &&
+        bedrockChecks < 20 &&
+        !bedrockRepairBusy &&
+        (capabilities === null || helperUnavailable)
+      )
+        void probeCapabilities();
+    }, 500);
+    return () => clearInterval(timer);
   });
 
   async function probeHost(): Promise<void> {
@@ -157,10 +178,32 @@
   }
 
   async function probeCapabilities(): Promise<void> {
+    if (!api || capabilitiesBusy || disposed) return;
+    capabilitiesBusy = true;
+    bedrockChecks += 1;
+    const target = api.snapshot?.() ?? api;
     try {
-      capabilities = await api!.get<Capabilities>('/v1/capabilities');
+      const result = await target.get<Capabilities>('/v1/capabilities');
+      if (!disposed && target.isCurrent?.() !== false) capabilities = result;
     } catch {
-      capabilities = null;
+      if (!disposed && target.isCurrent?.() !== false) capabilities = null;
+    } finally {
+      capabilitiesBusy = false;
+    }
+  }
+
+  async function recoverBedrock(): Promise<void> {
+    if (bedrockRepairBusy || !localHelperRecovery) return;
+    bedrockRepairBusy = true;
+    bedrockRecoveryMessage = '';
+    try {
+      await (await getPlatform()).manageEngineService('repair');
+      bedrockChecks = 0;
+      await probeCapabilities();
+    } catch (error) {
+      bedrockRecoveryMessage = errorMessage(error);
+    } finally {
+      bedrockRepairBusy = false;
     }
   }
 
@@ -449,8 +492,8 @@
             <li>
               <strong>Set up your host</strong>
               <span>
-                Choose where your server files live. For Java, select an installed runtime or install
-                one. Bedrock uses MSC’s built-in runtime.
+                Choose where your server files live. For Java, select an installed runtime or
+                install one. Bedrock uses MSC’s built-in runtime.
               </span>
             </li>
             <li>
@@ -492,12 +535,44 @@
                   ? bedrockProvisioning
                     ? 'Built in · prepared on first use'
                     : 'Mobile, console & Windows'
-                  : 'Unavailable on this host'}</small
+                  : helperUnavailable && bedrockChecks < 20
+                    ? 'Starting Bedrock support…'
+                    : 'Unavailable on this host'}</small
               ></span
             ><span class="type-check">{wantsBedrock ? '✓' : '○'}</span>
           </button>
         </div>
-        {#if !bedrockReady}<p class="hint">{bedrockReason}</p>{/if}
+        {#if !bedrockReady}
+          <p class="hint" role="status">
+            {helperUnavailable
+              ? bedrockChecks < 20
+                ? 'Waiting for the Bedrock helper to finish starting…'
+                : 'MSC could not start Bedrock support on this computer.'
+              : bedrockReason}
+          </p>
+          {#if localHelperRecovery && bedrockChecks >= 20}
+            <p class="hint">
+              Retry setup to repair the Background Service. macOS will ask for administrator
+              approval. This restarts the service; stop any running servers first.
+            </p>
+            <Button disabled={bedrockRepairBusy} onclick={() => void recoverBedrock()}
+              >{bedrockRepairBusy ? 'Retrying setup…' : 'Retry Bedrock setup'}</Button
+            >
+          {:else if helperUnavailable && bedrockChecks >= 20}
+            <p class="hint">
+              On the computer hosting this engine, open MSC's Engine page and choose Repair engine,
+              then check again.
+            </p>
+          {/if}
+          <Button
+            disabled={capabilitiesBusy || bedrockRepairBusy}
+            onclick={() => {
+              bedrockChecks = 0;
+              void probeCapabilities();
+            }}>Check again</Button
+          >
+          {#if bedrockRecoveryMessage}<p class="hint" role="alert">{bedrockRecoveryMessage}</p>{/if}
+        {/if}
         {#if !wantsJava && !wantsBedrock}<p class="hint warn">
             Select at least one type to continue. You can change this later.
           </p>{/if}
@@ -644,8 +719,7 @@
             <StatusDot tone={javaTone} label={javaLabel} />
             {#if javaStatus === 'not-found'}<p class="hint warn">
                 {javaMessage} Install Java or choose an existing Java {minimumSupportedJavaMajor}+
-                executable,
-                then check again.
+                executable, then check again.
               </p>{:else if javaMessage}<p class="hint warn">{javaMessage}</p>{/if}
           </Card>
         {/if}
