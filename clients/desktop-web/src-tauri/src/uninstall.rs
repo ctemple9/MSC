@@ -23,16 +23,25 @@ pub struct Scheduled {
 }
 
 fn local_command(installers: &[PathBuf]) -> Result<std::process::Command, String> {
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", not(debug_assertions)))]
     let binary = super::linux_system_engine_path()?;
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(all(not(target_os = "linux"), not(debug_assertions)))]
     let binary = super::packaged_engine_path()?;
+    #[cfg(debug_assertions)]
+    let binary = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../target/debug")
+        .join(format!("msc{}", std::env::consts::EXE_SUFFIX));
     if !binary.is_file() {
-        return Err("The packaged uninstall command is missing. Rebuild or reinstall MSC before using this action.".into());
+        return Err("The local uninstall command is missing. Restart tauri dev or reinstall MSC before using this action.".into());
     }
     let mut command = std::process::Command::new(binary);
+    command.args(["uninstall", "--json"]);
+    // A source build has no desktop package to remove. Use the normal headless
+    // inventory so service/data cleanup still requires preview and confirmation,
+    // without treating the checkout or Cargo output as an installed application.
+    #[cfg(not(debug_assertions))]
     command
-        .args(["uninstall", "--json", "--desktop-origin"])
+        .arg("--desktop-origin")
         .arg(std::env::current_exe().map_err(|error| error.to_string())?);
     // Windows discovers the engine's data path from its service metadata. The
     // desktop's staging directory is not an override for that configuration.

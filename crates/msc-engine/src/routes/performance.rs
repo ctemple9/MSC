@@ -38,3 +38,15 @@ fn metric(value: Option<f64>, help_id: &'static str) -> Option<PerformanceMetric
         help_id: Some(help_id.to_string()),
     })
 }
+
+/// Read host resources without requiring a selected or running server.
+pub async fn host_memory() -> Json<msc_api::dto::HostMemoryDto> {
+    let memory = tokio::task::spawn_blocking(msc_infrastructure::metrics::host_memory_bytes)
+        .await
+        .ok()
+        .flatten();
+    Json(msc_api::dto::HostMemoryDto {
+        used_bytes: memory.map(|(used, _)| used),
+        total_bytes: memory.map(|(_, total)| total),
+    })
+}

@@ -67,3 +67,11 @@ pub struct PerformanceMetricNumberDto {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub help_id: Option<String>,
 }
+
+/// Host RAM usage in bytes, rather than the selected server's allocation.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HostMemoryDto {
+    pub used_bytes: Option<u64>,
+    pub total_bytes: Option<u64>,
+}

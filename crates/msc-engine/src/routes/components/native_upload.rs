@@ -291,6 +291,13 @@ impl NativeStore {
             .get(id)
             .is_none_or(|session| session.target.is_none())
     }
+    pub(crate) fn bound_target_matches(&self, id: &str, target: &str) -> bool {
+        self.sessions
+            .lock()
+            .unwrap()
+            .get(id)
+            .is_some_and(|session| session.target.as_deref() == Some(target))
+    }
     pub(crate) fn target_matches(&self, id: &str, target: &str) -> bool {
         self.sessions
             .lock()
@@ -674,12 +681,20 @@ async fn admit_inner(
     }
     let target = body.target_server_id.clone();
     if let Some(target) = &target
-        && state
-            .lifecycle
-            .app_config_snapshot()
-            .active_server_id
-            .as_ref()
-            != Some(target)
+        && if matches!(body.purpose, StagedUploadPurposeDto::WorldThumbnail) {
+            !state
+                .lifecycle
+                .app_config_servers()
+                .iter()
+                .any(|server| &server.id == target)
+        } else {
+            state
+                .lifecycle
+                .app_config_snapshot()
+                .active_server_id
+                .as_ref()
+                != Some(target)
+        }
     {
         return error_response(
             StatusCode::CONFLICT,
@@ -935,7 +950,15 @@ async fn admit_inner(
             purpose_allowed(purpose, credential)
                 && lifecycle.servers_root() == servers_root
                 && target.as_ref().is_none_or(|id| {
-                    lifecycle.app_config_snapshot().active_server_id.as_ref() == Some(id)
+                    if matches!(purpose, StagedUploadPurposeDto::WorldThumbnail) {
+                        // Profile thumbnails bind to a registered server without changing selection.
+                        lifecycle
+                            .app_config_servers()
+                            .iter()
+                            .any(|server| &server.id == id)
+                    } else {
+                        lifecycle.app_config_snapshot().active_server_id.as_ref() == Some(id)
+                    }
                 })
         }),
     });

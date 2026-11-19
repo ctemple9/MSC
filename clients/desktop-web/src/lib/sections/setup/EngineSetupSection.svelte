@@ -1,31 +1,33 @@
+<script context="module" lang="ts">
+  import { writable } from 'svelte/store';
+  // Host switching rebuilds this view before the connection attempt finishes.
+  const connectingHost = writable('');
+</script>
+
 <script lang="ts">
-  import { observeServerRun, serverRuns, serverRunKey } from '../shared/server-uptime';
-  import { formatUptime } from '../performance/model';
-  import { onDestroy } from 'svelte';
-  import Button from '../../components/base/Button.svelte';
+  import { onDestroy, tick } from 'svelte';
+  import HowMscWorks from './HowMscWorks.svelte';
+  import WelcomeMscSheet from '../../help/WelcomeMscSheet.svelte';
+  import ServerProfileThumbnail from './ServerProfileThumbnail.svelte';
+  import { can } from '../shared/types';
+  import EngineProfileActions from './EngineProfileActions.svelte';
   import ConfirmDialog from '../../components/ConfirmDialog.svelte';
-  import Field from '../../components/base/Field.svelte';
-  import SegmentedControl from '../../components/base/SegmentedControl.svelte';
-  import {
-    getPlatform,
-    type EngineReadiness,
-    type EngineServiceAction,
-    type EngineServiceStatus,
-  } from '../../platform';
+  import Button from '../../components/base/Button.svelte';
+  import Sheet from '../../components/base/Sheet.svelte';
+  import Menu from '../../components/base/Menu.svelte';
+  import RemoteConnectionWizard from './connection/RemoteConnectionWizard.svelte';
   import {
     LOCAL_HOST_ID,
     hostAddressSummary,
     type HostId,
     type HostRecord,
-    type HostRoute,
     type RemoteHostConnectionInput,
   } from '../../hosts/types';
-  import RemoteConnectionWizard from './connection/RemoteConnectionWizard.svelte';
+  import { getPlatform, type EngineReadiness } from '../../platform';
   import type { Schema, ScreenProps } from '../shared/types';
   import type { RemoteDesktopPairingResult } from '../../auth/desktop';
   import { formatConnectionFailure } from '../../hosts/connection-errors';
-  import { createServiceStatusMonitor } from './service-status';
-
+  export let permissions: readonly string[] | undefined = undefined;
   export let api: ScreenProps['api'] = undefined;
   export let readiness: EngineReadiness = 'starting';
   export let onEngineRetry: (() => void | Promise<void>) | undefined = undefined;
@@ -36,743 +38,672 @@
   export let serverRunning = false;
   export let onOpenServer: ((id: string) => Promise<void>) | undefined = undefined;
   export let onFleet: (() => void) | undefined = undefined;
-  export let hostLabel = 'Local engine';
-  export let hostBaseUrl = 'http://127.0.0.1:48001';
   export let hosts: readonly HostRecord[] = [];
   export let activeHostId: HostId = '';
-  export let hostSummaries: ReadonlyMap<HostId, { connection: string; serverCount: number }> =
-    new Map();
   export let isDesktopShell = false;
   export let isLocalHost = true;
-  export let onPairAgain: ((pairingCode: string) => Promise<void>) | undefined = undefined;
   export let onConnectHost:
     ((input: RemoteHostConnectionInput) => Promise<RemoteDesktopPairingResult | void>) | undefined =
     undefined;
   export let onRemoveHost: (() => Promise<void>) | undefined = undefined;
   export let onSwitchHost: ((hostId: HostId) => void | Promise<void>) | undefined = undefined;
-  export let onSelectRoute: ((hostId: HostId, route: HostRoute) => Promise<void>) | undefined =
-    undefined;
-  export let onRemoveSavedHost: ((hostId: HostId) => Promise<void>) | undefined = undefined;
-
-  const readinessTitles: Record<EngineReadiness, string> = {
-    missing: 'Background Service not installed',
-    stopped: 'Background Service stopped',
-    starting: 'Background Service starting',
-    ready: 'Background Service connected',
-    incompatible: 'Background Service version incompatible',
-    unavailable: 'Background Service unavailable',
-  };
-  const readinessMessages: Record<EngineReadiness, string> = {
-    missing: 'Install the local engine, then continue into host setup.',
-    stopped: 'The installed engine is stopped. Start it, then continue into host setup.',
-    starting: 'The engine is starting. MSC will connect when it is ready.',
-    ready: 'The local engine is connected and ready for server management.',
-    incompatible: 'This engine cannot serve the current client. Install a compatible update.',
-    unavailable:
-      'MSC cannot reach or authenticate with the local engine. Repair the engine or stop and start it.',
-  };
-
-  const pairingCommand = 'msc pairing create --client-kind desktop';
-  const engineCommands = [
-    { label: 'Check engine status', command: 'msc status engine' },
-    { label: 'Start engine', command: 'msc start engine' },
-    { label: 'Stop engine', command: 'msc stop engine' },
-    { label: 'Start engine at boot', command: 'msc enable engine' },
-    { label: 'Disable engine startup at boot', command: 'msc disable engine' },
-  ];
-
-  let nowMs = Date.now();
-  $: runStartedAt = $serverRuns.get(serverRunKey(hostId, serverId))?.startedAt;
-  let serversExpanded = false;
-  let performance: Schema['PerformanceSnapshotDTO'] | undefined;
+  let choosingComputer = false;
+  let actionPosition: { x: number; y: number } | undefined;
+  let disconnectedMenu: { x: number; y: number; host: HostRecord } | undefined;
+  let serviceState = 'checking';
+  let serviceBusy = false;
+  let profileActions: EngineProfileActions | undefined;
+  $: localNotInstalled =
+    isLocalHost && (readiness === 'missing' || serviceState === 'not-installed');
+  $: localServiceStopped = isLocalHost && serviceState === 'stopped';
+  $: localRecovery =
+    !localNotInstalled &&
+    !localServiceStopped &&
+    isLocalHost &&
+    isDesktopShell &&
+    (readiness === 'unavailable' || readiness === 'incompatible' || serviceState === 'unavailable');
+  let editingComputer: HostRecord | undefined;
+  let removingComputer = false;
+  $: connectedView =
+    readiness === 'ready' && !localNotInstalled && !localServiceStopped && !choosingComputer;
+  let howItWorksOpen = false;
+  $: showInstallGuide = localNotInstalled && focusedHostId === LOCAL_HOST_ID;
+  $: visibleProfiles = showInstallGuide
+    ? computerProfiles.filter((host) => host.id === LOCAL_HOST_ID)
+    : connectedView
+      ? computerProfiles.filter((host) => host.id === activeHostId)
+      : computerProfiles;
+  $: selectedServer = servers.find((server) => server.id === serverId);
+  let profileRail: HTMLDivElement | undefined;
+  let focusedHostId = '';
+  let lastHostId = '';
+  $: if (activeHostId !== lastHostId) {
+    lastHostId = activeHostId;
+    void focusComputer(activeHostId);
+  }
+  $: focusedComputer = computerProfiles.find((computer) => computer.id === focusedHostId);
+  $: focusedIndex = computerProfiles.findIndex((computer) => computer.id === focusedHostId);
+  async function focusComputer(id: string): Promise<void> {
+    actionPosition = undefined;
+    disconnectedMenu = undefined;
+    focusedHostId = id;
+    await tick();
+    const profile = [
+      ...(profileRail?.querySelectorAll<HTMLElement>('[data-profile-id]') ?? []),
+    ].find((node) => node.dataset.profileId === id);
+    if (profile && profileRail)
+      profileRail.scrollTo({
+        left:
+          profile.offsetLeft -
+          profileRail.offsetLeft -
+          (profileRail.clientWidth - profile.offsetWidth) / 2,
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'instant'
+          : 'smooth',
+      });
+  }
+  function slideComputer(direction: number): void {
+    const next = computerProfiles[Math.max(0, focusedIndex) + direction];
+    if (next) void focusComputer(next.id);
+  }
+  $: connecting = $connectingHost;
+  let openingServer = '';
+  let error = '';
+  let connectionOpen = false;
   let players: number | undefined;
-  let statsTimer: ReturnType<typeof setInterval> | undefined;
+  let hostMemory: Schema['HostMemoryDTO'] | undefined;
+  $: availableBytes =
+    hostMemory?.usedBytes != null && hostMemory.totalBytes && hostMemory.totalBytes > 0
+      ? Math.max(0, hostMemory.totalBytes - hostMemory.usedBytes)
+      : undefined;
+  $: ramLabel =
+    availableBytes !== undefined && hostMemory?.totalBytes
+      ? `${(availableBytes / 1073741824).toFixed(2)} / ${Number((hostMemory.totalBytes / 1073741824).toFixed(2))} GB`
+      : 'Unavailable';
+  $: ramPercent =
+    availableBytes !== undefined && hostMemory?.totalBytes
+      ? Math.max(0, Math.min(100, (availableBytes / hostMemory.totalBytes) * 100))
+      : undefined;
+  $: computerAddress =
+    servers.find((server) => server.hostAddress)?.hostAddress ??
+    (!isLocalHost ? hosts.find((host) => host.id === activeHostId)?.ssh.hostname : undefined) ??
+    'Unavailable';
+  let revealedAddressHost = '';
+  $: addressVisible = revealedAddressHost === activeHostId;
+  let generation = 0;
   let statsKey = '';
-  let statsGeneration = 0;
-  let statsBusy = false;
-
-  let status: EngineServiceStatus | undefined;
-  let indicatorEnabled = true;
-  let indicatorBusy = false;
-  let indicatorAvailable = false;
-  let busy = false;
-  let errorMessage = '';
-  let pairingCode = '';
-  let pairingBusy = false;
-  let removeHostOpen = false;
-  let removeHostBusy = false;
-  let copiedCommand = '';
-  let remoteView: 'new' | 'saved' | undefined;
-  let editingHostId: HostId | undefined;
-  let openingServerId = '';
-  let serviceError = '';
-  const serviceMonitor = createServiceStatusMonitor(
-    async () => {
-      const platform = await getPlatform();
-      const nextStatus = await platform.engineServiceStatus();
-      return nextStatus;
-    },
-    (nextStatus) => {
-      status = nextStatus;
-      serviceError = '';
-    },
-    (error) => {
-      status = undefined;
-      serviceError = formatConnectionFailure(error, 'msc-engine');
-    },
-  );
-  let removeHostId = '';
-  let removeHostLabel = '';
-
-  $: readinessTitle = readinessTitles[readiness];
-  $: readinessMessage = readinessMessages[readiness];
-  $: isLoopbackHost = loopbackHost(hostBaseUrl);
-  $: isLocalDesktopHost = isDesktopShell && isLocalHost;
-  $: isCurrentLocalEngine = isLocalHost && (isLocalDesktopHost || isLoopbackHost);
-  $: serviceState = serviceError ? 'unavailable' : (status?.state ?? 'checking');
-  $: savedHosts = hosts.filter((host) => host.id !== LOCAL_HOST_ID);
-  $: editingHost = editingHostId ? savedHosts.find((host) => host.id === editingHostId) : undefined;
+  let timer: ReturnType<typeof setInterval> | undefined;
+  $: computerProfiles = [
+    ...hosts.filter((host) => host.id === LOCAL_HOST_ID),
+    ...hosts.filter((host) => host.id !== LOCAL_HOST_ID),
+  ];
 
   $: orderedServers = [
     ...servers.filter((server) => server.id === serverId),
     ...servers.filter((server) => server.id !== serverId),
   ];
+  $: configurePlayers(api, active && readiness === 'ready' ? `${hostId}:${serverId}` : '');
 
-  $: selectedServer = servers.find((server) => server.id === serverId);
-
-  // Only the active server has live endpoints. Never reuse its values for another row.
-  $: configureStats(api, hostId, serverId, active && readiness === 'ready' && serversExpanded);
-
-  function configureStats(
-    client: ScreenProps['api'],
-    host: string,
-    server: string,
-    enabled: boolean,
-  ): void {
-    const key = client && enabled ? `${host}:${server}` : '';
-    if (key === statsKey) return;
+  function configurePlayers(client: ScreenProps['api'], key: string): void {
+    if (statsKey === key) return;
     statsKey = key;
-    const generation = ++statsGeneration;
-    clearInterval(statsTimer);
-    performance = undefined;
+    const version = ++generation;
+    clearInterval(timer);
     players = undefined;
-    statsBusy = false;
-    if (!key || !client) return;
-    const refreshStats = async () => {
-      if (statsBusy || generation !== statsGeneration) return;
-      statsBusy = true;
-      const results = await Promise.allSettled([
-        client.get<Schema['PerformanceSnapshotDTO']>('/v1/performance'),
-        client.get<Schema['PlayersResponseDTO']>('/v1/players'),
-        client.get<Schema['RemoteAPIStatus']>('/v1/status'),
-      ]);
-      if (generation !== statsGeneration) return;
-      const [metrics, online, current] = results;
-      if (current.status === 'fulfilled' && current.value.activeServerId === server) {
-        serverRunning = current.value.running;
-        observeServerRun(host, server, current.value.running);
-        nowMs = Date.now();
-        performance = metrics.status === 'fulfilled' ? metrics.value : undefined;
-        players = online.status === 'fulfilled' ? online.value.count : undefined;
-      } else {
-        performance = undefined;
-        players = undefined;
+    hostMemory = undefined;
+    if (!client || !key) return;
+    const refresh = async () => {
+      try {
+        const [online, memory] = await Promise.allSettled([
+          client.get<Schema['PlayersResponseDTO']>('/v1/players'),
+          client.get<Schema['HostMemoryDTO']>('/v1/host/memory'),
+        ]);
+        if (version === generation) {
+          players = online.status === 'fulfilled' ? online.value.count : undefined;
+          hostMemory = memory.status === 'fulfilled' ? memory.value : undefined;
+        }
+      } catch {
+        if (version === generation) players = undefined;
       }
-      statsBusy = false;
     };
-    void refreshStats();
-    statsTimer = setInterval(() => void refreshStats(), 5000);
+    void refresh();
+    timer = setInterval(() => void refresh(), 5000);
   }
-
   onDestroy(() => {
-    serviceMonitor.dispose();
-    statsGeneration += 1;
-    clearInterval(statsTimer);
+    generation++;
+    clearInterval(timer);
   });
 
-  function ramLabel(value: number | undefined): string {
-    if (value === undefined || !Number.isFinite(value)) return 'Unavailable';
-    return value >= 1024 ? `${(value / 1024).toFixed(1)} GB` : `${Math.round(value)} MB`;
-  }
-
-  function selectRemoteView(view: 'new' | 'saved'): void {
-    remoteView = view;
-    editingHostId = undefined;
-  }
-
-  function editSavedHost(hostId: HostId): void {
-    editingHostId = hostId;
-    remoteView = 'new';
-  }
-
-  function closeRemoteView(): void {
-    remoteView = undefined;
-    editingHostId = undefined;
-  }
-
-  async function openServer(id: string): Promise<void> {
-    if (!onOpenServer || openingServerId) return;
-    openingServerId = id;
-    errorMessage = '';
-    try {
-      await onOpenServer(id);
-    } catch (error) {
-      errorMessage = formatConnectionFailure(error, 'network');
-    } finally {
-      openingServerId = '';
+  function connectionLabel(
+    host: HostRecord,
+    currentReadiness: EngineReadiness,
+    nativeState: string,
+    notInstalled: boolean,
+    selectedHost: string,
+  ): string {
+    if (host.id === selectedHost) {
+      if (host.id === LOCAL_HOST_ID && notInstalled) return 'Not installed';
+      if (host.id === LOCAL_HOST_ID && nativeState === 'stopped' && !connecting)
+        return 'Service stopped';
+      return {
+        ready: 'Connected',
+        starting: 'Connecting…',
+        stopped: 'Service stopped',
+        missing: 'Not installed',
+        incompatible: 'Update needed',
+        unavailable: isLocalHost ? 'Needs attention' : 'Disconnected',
+      }[currentReadiness];
     }
+    return 'Disconnected';
   }
-
-  async function connectSavedHost(id: HostId): Promise<void> {
-    errorMessage = '';
+  async function chooseComputer(host: HostRecord): Promise<void> {
+    if (connecting) return;
+    error = '';
+    connectingHost.set(host.id);
+    choosingComputer = false;
     try {
-      if (id === activeHostId) await onEngineRetry?.();
-      else await onSwitchHost?.(id);
-    } catch (error) {
-      errorMessage = formatConnectionFailure(error, 'network');
-    }
-  }
-
-  $: serviceMonitor.configure(
-    isLocalDesktopHost && active && !busy ? `${hostId}:${readiness}` : undefined,
-  );
-  $: if (!isLocalDesktopHost || !active) {
-    status = undefined;
-    serviceError = '';
-  }
-
-  $: if (isLocalDesktopHost && active) void refreshIndicator();
-  async function refreshIndicator(): Promise<void> {
-    const requestedHost = hostId;
-    try {
-      const platform = await getPlatform();
-      const enabled = (await platform.engineIndicatorEnabled?.()) ?? true;
-      if (active && isLocalDesktopHost && hostId === requestedHost) {
-        indicatorAvailable = !!platform.setEngineIndicatorEnabled;
-        indicatorEnabled = enabled;
+      if (host.id === LOCAL_HOST_ID && isDesktopShell) {
+        const platform = await getPlatform();
+        let service = await platform.engineServiceStatus();
+        if (service.state === 'stopped') service = await platform.manageEngineService('start');
+        if (service.state !== 'running') {
+          // Installation and recovery stay in the existing service controls.
+          serviceState = service.state;
+          actionPosition =
+            service.state === 'not-installed' ? undefined : { x: window.innerWidth / 2, y: 300 };
+          if (host.id !== activeHostId) await onSwitchHost?.(host.id);
+          error = service.detail || 'The local Background Service could not be started.';
+          return;
+        }
       }
-    } catch (error) {
-      errorMessage = formatConnectionFailure(error, 'msc-engine');
-    }
-  }
-
-  async function toggleIndicator(): Promise<void> {
-    if (!isLocalDesktopHost || indicatorBusy) return;
-    indicatorBusy = true;
-    try {
-      const platform = await getPlatform();
-      const enabled = !((await platform.engineIndicatorEnabled?.()) ?? indicatorEnabled);
-      await platform.setEngineIndicatorEnabled?.(enabled);
-      indicatorEnabled = enabled;
-    } catch (error) {
-      errorMessage = formatConnectionFailure(error, 'msc-engine');
+      if (host.id !== activeHostId) await onSwitchHost?.(host.id);
+      else if (readiness !== 'ready') await onEngineRetry?.();
+    } catch (failure) {
+      error = formatConnectionFailure(failure, 'network');
     } finally {
-      indicatorBusy = false;
+      if ($connectingHost === host.id) connectingHost.set('');
     }
   }
-
-  async function manage(action: EngineServiceAction): Promise<void> {
-    if (busy || !isLocalDesktopHost) return;
-    busy = true;
-    serviceMonitor.configure(undefined);
-    const requestedHostId = hostId;
-    errorMessage = '';
+  async function chooseServer(id: string): Promise<void> {
+    if (openingServer) return;
+    openingServer = id;
+    error = '';
     try {
-      const nextStatus = await (await getPlatform()).manageEngineService(action);
-      if (!active || !isLocalDesktopHost || hostId !== requestedHostId) return;
-      status = nextStatus;
-      serviceError = '';
-      // Re-run the parent connection flow after every service change. A stop
-      // must also clear the selected host's server snapshot immediately.
-      await onEngineRetry?.();
-    } catch (error) {
-      errorMessage = formatConnectionFailure(error, 'msc-engine');
+      await onOpenServer?.(id);
+    } catch (failure) {
+      error = formatConnectionFailure(failure, 'network');
     } finally {
-      busy = false;
+      openingServer = '';
     }
   }
-
-  async function pairAgain(): Promise<void> {
-    const code = pairingCode.trim();
-    if (!onPairAgain || !code || pairingBusy) return;
-    pairingBusy = true;
-    errorMessage = '';
-    try {
-      await onPairAgain(code);
-      pairingCode = '';
-    } catch (error) {
-      errorMessage = formatConnectionFailure(error, 'authentication');
-    } finally {
-      pairingBusy = false;
-    }
-  }
-
-  function openRemoveHost(hostId: HostId, label: string): void {
-    removeHostId = hostId;
-    removeHostLabel = label;
-    removeHostOpen = true;
-  }
-
-  async function removeConfirmedHost(): Promise<void> {
-    if (!removeHostId || removeHostBusy) return;
-    removeHostBusy = true;
-    errorMessage = '';
-    try {
-      if (removeHostId === activeHostId) await onRemoveHost?.();
-      else await onRemoveSavedHost?.(removeHostId);
-      removeHostOpen = false;
-      removeHostId = '';
-      removeHostLabel = '';
-    } catch (error) {
-      errorMessage = formatConnectionFailure(error, 'authentication');
-    } finally {
-      removeHostBusy = false;
-    }
-  }
-
-  function loopbackHost(baseUrl: string): boolean {
-    try {
-      const { hostname } = new URL(baseUrl);
-      return hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1';
-    } catch {
-      return false;
-    }
-  }
-
-  async function connectRemoteHost(
+  async function connect(
     input: RemoteHostConnectionInput,
   ): Promise<RemoteDesktopPairingResult | void> {
-    return onConnectHost?.(input);
-  }
-
-  function savedHostStatus(host: HostRecord): string {
-    if (host.id === activeHostId) return readinessTitle;
-    const connection = hostSummaries.get(host.id)?.connection;
-    if (connection === 'connected') return 'Connected';
-    if (connection === 'error') return 'Needs attention';
-    return 'Saved';
-  }
-
-  async function copyCommand(command: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(command);
-      copiedCommand = command;
-      setTimeout(() => {
-        if (copiedCommand === command) copiedCommand = '';
-      }, 1500);
-    } catch {
-      // The command remains selectable in its field when clipboard access is unavailable.
-    }
+    choosingComputer = false;
+    const result = await onConnectHost?.(input);
+    if (!result || result.state === 'paired') connectionOpen = false;
+    return result;
   }
 </script>
 
-<div class="engine-home">
-  <header class="home-heading">
-    <p class="msc-type-overline">MSC</p>
-    <h1>Background Service</h1>
-    <p>
-      {readiness === 'ready'
-        ? 'Manage the MSC Background Service here.'
-        : 'First, choose where your Minecraft servers will run.'}
-    </p>
+<div class="computer-library">
+  <header class="library-heading">
+    <div>
+      <p class="msc-type-overline">MSC BACKGROUND SERVICE</p>
+      <h1>Your computers</h1>
+      <p class="intro">Choose a computer to run/manage MSC.</p>
+    </div>
+    <div class="heading-actions">
+      <Button onclick={() => (howItWorksOpen = true)}>How does this work?</Button>
+      {#if isDesktopShell}<Button
+          onclick={() => {
+            editingComputer = undefined;
+            connectionOpen = true;
+          }}>Connect a computer</Button
+        >{/if}
+    </div>
   </header>
 
-  <div class="home-grid">
-    <section class="engine-panel" aria-label="Background Service connection and setup">
-      <div class="section-heading">
-        <span class="msc-type-overline"
-          >{readiness === 'ready' ? 'Current engine' : 'Get connected'}</span
+  {#if !connectedView}<div class="profile-navigation">
+      <p class="msc-type-overline">
+        {focusedComputer?.id === LOCAL_HOST_ID
+          ? 'This computer'
+          : (focusedComputer?.displayName ?? 'Computers')}
+      </p>
+      <div class="carousel-actions">
+        <Button
+          size="sm"
+          disabled={focusedIndex <= 0}
+          onclick={() => slideComputer(-1)}
+          variant="ghost-icon"
+          label="Previous computer"
+          title="Previous computer">←</Button
         >
-        <span class="connection-state" role="status"
-          >{readiness === 'ready' && isCurrentLocalEngine
-            ? 'Local engine connected'
-            : readinessTitle}</span
+        <span>{computerProfiles.length ? focusedIndex + 1 : 0} / {computerProfiles.length}</span>
+        <Button
+          size="sm"
+          disabled={focusedIndex >= computerProfiles.length - 1}
+          onclick={() => slideComputer(1)}
+          variant="ghost-icon"
+          label="Next computer"
+          title="Next computer">→</Button
         >
       </div>
-      {#if readiness === 'ready'}
-        <h2>{isCurrentLocalEngine ? 'This computer' : hostLabel}</h2>
-        <p class="detail">
-          {isCurrentLocalEngine
-            ? readinessMessage
-            : `Connected to the engine on ${hostLabel}. Your servers and their files live on that computer.`}
-        </p>
-        <dl class="engine-facts">
-          <div>
-            <dt>Background service</dt>
-            <dd>{isLocalDesktopHost ? serviceState : `Managed on ${hostLabel}`}</dd>
-          </div>
-          <div>
-            <dt>Background Service address</dt>
-            <dd>{hostBaseUrl}</dd>
-          </div>
-          {#if selectedServer}<div>
-              <dt>Selected server</dt>
-              <dd>
-                {selectedServer.name} · {selectedServer.serverType === 'bedrock'
-                  ? 'Bedrock'
-                  : selectedServer.javaFlavor || 'Java'}
-              </dd>
-            </div>{/if}
-        </dl>
-        {#if selectedServer && onOpenServer}
-          <Button
-            variant="primary"
-            disabled={!!openingServerId}
-            onclick={() => void openServer(selectedServer.id)}>Open server →</Button
+    </div>
+  {/if}
+  <div
+    class:connected-view={connectedView || showInstallGuide}
+    class="profile-rail"
+    bind:this={profileRail}
+    role="region"
+    aria-label="Computer profiles"
+  >
+    {#each visibleProfiles as computer (computer.id)}
+      {@const local = computer.id === LOCAL_HOST_ID}
+      {@const connected =
+        computer.id === activeHostId &&
+        readiness === 'ready' &&
+        !(local && (localNotInstalled || localServiceStopped))}
+      <section
+        class="computer-choice"
+        class:focused={computer.id === focusedHostId}
+        data-profile-id={computer.id}
+        aria-label={local ? 'This computer' : computer.displayName}
+      >
+        <button
+          class="computer-profile"
+          disabled={!!connecting}
+          onclick={(event) => {
+            void focusComputer(computer.id);
+            if (local && computer.id === activeHostId && localNotInstalled) return;
+            if ((local && computer.id === activeHostId) || connected)
+              actionPosition = { x: event.clientX, y: event.clientY };
+            else disconnectedMenu = { x: event.clientX, y: event.clientY, host: computer };
+          }}
+          aria-label={connected
+            ? `Open ${computer.displayName} controls`
+            : `Choose ${computer.displayName}`}
+        >
+          <svg class="computer-art" viewBox="0 0 176 112" fill="none" aria-hidden="true">
+            <rect x="29" y="12" width="118" height="75" rx="5" />
+            <path d="M30 72h116M74 87v12m28-12v12m-41 0h54" />
+            <path class="screen-detail" d="M43 29h30m-30 9h48m-48 9h23" />
+            <path class="screen-detail" d="m112 41 7 7 14-16" />
+          </svg>
+          <span class="profile-caption">{local ? 'LOCAL COMPUTER' : 'REMOTE COMPUTER'}</span>
+          <h2>{local ? 'This computer' : computer.displayName}</h2>
+          <span class="connection-label" class:connected
+            >{connecting === computer.id
+              ? 'Connecting…'
+              : connectionLabel(
+                  computer,
+                  readiness,
+                  serviceState,
+                  localNotInstalled,
+                  activeHostId,
+                )}</span
           >
-        {/if}
-      {:else}
-        <h2>{isCurrentLocalEngine ? 'Where will you host?' : hostLabel}</h2>
-        <p class="detail">
-          {isCurrentLocalEngine
-            ? 'MSC needs an engine on the computer that runs your servers. Choose the setup that fits yours.'
-            : `This app is not connected to the engine on ${hostLabel}. Its service is managed on that computer.`}
-        </p>
-        {#if readiness === 'incompatible' || readiness === 'unavailable'}
-          <p class="recovery" role="status">
-            {isCurrentLocalEngine
-              ? readinessMessage
-              : `${readinessTitle}. Check the engine on ${hostLabel}, or edit its saved connection below.`}
-          </p>
-        {/if}
-      {/if}
+        </button>
 
-      <section class="setup-choice" aria-label="Local engine">
-        <h3>On this computer</h3>
-        {#if isLocalDesktopHost}
-          {#if status?.state === 'not-installed' || (!status && readiness === 'missing')}
-            <p class="detail">
-              MSC installs the local background engine for you. Your Minecraft servers and their
-              files will live here.
-            </p>
-            <div class="actions">
-              <Button variant="start" disabled={busy} onclick={() => void manage('install')}
-                >{busy ? 'Installing…' : 'Install local engine →'}</Button
-              >
-            </div>
-            <p class="small-detail">Local engine not installed.</p>
-          {:else}
-            <p class="detail">
-              The local engine manages Minecraft on this computer. Starting it connects this app;
-              stopping it ends the connection.
-            </p>
-            <div class="actions">
-              <Button
-                variant={status?.state === 'stopped' ? 'start' : 'secondary'}
-                disabled={busy || !status || status.state === 'unavailable'}
-                onclick={() => void manage(status?.state === 'running' ? 'stop' : 'start')}
-              >
-                {busy
-                  ? 'Working…'
-                  : serviceError || status?.state === 'unavailable'
-                    ? 'Status unavailable'
-                    : !status
-                      ? 'Checking…'
-                      : status.state === 'running'
-                        ? 'Stop engine'
-                        : 'Start engine'}
-              </Button>
-              <Button disabled={busy || !status} onclick={() => void manage('repair')}
-                >Repair engine</Button
-              >
-              <Button disabled={busy} onclick={() => void serviceMonitor.refresh()}
-                >Refresh status</Button
-              >
-              {#if indicatorAvailable}
-                <Button disabled={indicatorBusy || busy} onclick={() => void toggleIndicator()}>
-                  {indicatorEnabled ? 'Hide indicator' : 'Show indicator'}
-                </Button>
-              {/if}
-            </div>
-            <p class="small-detail" role="status">
-              {serviceError || status?.detail || 'Checking the local engine service…'}
-            </p>
-          {/if}
-        {:else}
-          <p class="detail">
-            Use the local engine when your Minecraft servers should run on this computer.
-          </p>
-          <div class="actions">
-            <Button disabled={!onSwitchHost} onclick={() => void connectSavedHost(LOCAL_HOST_ID)}
-              >Use local engine</Button
+        <p class="address">{local ? 'On this device' : hostAddressSummary(computer)}</p>
+        <div class="profile-action">
+          {#if connected}<Button
+              size="sm"
+              onclick={() => {
+                choosingComputer = connectedView;
+                if (!choosingComputer) void focusComputer(computer.id);
+              }}>{connectedView ? 'Switch computer' : 'View servers'}</Button
             >
+          {:else if local && computer.id === activeHostId && localNotInstalled}
+            <Button size="sm" disabled={serviceBusy} onclick={() => void profileActions?.install()}
+              >{serviceBusy ? 'Installing…' : 'Install engine'}</Button
+            >
+          {:else if local && computer.id === activeHostId && localRecovery}
+            <Button size="sm" disabled={serviceBusy} onclick={() => void profileActions?.repair()}
+              >{serviceBusy ? 'Repairing…' : 'Repair engine'}</Button
+            >
+          {:else}<Button
+              size="sm"
+              disabled={!!connecting}
+              onclick={() => {
+                void focusComputer(computer.id);
+                void chooseComputer(computer);
+              }}
+              >{local && computer.id === activeHostId && localNotInstalled
+                ? 'Set up engine'
+                : 'Connect'}</Button
+            >{/if}
+        </div>
+        {#if local && computer.id === activeHostId && localNotInstalled}
+          <div class="profile-recovery" role="status">
+            <p>Install the MSC Background Service to run and manage servers on this computer.</p>
+          </div>
+        {:else if local && computer.id === activeHostId && localRecovery}
+          <div class="profile-recovery" role="status">
+            <p>
+              {readiness === 'incompatible'
+                ? 'This service needs a compatible version.'
+                : 'MSC cannot reach the local Background Service.'} Repair the engine to restore it. Your
+              servers and worlds are kept.
+            </p>
           </div>
         {/if}
       </section>
-
-      {#if isDesktopShell}
-        <section class="setup-choice" aria-label="Remote engines">
-          <h3>On another computer</h3>
-          <p class="detail">
-            Connect to an engine on your server computer. You can manage it from this app while
-            Minecraft runs there.
-          </p>
-          <div class="actions">
-            <Button onclick={() => selectRemoteView('new')}>Connect new host</Button>
-            <Button onclick={() => selectRemoteView('saved')}>
-              View saved hosts{#if savedHosts.length}
-                ({savedHosts.length}){/if}
-            </Button>
-          </div>
-        </section>
-      {/if}
-    </section>
-
-    <section class="how-msc-works" aria-label="How MSC works">
-      <h2>How does MSC work?</h2>
-      <ol class="architecture">
-        <li>
-          <h3>The engine runs your servers</h3>
-          <p>Wherever the engine runs, that’s where Minecraft runs.</p>
-        </li>
-        <li>
-          <h3>This app controls the engine</h3>
-          <p>
-            Manage an engine on this computer or another one. The terminal interface (TUI) is
-            another way to control it.
-          </p>
-        </li>
-        <li>
-          <h3>Closing this window doesn’t stop your servers</h3>
-          <p>Like putting away a TV remote while the TV stays on.</p>
-        </li>
-      </ol>
-      <details class="service-details">
-        <summary>More about the engine</summary>
-        <div class="expanded">
-          <p class="detail">
-            The background service, also called the engine, starts Minecraft and manages your
-            servers, worlds, and files. Wherever the engine is running, that’s where your Minecraft
-            servers run, whether on this computer or another one.
-          </p>
-          <p class="detail">
-            Use this window to create servers, change settings, and see what’s happening. The app is
-            separate from the engine, so you can control it whether it’s running on this computer or
-            another one. If you prefer working in a terminal, MSC’s text interface (TUI) is another
-            remote for the same engine.
-          </p>
-          <p class="detail">
-            Closing this window disconnects the control panel. The engine and your Minecraft servers
-            keep running, like putting away a TV remote while the TV stays on.
-          </p>
+    {:else}<p class="intro">Your computers will appear here once MSC finishes loading.</p>{/each}
+    {#if connectedView}
+      <div class="computer-facts">
+        <div class="selected-server-summary">
+          <p class="fact-label">Selected server</p>
+          <h2>{selectedServer?.name ?? 'No server selected'}</h2>
+          {#if selectedServer}<p class="server-state" class:running={serverRunning}>
+              {serverRunning ? 'Running' : 'Stopped'}
+            </p>{/if}
         </div>
-      </details>
-      <div class="connection-explanation">
-        <p>
-          To stop a Minecraft server, click <strong>Stop</strong>. To stop the engine, click
-          <strong>Stop Engine</strong>. Or turn off the computer.
-        </p>
-      </div>
-      {#if !isCurrentLocalEngine && onPairAgain}
-        <details class="service-details">
-          <summary>Replace this app’s pairing</summary>
-          <div class="expanded">
-            <p class="detail">
-              To replace this client’s credential, run <code>{pairingCommand}</code> on {hostLabel},
-              then paste the new one-use code here.
-            </p>
-            <div class="pairing-row">
-              <Field type="password" bind:value={pairingCode} placeholder="pair_…" /><Button
-                disabled={pairingBusy || !pairingCode.trim()}
-                onclick={() => void pairAgain()}>Pair again</Button
+        <div class="memory-summary">
+          <div class="fact-line">
+            <span class="fact-label">RAM available</span><span>{ramLabel}</span>
+          </div>
+          {#if ramPercent !== undefined}
+            <div
+              class="memory-track"
+              role="meter"
+              aria-label="Computer RAM available"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={ramPercent}
+              aria-valuetext={ramLabel}
+            >
+              <span style:width={`${ramPercent}%`}></span>
+            </div>
+          {/if}
+        </div>
+        <dl class="connection-facts">
+          <div>
+            <dt>Background Service</dt>
+            <dd class="service-state">
+              {isLocalHost ? (serviceState === 'running' ? 'Running' : serviceState) : 'Connected'}
+            </dd>
+          </div>
+          <div class="address-row">
+            <dt>Address</dt>
+            <dd>
+              <button
+                class="address-toggle"
+                onclick={() => (revealedAddressHost = addressVisible ? '' : activeHostId)}
+                aria-label={addressVisible ? 'Hide computer address' : 'Show computer address'}
+                aria-pressed={addressVisible}
+                >{addressVisible ? computerAddress : 'Click to reveal'}</button
               >
-            </div>
+            </dd>
           </div>
-        </details>
-      {/if}
-    </section>
+          <div>
+            <dt>Servers on this computer</dt>
+            <dd>{servers.length}</dd>
+          </div>
+        </dl>
+      </div>
+    {/if}
+    {#if showInstallGuide}<div class="install-guide"><HowMscWorks /></div>{/if}
   </div>
-
-  {#if remoteView === 'new'}
-    <section class="remote-content" aria-label="Connect remote host">
-      <div class="section-heading">
-        <h2>{editingHost ? `Edit ${editingHost.displayName}` : 'Connect your server computer'}</h2>
-        <Button size="sm" onclick={closeRemoteView}>Cancel</Button>
-      </div>
-      <p class="detail">An MSC engine must be installed on that computer. Tailscale is optional.</p>
-      {#key editingHost?.id ?? 'new'}<RemoteConnectionWizard
-          hosts={savedHosts}
-          initialHost={editingHost}
-          onConnect={connectRemoteHost}
-        />{/key}
-      <details class="service-details">
-        <summary>Commands on your server computer</summary>
-        <div class="expanded">
-          <p class="detail">
-            Run these commands in a terminal on your server computer, or through SSH as the account
-            that installed MSC. They work on macOS, Windows, and Linux without finding the service
-            name, even when the engine is stopped.
+  {#if connectedView && focusedComputer && focusedHostId === activeHostId}
+    <section class="server-branch" aria-label={`${focusedComputer.displayName} servers`}>
+      <div class="shelf-heading">
+        <div>
+          <p class="msc-type-overline">
+            {focusedHostId === LOCAL_HOST_ID ? 'This computer' : focusedComputer.displayName} / Minecraft
+            servers
           </p>
-          {#each engineCommands as item (item.command)}
-            <div class="extra-note">
-              <h3>{item.label}</h3>
-              <div class="command-row">
-                <code>{item.command}</code><Button
-                  size="sm"
-                  onclick={() => void copyCommand(item.command)}
-                  >{copiedCommand === item.command ? 'Copied' : 'Copy'}</Button
+          <h2>{servers.length} {servers.length === 1 ? 'server' : 'servers'}</h2>
+        </div>
+      </div>
+      <div class="server-shelf">
+        {#each orderedServers as server (server.id)}
+          {@const selected = server.id === serverId}
+          <div class="server-card" class:selected>
+            <ServerProfileThumbnail
+              {api}
+              {server}
+              {active}
+              {selected}
+              disabled={!onOpenServer || !!openingServer}
+              canEdit={can(permissions, 'worlds')}
+              onOpen={() => void chooseServer(server.id)}
+            />
+            <button
+              class="server-caption"
+              disabled={!onOpenServer || !!openingServer}
+              onclick={() => void chooseServer(server.id)}
+            >
+              <div class="server-title">
+                <h3>{server.name}</h3>
+                <span aria-hidden="true">→</span>
+              </div>
+              <p>
+                {server.serverType === 'bedrock'
+                  ? 'Bedrock Dedicated Server'
+                  : server.javaFlavor || 'Java Edition'}
+              </p>
+              <div class="server-meta">
+                <span class:running={selected && serverRunning}
+                  >{selected ? (serverRunning ? 'Running' : 'Stopped') : 'Not selected'}</span
                 >
+                {#if selected && serverRunning}<span
+                    >{players === undefined ? 'Players unavailable' : `${players} online`}</span
+                  >{:else if server.firstStartRequired}<span>Setup needed</span>{/if}
               </div>
-            </div>
-          {/each}
-          <p class="small-detail extra-note">
-            These control the background engine. Minecraft server controls are separate: use <code
-              >msc server start</code
-            >
-            or <code>msc server stop</code> for Minecraft. Stopping the engine keeps its boot setting;
-            use disable to prevent startup at the next boot.
-          </p>
-        </div>
-      </details>
-    </section>
-  {:else if remoteView === 'saved'}
-    <section class="remote-content" aria-label="Saved remote hosts">
-      <div class="section-heading">
-        <h2>Saved remote hosts</h2>
-        <Button size="sm" onclick={closeRemoteView}>Close</Button>
+              {#if server.gamePort}<p class="port">Port {server.gamePort}</p>{/if}
+            </button>
+          </div>
+        {:else}
+          <div class="empty-library">
+            <h3>No servers here yet</h3>
+            <p>Create a server or bring an existing one to this computer.</p>
+            {#if onFleet}<Button size="sm" onclick={onFleet}>Manage servers</Button>{/if}
+          </div>
+        {/each}
       </div>
-      <p class="detail">
-        Select a saved computer to connect to its engine. Credentials stay in secure storage.
-      </p>
-      {#each savedHosts as savedHost (savedHost.id)}
-        <div class="saved-host-row">
-          <div class="saved-host-info">
-            <h3>{savedHost.displayName}</h3>
-            <p class="small-detail">
-              {savedHostStatus(savedHost)} · {hostAddressSummary(savedHost)} · {hostSummaries.get(
-                savedHost.id,
-              )?.serverCount ?? 0} servers known
-            </p>
-            {#if savedHost.lanAddresses.length && savedHost.tailscaleAddresses.length}
-              <div class="saved-host-route">
-                <span>Direct route</span><SegmentedControl
-                  options={[
-                    { value: 'lan', label: 'LAN' },
-                    { value: 'tailscale', label: 'Tailscale' },
-                  ]}
-                  value={savedHost.preferredRouteOrder[0] ?? 'lan'}
-                  onchange={(value) => void onSelectRoute?.(savedHost.id, value as HostRoute)}
-                />
-              </div>
-            {/if}
-          </div>
-          <div class="actions">
-            {#if savedHost.id === activeHostId && readiness === 'ready'}<span class="current-host"
-                >Current</span
-              >{:else}<Button
-                size="sm"
-                disabled={!onSwitchHost}
-                onclick={() => void connectSavedHost(savedHost.id)}>Connect</Button
-              >{/if}
-            <Button size="sm" onclick={() => editSavedHost(savedHost.id)}>Edit</Button>
-            <Button
-              size="sm"
-              disabled={removeHostBusy}
-              onclick={() => openRemoveHost(savedHost.id, savedHost.displayName)}>Remove</Button
-            >
-          </div>
-        </div>
-      {:else}
-        <p class="empty-message">
-          No saved remote hosts yet. Connect a new host to remember it here.
-        </p>
-        <Button onclick={() => selectRemoteView('new')}>Connect new host</Button>
-      {/each}
-      <p class="small-detail">
-        An existing SSH tunnel still needs to be open before its saved host can connect.
-      </p>
+      {#if servers.length && onFleet}<button class="manage-link" onclick={onFleet}
+          >Manage servers →</button
+        >{/if}
     </section>
   {/if}
-
-  <section class="servers-section">
-    <div class="section-heading">
-      {#if readiness === 'ready'}
-        <button
-          class="servers-toggle"
-          aria-expanded={serversExpanded}
-          aria-controls="engine-server-list"
-          onclick={() => (serversExpanded = !serversExpanded)}
-        >
-          <span class="disclosure-arrow" aria-hidden="true">{serversExpanded ? '⌄' : '›'}</span>
-          <span>On this engine</span><span class="server-count"
-            >{servers.length} {servers.length === 1 ? 'server' : 'servers'}</span
-          >
-        </button>
-      {:else}<h2>Your servers will appear here</h2>{/if}
-      {#if readiness === 'ready' && onFleet}<Button size="sm" onclick={onFleet}
-          >Manage servers</Button
-        >{/if}
-    </div>
-    {#if readiness === 'ready'}
-      <div id="engine-server-list" hidden={!serversExpanded}>
-        {#each orderedServers as server (server.id)}
-          <button
-            class="server-row"
-            disabled={!onOpenServer || !!openingServerId}
-            onclick={() => void openServer(server.id)}
-          >
-            <span class="server-info">
-              <span class="server-name">{server.name}</span>
-              <span class="server-details">
-                <span class="small-detail"
-                  >{server.serverType === 'bedrock'
-                    ? 'Bedrock'
-                    : server.javaFlavor || 'Java'}{server.gamePort
-                    ? ` · Port ${server.gamePort}`
-                    : ''}</span
-                >
-                {#if server.id === serverId}
-                  <span class="server-stats">
-                    <span>Players {serverRunning ? (players ?? 'Unavailable') : '0'}</span>
-                    <span>RAM {serverRunning ? ramLabel(performance?.ramUsedMB?.value) : '—'}</span>
-                    <span
-                      >Uptime {serverRunning
-                        ? runStartedAt === undefined
-                          ? 'Running'
-                          : formatUptime(nowMs - runStartedAt)
-                        : '—'}</span
-                    >
-                  </span>
-                {/if}
-              </span>
-            </span>
-            <span class="server-row-end">
-              {#if server.id === serverId}<span class="server-state" class:running={serverRunning}
-                  >Selected · {serverRunning ? 'Running' : 'Stopped'}</span
-                >{/if}
-              <span class="overview-arrow" aria-hidden="true">→</span>
-            </span>
-          </button>
-        {:else}<p class="empty-message">
-            No servers on this engine yet. Manage servers to create or import one.
-          </p>{/each}
-      </div>
-    {:else}<p class="detail">
-        Connect an engine to see the servers it manages. No server information is available yet.
-      </p>{/if}
-  </section>
-  {#if errorMessage}<p class="error" role="alert">
-      Could not complete the engine action: {errorMessage}
-    </p>{/if}
+  {#if error}<p class="error" role="alert">{error}</p>{/if}
+  <p class="library-footnote">
+    One connection at a time. Your servers keep running when you switch computers or close MSC.
+  </p>
 </div>
 
+{#if connectionOpen}
+  <Sheet title="Connect a computer" size="lg" onClose={() => (connectionOpen = false)}>
+    <RemoteConnectionWizard
+      initialHost={editingComputer}
+      hosts={hosts.filter((host) => host.id !== LOCAL_HOST_ID)}
+      onConnect={connect}
+    />
+  </Sheet>
+{/if}
+
+{#if disconnectedMenu}
+  <Menu
+    x={disconnectedMenu.x}
+    y={disconnectedMenu.y}
+    items={[
+      {
+        label: 'Connect',
+        onSelect: () => {
+          const host = disconnectedMenu?.host;
+          disconnectedMenu = undefined;
+          if (host) void chooseComputer(host);
+        },
+      },
+    ]}
+    onClose={() => (disconnectedMenu = undefined)}
+  />
+{/if}
+<EngineProfileActions
+  bind:this={profileActions}
+  onBusy={(value) => (serviceBusy = value)}
+  {hostId}
+  local={isLocalHost && isDesktopShell}
+  {active}
+  position={focusedHostId === activeHostId && !localNotInstalled ? actionPosition : undefined}
+  onClose={() => (actionPosition = undefined)}
+  onRefresh={async () => {
+    await onEngineRetry?.();
+  }}
+  onStatus={(value) => (serviceState = value)}
+  onError={(value) => (error = value)}
+  onEdit={() => {
+    editingComputer = hosts.find((host) => host.id === activeHostId);
+    connectionOpen = true;
+  }}
+  onRemove={() => (removingComputer = true)}
+/>
 <ConfirmDialog
-  open={removeHostOpen}
-  context={`Host: ${removeHostLabel}`}
-  title="Remove this paired host?"
-  message="This removes the saved connection from this desktop and forgets its credential. Nothing on the other computer or its Minecraft servers will be deleted."
-  confirmLabel={removeHostBusy ? 'Removing…' : 'Remove host'}
-  onConfirm={() => void removeConfirmedHost()}
-  onClose={removeHostBusy ? undefined : () => (removeHostOpen = false)}
+  open={removingComputer}
+  title="Remove this connection?"
+  message="Only the saved connection and credential are removed. Its servers and files are kept."
+  confirmLabel="Remove connection"
+  onClose={() => (removingComputer = false)}
+  onConfirm={async () => {
+    try {
+      await onRemoveHost?.();
+      removingComputer = false;
+    } catch (failure) {
+      error = String(failure);
+    }
+  }}
 />
 
+{#if howItWorksOpen}<WelcomeMscSheet onNext={() => (howItWorksOpen = false)} />{/if}
+
 <style>
-  .engine-home {
+  .install-guide {
+    flex: 0 1 420px;
+    min-width: 0;
+  }
+  .heading-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .profile-recovery {
+    margin-top: 14px;
+  }
+  .profile-recovery p {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--msc-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .profile-rail.connected-view {
+    justify-content: center;
+    align-items: center;
+    gap: 48px;
+  }
+  .profile-rail.connected-view .computer-choice {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .computer-facts {
+    flex: 0 1 420px;
+    min-width: 0;
     display: grid;
-    gap: 28px;
-    max-width: 1160px;
-    width: 100%;
+    gap: 26px;
+    font-size: 13px;
+  }
+  .fact-label,
+  .connection-facts dt {
+    color: var(--msc-text-secondary);
+  }
+  .selected-server-summary h2 {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.25;
+    margin: 7px 0;
+    overflow-wrap: anywhere;
+  }
+  .server-state {
+    color: var(--msc-text-secondary);
+  }
+  .server-state.running,
+  .service-state {
+    color: var(--msc-status-ok);
+  }
+  .fact-line,
+  .connection-facts > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .fact-line {
+    font-variant-numeric: tabular-nums;
+  }
+  .memory-track {
+    height: 5px;
+    margin-top: 10px;
+    background: var(--msc-hairline);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .memory-track span {
+    display: block;
+    height: 100%;
+    background: var(--msc-text-secondary);
+  }
+  .connection-facts {
+    display: contents;
+  }
+  .connection-facts > div {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: baseline;
+    gap: 16px;
+    font-size: 13px;
+  }
+  .connection-facts dd {
+    margin: 0;
+    text-align: right;
+    min-width: 0;
+  }
+  .address-toggle {
+    display: inline;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: var(--msc-text-primary);
+    font: inherit;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    text-align: right;
+  }
+  .address-toggle:hover {
+    text-decoration: underline;
+  }
+  .address-toggle:focus-visible {
+    outline: 2px solid var(--msc-text-secondary);
+    outline-offset: 3px;
+  }
+  @media (max-width: 700px) {
+    .profile-rail.connected-view {
+      flex-wrap: wrap;
+    }
+  }
+
+  .computer-library {
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 12px 8px 32px;
+  }
+  .library-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 42px;
   }
   h1,
   h2,
@@ -781,330 +712,246 @@
     margin: 0;
   }
   h1 {
-    font-size: 30px;
+    font-size: 32px;
     font-weight: 600;
     letter-spacing: -0.8px;
-    margin: 3px 0 6px;
+    margin: 8px 0;
   }
   h2 {
-    font-size: 19px;
+    font-size: 24px;
     font-weight: 500;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.5px;
+    margin: 7px 0;
+    overflow-wrap: anywhere;
   }
   h3 {
     font-size: 15px;
     font-weight: 500;
+    overflow-wrap: anywhere;
   }
-  .home-heading > p:last-child,
-  .detail,
-  .small-detail {
-    color: var(--msc-text-secondary);
-  }
-  .home-heading > p:last-child,
-  .detail {
+  .intro,
+  .address,
+  .library-footnote {
     font-size: 13px;
     line-height: 1.5;
+    color: var(--msc-text-secondary);
   }
-  .detail {
-    margin-top: 6px;
+  .profile-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
   }
-  .home-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    gap: 30px;
-    align-items: start;
+  .carousel-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  .engine-panel {
+  .carousel-actions > span {
+    color: var(--msc-text-tertiary);
+    font-size: 12px;
+  }
+  .profile-rail {
+    display: flex;
+    gap: 28px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px 4px 24px;
+    margin-bottom: 24px;
+    scrollbar-width: thin;
+  }
+  .computer-choice {
+    flex: 0 0 216px;
+    scroll-snap-align: center;
+    text-align: center;
     min-width: 0;
-    padding: 23px;
+  }
+  .computer-choice:first-child {
+    margin-left: auto;
+  }
+  .computer-choice:last-child {
+    margin-right: auto;
+  }
+  .computer-profile {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 14px 18px;
+    min-height: 225px;
+    border: 1px solid var(--msc-hairline);
     border-radius: 8px;
     background: var(--msc-tier-content);
+    color: var(--msc-text-primary);
+    cursor: pointer;
   }
-  .section-heading {
+  .computer-choice.focused .computer-profile {
+    border-color: var(--msc-text-secondary);
+  }
+  .computer-art {
+    width: 160px;
+    height: 112px;
+    stroke: var(--msc-text-secondary);
+    stroke-width: 2;
+    margin-bottom: 14px;
+  }
+  .screen-detail {
+    stroke: var(--msc-text-tertiary);
+  }
+  .profile-caption {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--msc-text-tertiary);
+  }
+  .computer-profile h2 {
+    font-size: 19px;
+    margin: 8px 0 10px;
+  }
+  .connection-label {
+    font-size: 12px;
+    color: var(--msc-text-secondary);
+    margin-top: auto;
+  }
+  .connection-label.connected {
+    color: var(--msc-status-ok);
+  }
+  .address {
+    margin: 12px 0;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+  }
+  .profile-action {
+    min-height: 32px;
+  }
+  .server-branch {
+    border-top: 1px solid var(--msc-hairline);
+    padding-top: 26px;
+    margin-bottom: 24px;
+  }
+  .shelf-heading {
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .shelf-heading h2 {
+    font-size: 21px;
+  }
+  .server-shelf {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+  .server-card {
+    flex: 0 1 215px;
+    max-width: 100%;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: var(--msc-tier-content);
+    color: var(--msc-text-primary);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .server-caption {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    padding: 15px;
+  }
+  .server-title {
+    display: flex;
     justify-content: space-between;
     gap: 12px;
-    flex-wrap: wrap;
+    align-items: baseline;
   }
-  .connection-state {
-    font-size: 12px;
-    color: var(--msc-text-secondary);
-  }
-  .engine-panel > h2 {
-    font-size: 24px;
-    margin: 12px 0 4px;
-  }
-  .engine-facts {
-    display: grid;
-    gap: 9px;
-    margin: 20px 0;
-    font-size: 12px;
-  }
-  .engine-facts > div {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-  }
-  dt {
-    color: var(--msc-text-secondary);
-  }
-  dd {
-    margin: 0;
-    text-align: right;
-    overflow-wrap: anywhere;
-  }
-  .setup-choice {
-    padding-top: 21px;
-    margin-top: 20px;
-    border-top: 1px solid var(--msc-hairline);
-  }
-  .actions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
-  }
-  .small-detail {
-    font-size: 12px;
-    margin-top: 9px;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-  }
-  .how-msc-works {
-    min-width: 0;
-    padding-top: 5px;
-  }
-  .architecture {
-    list-style: none;
-    counter-reset: architecture;
-    margin: 21px 0 0;
-    padding: 0;
-    display: grid;
-    gap: 19px;
-  }
-  .architecture li {
-    position: relative;
-    padding-left: 41px;
-    counter-increment: architecture;
-  }
-  .architecture li::before {
-    content: '0' counter(architecture);
-    position: absolute;
-    left: 0;
-    top: 2px;
-    font: 12px/1.6 var(--msc-font-mono, monospace);
+  .server-title > span {
     color: var(--msc-text-tertiary);
   }
-  .architecture p,
-  .connection-explanation p {
-    font-size: 12px;
-    line-height: 1.5;
-    margin-top: 3px;
+  .server-caption p {
     color: var(--msc-text-secondary);
-  }
-  .connection-explanation {
-    border-top: 1px solid var(--msc-hairline);
-    padding-top: 14px;
-    margin-top: 20px;
-  }
-  .connection-explanation strong {
-    font-weight: 500;
-    color: var(--msc-text-primary);
-  }
-  .remote-content {
-    border-top: 1px solid var(--msc-hairline);
-    padding-top: 20px;
-    min-width: 0;
-  }
-  .remote-content > :global(.wizard) {
-    margin-top: 20px;
-  }
-  .service-details {
-    margin-top: 18px;
-  }
-  summary {
     font-size: 12px;
-    color: var(--msc-text-secondary);
-    cursor: pointer;
+    margin-top: 6px;
   }
-  .expanded {
-    padding-top: 14px;
-  }
-  .command-row,
-  .pairing-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-  }
-  code {
-    font: 12px/1.5 var(--msc-font-mono, monospace);
-    overflow-wrap: anywhere;
-  }
-  .command-row code {
-    padding: 12px;
-    background: var(--msc-tier-terminal);
-  }
-  .extra-note {
-    margin-top: 16px;
-  }
-  .extra-note h3 {
-    font-size: 12px;
-  }
-  .saved-host-row,
-  .server-row {
+  .server-meta {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 17px 0;
-    border-bottom: 1px solid var(--msc-hairline);
-  }
-  .servers-toggle {
-    display: flex;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
-    padding: 4px 0;
-    background: transparent;
-    border: 0;
-    color: var(--msc-text-primary);
-    font: inherit;
-    font-size: 19px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: left;
-  }
-  .server-count,
-  .disclosure-arrow,
-  .overview-arrow {
-    color: var(--msc-text-tertiary);
-  }
-  .server-count {
+    gap: 6px;
+    margin-top: 17px;
     font-size: 12px;
-    font-weight: 400;
+    color: var(--msc-text-secondary);
   }
-  .server-row {
-    width: 100%;
-    background: transparent;
-    border-top: 0;
-    border-left: 0;
-    border-right: 0;
-    color: var(--msc-text-primary);
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    padding: 17px 12px;
+  .server-meta .running {
+    color: var(--msc-status-ok);
   }
-  .server-row:hover {
-    background: var(--msc-tier-content);
+  .server-caption .port {
+    color: var(--msc-text-tertiary);
+    font-size: 11px;
+    margin-top: 8px;
   }
-  .server-row:focus-visible,
-  .servers-toggle:focus-visible {
+  .computer-profile:hover,
+  .server-card:hover {
+    border-color: var(--msc-text-tertiary);
+  }
+  .server-card.selected {
+    border-color: var(--msc-status-ok);
+    box-shadow: inset 0 0 0 1px var(--msc-status-ok);
+  }
+  button:focus-visible {
     outline: 2px solid var(--msc-text-secondary);
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
-  .server-row:disabled {
+  button:disabled {
     cursor: default;
     opacity: 0.6;
   }
-  .server-info {
-    display: grid;
-    gap: 5px;
-    min-width: 0;
-  }
-  .server-name {
-    font-size: 15px;
-    font-weight: 500;
-    overflow-wrap: anywhere;
-  }
-  .server-details {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 8px 20px;
-  }
-  .server-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 20px;
-    font-size: 12px;
+  .manage-link {
+    background: transparent;
+    border: 0;
     color: var(--msc-text-secondary);
-  }
-  .server-row-end {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .server-state {
+    padding: 14px 0 0;
+    cursor: pointer;
+    font: inherit;
     font-size: 12px;
-    color: var(--msc-status-warn);
   }
-  .server-state.running {
-    color: var(--msc-status-ok);
+  .empty-library {
+    padding: 22px 0 16px;
   }
-  .saved-host-info {
-    min-width: 0;
-  }
-  .saved-host-row .actions {
-    margin-top: 0;
-    flex-shrink: 0;
-  }
-  .saved-host-route {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--msc-text-secondary);
-  }
-  .current-host {
-    font-size: 12px;
-    color: var(--msc-text-secondary);
-  }
-  .servers-section {
-    border-top: 1px solid var(--msc-hairline);
-    padding-top: 18px;
-  }
-  .empty-message {
-    margin: 14px 0;
+  .empty-library p {
     font-size: 13px;
     color: var(--msc-text-secondary);
+    line-height: 1.5;
+    margin: 8px 0 12px;
   }
-  .error,
-  .recovery {
+  .library-footnote {
+    font-size: 12px;
+  }
+
+  .error {
     color: var(--msc-status-error);
     font-size: 13px;
-    line-height: 1.5;
+    margin-bottom: 20px;
   }
-  .recovery {
-    margin-top: 12px;
-  }
-  @media (max-width: 760px) {
-    .home-grid {
-      grid-template-columns: 1fr;
-      gap: 25px;
-    }
-    .engine-panel {
-      padding: 20px;
-    }
-    .saved-host-row {
+  @media (max-width: 700px) {
+    .library-heading {
       align-items: flex-start;
       flex-direction: column;
+      gap: 16px;
+      margin-bottom: 28px;
     }
-    .server-row-end {
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-    }
-    .saved-host-route {
-      flex-wrap: wrap;
-    }
-    .engine-facts > div {
-      flex-wrap: wrap;
+    .server-card {
+      flex-basis: 190px;
     }
   }
 </style>

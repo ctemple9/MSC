@@ -119,6 +119,10 @@ pub(crate) const STAGING_TTL_SECONDS: u64 = 30 * 60;
 pub fn router(state: WorldsRoutesState) -> Router {
     Router::new()
         .route("/worlds", get(list))
+        .route(
+            "/servers/{server_id}/thumbnail",
+            get(server_thumbnail).post(set_server_thumbnail),
+        )
         .route("/worlds/map/dimensions", get(map_dimensions))
         .route("/worlds/map/terrain", get(map_terrain::artifact))
         .route(
@@ -4359,6 +4363,69 @@ where
 // Thumbnail
 // =====================================================================
 
+pub async fn server_thumbnail(
+    State(state): State<WorldsRoutesState>,
+    AxumPath(server_id): AxumPath<String>,
+) -> Response {
+    let Some(server) = state
+        .lifecycle
+        .app_config_servers()
+        .into_iter()
+        .find(|server| server.id == server_id)
+    else {
+        return error_response(StatusCode::NOT_FOUND, "not_found", "Server not found.");
+    };
+    let Some(slot_id) = resolved_active_slot_id(Path::new(&server.server_dir)) else {
+        return error_response(
+            StatusCode::NOT_FOUND,
+            "not_found",
+            "This server has no active world thumbnail.",
+        );
+    };
+    thumbnail_for_server(&server, &slot_id)
+}
+
+pub async fn set_server_thumbnail(
+    State(state): State<WorldsRoutesState>,
+    Extension(credential): Extension<AuthenticatedCredential>,
+    AxumPath(server_id): AxumPath<String>,
+    body: Option<Json<WorldThumbnailUploadRequestDto>>,
+) -> Response {
+    if let Some(response) = require_permission(&credential, PermissionCategoryDto::Worlds) {
+        return response;
+    }
+    let Some(Json(body)) = body else {
+        return invalid_body("invalid_json", "Request body must be valid JSON.");
+    };
+    let Some(server) = state
+        .lifecycle
+        .app_config_servers()
+        .into_iter()
+        .find(|server| server.id == server_id)
+    else {
+        return error_response(StatusCode::NOT_FOUND, "not_found", "Server not found.");
+    };
+    let Some(slot_id) = resolved_active_slot_id(Path::new(&server.server_dir)) else {
+        return error_response(
+            StatusCode::CONFLICT,
+            "no_active_world",
+            "Create or import a world before setting its thumbnail.",
+        );
+    };
+    if !state
+        .staging
+        .native
+        .bound_target_matches(&body.staged_upload_id, &server.id)
+    {
+        return error_response(
+            StatusCode::CONFLICT,
+            "target_mismatch",
+            "Choose the image again for this server.",
+        );
+    }
+    set_thumbnail_for_server(&state, &credential, &server, &slot_id, body)
+}
+
 pub async fn thumbnail(
     State(state): State<WorldsRoutesState>,
     AxumPath(slot_id): AxumPath<String>,
@@ -4367,9 +4434,13 @@ pub async fn thumbnail(
     let Some(server) = lifecycle.active_config_server() else {
         return slot_not_found(&slot_id);
     };
+    thumbnail_for_server(&server, &slot_id)
+}
+
+fn thumbnail_for_server(server: &ConfigServer, slot_id: &str) -> Response {
     let server_dir = Path::new(&server.server_dir);
-    let Some(slot) = find_slot(server_dir, &slot_id) else {
-        return slot_not_found(&slot_id);
+    let Some(slot) = find_slot(server_dir, slot_id) else {
+        return slot_not_found(slot_id);
     };
     let Some(file_name) = &slot.thumbnail_file_name else {
         return error_response(
@@ -4410,9 +4481,20 @@ pub async fn set_thumbnail(
         Ok(server) => server,
         Err(response) => return response,
     };
+    set_thumbnail_for_server(&state, &credential, &server, &slot_id, body)
+}
+
+fn set_thumbnail_for_server(
+    state: &WorldsRoutesState,
+    credential: &AuthenticatedCredential,
+    server: &ConfigServer,
+    slot_id: &str,
+    body: WorldThumbnailUploadRequestDto,
+) -> Response {
+    let lifecycle = &state.lifecycle;
     let server_dir = Path::new(&server.server_dir);
-    let Some(slot) = find_slot(server_dir, &slot_id) else {
-        return slot_not_found(&slot_id);
+    let Some(slot) = find_slot(server_dir, slot_id) else {
+        return slot_not_found(slot_id);
     };
     if !state
         .staging
@@ -4472,7 +4554,7 @@ pub async fn set_thumbnail(
                         "Thumbnail set.",
                         BTreeMap::new(),
                     );
-                    mutation_ok(lifecycle, &server, "thumbnail_set")
+                    mutation_ok(lifecycle, server, "thumbnail_set")
                 }
                 Err(error) => {
                     let _ = lifecycle.operations().fail(
@@ -4495,7 +4577,7 @@ pub async fn set_thumbnail(
     let _ = std::fs::remove_file(&entry.path);
     audit(
         lifecycle,
-        &credential,
+        credential,
         "POST",
         "/v1/worlds/:slot_id/thumbnail",
         response.status(),

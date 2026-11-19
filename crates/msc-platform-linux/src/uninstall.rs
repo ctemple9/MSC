@@ -114,6 +114,9 @@ fn installed_helper() -> Result<PathBuf, String> {
         "/usr/lib/MSC 2/agent/msc",
         "/usr/lib/msc2-desktop-web/agent/msc",
         "/usr/lib/msc2/msc",
+        // Source desktops install the same privileged helper here; it must pass
+        // the identical root-ownership and permission checks as packaged copies.
+        "/usr/lib/msc-development/agent/msc",
     ] {
         let path = Path::new(path);
         if let Ok(metadata) = fs::symlink_metadata(path)

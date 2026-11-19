@@ -2034,3 +2034,322 @@ Checks: cargo fmt and cargo clippy -p msc-engine --no-deps passed with existing
 warnings; npm run check passed with 0 errors and 10 existing CSS warnings.
 Frontend formatting and git diff --check passed. No tests added or run. Restored
 root lockfile ordering caused by cargo; existing desktop lockfile excluded.
+
+### P26.54 — computer profiles and server shelves on the Engine page
+
+**Status:** Owner accepted the visual changes and authorized the single P26.54
+commit on 2026-11-19. Platform and remote manual acceptance remains separate.
+
+**Files:** EngineSetupSection; EngineProfileActions; ServerProfileThumbnail;
+HowMscWorks; WelcomeMscSheet; InstallWelcome; App; generated API types and contract;
+host-memory DTO/route/metrics; world-thumbnail/native-upload routes; desktop and
+Linux development uninstall support; bootstrap-linux-dev.py; this plan.
+
+**What:** Replace the former Engine controls page with local/remote computer
+profiles and a centered connected-computer view. Profile menus expose applicable
+local or remote actions. Install/repair actions occupy the Connect position with
+clear guidance underneath; stopped/connecting states follow explicit user intent.
+Switch computer returns to the chooser without disconnecting. Details show the
+selected server, available RAM, service status, click-to-reveal computer address,
+and server count. Server cards show/edit active-world thumbnails without changing
+selection. First install shows the original explanation beside the local profile;
+a shared Welcome to MSC sheet combines that explanation and introduction with Next.
+Preserve existing SSH host switching and one connected engine at a time.
+Supporting engine routes expose host memory and server-specific world thumbnails.
+Development uninstall works without a desktop package, preserves checkout/build
+outputs, and refreshes the protected Linux helper through OS authorization.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Review chooser, connected
+profile/details, install/repair/stopped/connecting states, server thumbnails,
+first-install explanation, combined welcome/Next and manual reopening. Check
+remote switching and updated-engine RAM/thumbnail behavior. Uninstall verification
+requires deliberate preview/confirmation; the contributor has not run it.
+
+**Batch:** This redesign and all owner-requested adjustments in one commit,
+authorized by Cameron on 2026-11-19. No publication or push requested.
+
+**Commit:** P26.54: redesign computer profiles and engine onboarding
+
+Checks: latest frontend type check passed with 0 errors and 10 existing warnings;
+production build passed before later presentation refinements. Rust formatting,
+engine/desktop/Linux platform clippy passed with existing warnings; Python
+bootstrap syntax and diff whitespace checks passed. No tests run. No live host
+switching, service changes, SSH connections, uninstall or publication performed
+by the contributor. Cameron also authorized including the remaining desktop lockfile ordering
+change; parsed comparison confirms dependency contents and versions are unchanged. The following notes record the owner's iterative review history;
+references to an uncommitted candidate describe its state at that time.
+
+P26.54 owner review adjustment — horizontal computer carousel: replace the
+stacked computer branches with side-by-side profiles and Connect underneath.
+Previous/Next controls browse profiles with horizontal scrolling and a selected
+profile outline; reduced-motion settings disable smooth scrolling. Only the
+browsed, connected computer has a server shelf below the row. Disconnected
+profiles have no empty server sections. Browsing another profile does not switch
+hosts until Connect is clicked. Connected profiles retain access to engine
+controls, and View servers returns attention to that computer's shelf.
+This remains part of the same uncommitted P26.54 candidate.
+
+Additional Verify: browse the two profiles with arrows, connect to the other
+computer, and confirm the shelf shows only that computer's servers. When no
+engine is connected, confirm the row contains only profiles and their Connect
+buttons. On a narrow window, scroll the row to reach the next profile.
+
+Carousel checks: frontend type check passed with 0 errors; its additional
+focusable-region warning was addressed by leaving keyboard focus on the actual
+profile/navigation buttons. Production build passed. No tests run and no commit
+made; owner visual review remains pending.
+
+P26.54 owner review adjustment — center the computer profile row when it fits.
+Auto margins on the first/last profile share unused space; when the row
+overflows they collapse so every profile remains reachable by scrolling.
+Verify visually with two profiles on a wide window and with a narrow window.
+This remains uncommitted with the rest of the redesign.
+
+P26.54 owner-reported fix — local Connect previously only refreshed the client;
+that deliberately does not start a stopped service. Local Connect now reads
+native service status and starts it if stopped, then uses the existing local
+connection flow. If installation or recovery is needed, it opens the existing
+engine controls. No service action was performed by the contributor. Verify:
+with the local service stopped, click Connect and confirm the service starts
+and the local server shelf loads. Also check switching from a remote profile.
+The change remains uncommitted within P26.54.
+
+P26.54 owner review adjustment — center the server cards as well. Use a centered
+wrapping shelf with stable card widths, including centered incomplete rows and
+cards that shrink for narrow windows. Verify visually with four servers and
+with a narrower window. Still part of the same uncommitted redesign.
+
+P26.54 owner review adjustment — put the selected server first (leftmost) in
+the centered shelf, preserving the order of all other servers. Add the requested
+green selection outline, retaining the Selected label so selection is expressed
+in text as well. Verify by choosing another server and returning to Engine.
+Still uncommitted as part of the same redesign.
+
+P26.54 owner review adjustment — remove the obsolete “On another computer”
+section from the engine controls page. New connections remain available from
+the computer chooser. Other existing controls are unchanged. Still uncommitted.
+
+P26.54 owner review adjustment — simplify engine controls copy and hierarchy.
+Use the selected computer's name as the title, show Service and Address once,
+remove Current engine/Local engine connected/repeated local-computer headings
+and connection prose, and place service actions directly below the facts.
+Collapse the explanation into How does MSC work?, remove the redundant server
+list (servers live in the chooser), and remove its unused metric polling code.
+Retain selected-server shortcut and installation/recovery controls. Remote
+profiles expose Edit connection/Remove connection beside their existing pairing
+recovery so management remains reachable after removing the old remote chooser.
+Verify local and remote controls and expand the optional explanation. Still
+uncommitted within P26.54.
+
+Simplified-controls check: frontend type check passed with 0 errors and the 10
+pre-existing CSS warnings; touched frontend formatting and diff whitespace
+checks passed. No tests run. Owner visual review remains pending.
+
+P26.54 owner review correction — restore the wider, side-by-side engine controls
+and How does MSC work? layout. Show the explanation directly in the right
+column again; retain the shorter service copy and removed redundant sections.
+Narrow windows still stack responsively. Owner rejected the stacked desktop
+layout; this supersedes that presentation choice above. Still uncommitted.
+
+P26.54 owner revision — retire the separate engine controls page entirely.
+When connected, show only the current computer profile at the left of service,
+address, selected-server and server-count facts; keep its server shelf below.
+Click the profile for the shared action-menu presentation. Local actions are
+Start/Stop, Install when needed, Repair, Refresh and Show/Hide Indicator. Remote
+profiles keep Refresh/Edit/Remove; native local service actions are never
+applied to a remote host. Switch computer returns to the centered profile
+chooser without silently changing the connection. Existing SSH/new connection
+flow and removal confirmation remain. Profile focusing scrolls horizontally
+only, avoiding page jumps. Removed the temporary EngineControls component and
+parent controls-view navigation state. Supersedes the prior controls-page layout
+iterations above. Still one uncommitted redesign.
+
+Verify: connected view hides the other profile, shows correct host facts and
+servers, and profile click opens its actions menu. Switch computer reveals the
+chooser; connecting another host loads that host's facts/servers. Check local
+Stop/Start, Repair and indicator toggling manually as appropriate. Verify remote
+Edit/Remove remain scoped to the selected remote host. No live service actions
+or connections were performed by the contributor.
+
+P26.54 owner visual adjustment — center the connected profile and facts as a
+single group. Strengthen the connected-row margin override so the chooser's
+first-card auto margin cannot push the whole group right. Profile remains just
+left of center, facts just right. Verify the combined group is centered on wide
+windows. Latest integrated type check passed (0 errors, 10 existing warnings)
+and production build passed; this margin-only adjustment passed whitespace and
+format checks. Still uncommitted.
+
+P26.54 owner recovery requirement — make repair discoverable from the profile
+page after removal of the old controls page. For an unavailable/incompatible
+local service, show a short explanation and a direct Repair engine button under
+the profile, rather than hiding recovery in its menu. A missing service has a
+direct Install engine action. Share both actions with the profile-menu service
+handler and disable repeated clicks while busy. A stopped service retains
+Connect/start; remote profiles never operate on the local service. Verify these
+local readiness states and the repair/install busy labels. No service changes
+performed by the contributor; still uncommitted.
+
+P26.54 owner-reported scope fix — disconnected remote profiles now expose only
+Connect when clicked. Clear prior menus when focusing another computer and gate
+the active service menu on matching focused/active host IDs. Local native
+Start/Repair/Indicator actions cannot be presented on a disconnected remote
+profile. Remote service repair is not implemented by the existing native service
+adapter; connected remote menus retain their connection-management actions.
+Verify clicking the disconnected remote profile while local is selected shows
+Connect only. Still uncommitted.
+
+P26.54 owner navigation request — add a visible Back to computers button above
+the connected profile. It returns to the profile chooser, closes any open action
+menu, and keeps the current host connection until another host is selected.
+Verify from the connected remote profile that both saved profiles become visible.
+Still uncommitted with the same redesign.
+
+P26.54 copy adjustment — shorten the chooser subtitle to “Choose a computer.”
+Removed the owner-rejected extra sentence. Still uncommitted.
+
+P26.54 owner copy revision — chooser subtitle now reads “Choose a computer to
+run/manage MSC.” Supersedes the shorter subtitle above. Still uncommitted.
+
+P26.54 navigation label correction — the connected computer's button in the
+chooser reads View servers and returns to its connected details/server shelf.
+Switch computer applies only inside the connected view. Back to computers still
+returns to the chooser without disconnecting. Still uncommitted.
+
+P26.54 owner install-state requirement — retain the local computer profile when
+its service is absent, label it Not installed, and show only Install engine
+underneath. Treat either missing readiness or native not-installed status as the
+install state; suppress the service action menu and repair prompt in that state.
+Clicking the profile focuses it without exposing installed-service actions.
+Installation reuses the existing native install and client-refresh handler.
+Verify on a machine with no local service, then install and confirm normal
+connection/menu behavior returns. No installation/uninstallation performed by
+the contributor. Still uncommitted as part of the same redesign.
+
+P26.54 owner host-memory request — add RAM used to connected computer details,
+formatted as used/total GB (two decimals for used). Add authenticated read-only
+GET /v1/host/memory with nullable usedBytes/totalBytes, measured on the engine's
+own computer through the existing sysinfo dependency and a blocking worker.
+This is whole-host RAM, independent of a selected/running Minecraft process.
+Poll alongside players every five seconds only while the page is active, reset
+on host/server context changes, and discard stale responses by generation.
+Older remote engines or unavailable readings show Unavailable; never substitute
+this desktop's RAM for a remote computer's. Update the API contract and generated
+desktop types. Existing sysinfo handles Linux/macOS/Windows memory reporting.
+
+Verify after rebuilding/repairing the local service: connect locally and confirm
+RAM used resembles the OS reading and refreshes. Update the remote engine to the
+same candidate before checking remote RAM. Confirm an older remote engine shows
+Unavailable while server cards/players still load. No tests run. cargo fmt and
+cargo clippy -p msc-engine --no-deps passed with existing warnings; frontend type
+check passed with 0 errors and 10 existing CSS warnings; generated types updated.
+Restored cargo-induced root lockfile ordering; existing desktop lockfile remains
+excluded. This is still part of the single uncommitted P26.54 redesign.
+
+P26.54 owner layout adjustment — Repair engine occupies the shared Connect/
+Install action position beneath the profile address; recovery explanation comes
+after the button. Missing installations show Install engine in the same position
+with an installation explanation below it. Verify action alignment across the
+local repair/install state and the remote Connect state. Still uncommitted.
+
+P26.54 owner navigation cleanup — remove the redundant Back to computers button
+from the connected view. Switch computer beneath the profile remains the single
+route to the profile chooser; View servers returns from the chooser. Still
+uncommitted.
+
+P26.54 owner-reported stopped-state fix — publish the native service action's
+result immediately, rather than waiting for a later monitor poll. Give confirmed
+local stopped status precedence over a client connection/health-check transition;
+do not show its connected details or repair advice while stopped. Make profile
+label dependencies explicit so native-state updates refresh the visible label.
+Verify Stop engine changes the profile to Service stopped and leaves Connect
+available without starting the service again. Still uncommitted.
+
+P26.54 owner connection feedback refinement — keep the explicit connecting-host
+intent through Engine page remounts during client initialization/host switching.
+Clicking Connect immediately shows Connecting… instead of Service stopped while
+the installed local service is being started. Clear the intent when the attempt
+finishes; failed attempts return to the actual native/readiness state. This does
+not label a deliberately stopped service as connecting without a Connect action.
+Verify Connect on a stopped local service, then retry with a failed connection.
+Still uncommitted.
+
+P26.54 owner server-thumbnail addition — computer-page server cards show each
+server's active-world thumbnail, with Set/Change thumbnail using the existing
+native picker and staged upload sheet. Server-targeted thumbnail routes avoid
+changing the selected server; uploads require an explicit matching server binding
+and Worlds permission. Existing world thumbnail validation/storage is shared.
+Updated API contract and generated types. Requires the updated engine on each
+connected computer. Verify: `npm --prefix clients/desktop-web run check`.
+Owner manual verification pending: inspect saved thumbnails, set one on a
+nonselected server without changing selection, and confirm Worlds/Overview show
+the same active-world image; repeat on an updated remote engine. Frontend check
+passed (0 errors, 10 existing warnings), build passed, cargo fmt and engine clippy
+passed with an existing warning. No tests run. Root lockfile ordering restored;
+pre-existing desktop lockfile untouched. Still uncommitted with P26.54.
+
+P26.54 owner details preview — selected server name/state leads the computer
+facts, followed by RAM value and a proportional accessible meter. Service,
+copyable address and quieter server count share a compact flat group below.
+Unknown memory omits the meter. Clipboard failures show an actionable message.
+Verify: `npm --prefix clients/desktop-web run check` (passed: 0 errors, 10 existing
+warnings). Owner visual review pending in the connected computer profile.
+No tests run; remains part of the uncommitted P26.54 candidate.
+
+P26.54 owner details refinement — remove the RAM/service divider; use the same
+26px spacing between detail groups. RAM available shows total minus used and its
+matching meter fill. Address uses the engine-reported host LAN address (saved
+remote SSH hostname fallback), rather than the management URL, stays aligned
+with its label, and is concealed until clicked; click again hides it. Unknown
+addresses remain Unavailable. Removed obsolete hostBaseUrl input from this view.
+Verify: `npm --prefix clients/desktop-web run check`; passed before removal of
+unused input (0 errors; 10 existing warnings plus that unused-input warning).
+Owner visual review pending. Still uncommitted; no tests run.
+
+P26.54 owner development uninstall request — debug Tauri desktops use the current
+workspace debug engine for uninstall preview/scheduling and omit desktop package
+identity, allowing the normal headless inventory when no desktop package exists.
+Release desktops retain the package check. Development source/build output is
+not designated as an installation to delete. Typed confirmation, fingerprint,
+path validation, installing-account checks and privileged authorization remain.
+Linux accepts the known development helper path with the same root ownership,
+non-symlink and permission validation as packaged helpers.
+Verify: `cargo clippy --manifest-path clients/desktop-web/src-tauri/Cargo.toml --lib --no-deps`.
+Desktop and Linux platform clippy passed with existing warnings; cargo fmt passed.
+Owner must restart `npx tauri dev` to rebuild the native shell/engine before
+reviewing the uninstall preview and deliberately confirming removal. No live
+uninstall or tests run. Root lock ordering restored; existing desktop lockfile
+left untouched. Remains part of uncommitted P26.54 pending owner review.
+
+P26.54 development uninstall follow-up — owner hit privileged helper startup
+failure. Installed development helper dated Nov 18 07:03, while current debug
+engine dated Nov 19 00:00; bootstrap previously returned for any existing helper,
+leaving it without the updated development-path validation. Bootstrap now compares
+SHA-256 content and requests OS authorization to atomically replace a changed
+development helper; identical builds skip authorization. Package-managed helpers
+remain package-managed, with existing ownership/path checks preserved.
+Verify: restart `npx tauri dev`, authorize helper update, then review and explicitly
+confirm uninstall in the app. Python AST parse and diff whitespace checks passed;
+read-only installed helper --help confirmed command exists. No uninstall, helper
+replacement, service operation or tests performed by contributor. Still part of
+the uncommitted P26.54 candidate; owner verification pending.
+
+P26.54 owner first-install explanation — restore original How does MSC work
+content beside the uninstalled local profile, sharing the connected profile/details
+centered 216px + 48px gap + 420px arrangement. Inline explanation appears only
+for the focused local profile while its engine is not installed. Add How does
+this work? beside Connect a computer, opening the same shared explanation in a
+separate standard sheet at any installation state. Retain original expanded
+service explanation and stop-server versus stop-engine guidance.
+Verify: `npm --prefix clients/desktop-web run check`. Owner visual review pending
+for first-install placement, disappearance after install, and sheet open/close.
+No tests run; remains part of the uncommitted P26.54 candidate.
+
+P26.54 owner combined welcome — replace the separate first-launch welcome card
+and explanatory sheet with one shared Welcome to MSC sheet. It contains the
+getting-started introduction and original How MSC works content, with Next at
+the bottom returning to computer profiles. First-launch Next retains the existing
+dismissal preference; How does this work? reopens the same sheet. Keyboard focus
+starts at Next, cycles within the dialog including expanded details, and restores
+on close. The uninstalled-profile inline explanation remains available.
+Verify: `npm --prefix clients/desktop-web run check`. Owner visual review pending
+for fresh welcome, Next, and manual reopening. No tests run. Still uncommitted.

@@ -7519,6 +7519,148 @@
         "x-permission-category": "none"
       }
     },
+    "/v1/servers/{server_id}/thumbnail": {
+      "get": {
+        "summary": "Read the server's active-world thumbnail",
+        "operationId": "getServerThumbnail",
+        "x-permission-category": "none",
+        "responses": {
+          "200": {
+            "description": "Thumbnail image bytes",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "slot_not_found / backup_not_found / staged_upload_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDTO"
+                }
+              }
+            },
+            "x-error-code": "not_found"
+          }
+        },
+        "x-notes": "hasThumbnail on WorldSlotDTO tells a client whether to bother calling this. Thumbnail generation itself is deterministic and automatic on slot create/update (P6.12); POST on this path sets a client-supplied thumbnail.",
+        "parameters": [
+          {
+            "name": "server_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Set the server's active-world thumbnail without selecting it",
+        "operationId": "setServerThumbnail",
+        "x-permission-category": "worlds",
+        "parameters": [
+          {
+            "name": "server_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldThumbnailUploadRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mutation applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldMutationResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_body / invalid_json / invalid_body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDTO"
+                }
+              }
+            },
+            "x-error-code": "invalid_body"
+          },
+          "404": {
+            "description": "slot_not_found / staged_upload_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDTO"
+                }
+              }
+            },
+            "x-error-code": "not_found"
+          },
+          "409": {
+            "description": "no_active_server / world_reconciliation_degraded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDTO"
+                }
+              }
+            },
+            "x-error-code": "conflict"
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDTO"
+                }
+              }
+            },
+            "x-error-code": "internal_error"
+          }
+        },
+        "x-notes": "Redeems exactly one staged upload with purpose world-thumbnail. The staged image is decoded, resized without upscaling to at most 800x450, JPEG-encoded, and saved as the slot thumbnail. Missing, expired, or wrong-purpose staged ids are plain 404 not_found responses."
+      }
+    },
+    "/v1/host/memory": {
+      "get": {
+        "summary": "Whole-computer RAM usage, independent of the selected server",
+        "responses": {
+          "200": {
+            "description": "RAM used and total in bytes; null when unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostMemoryDTO"
+                }
+              }
+            }
+          }
+        },
+        "x-permission-category": "none"
+      }
+    },
     "/v1/performance": {
       "get": {
         "summary": "Latest performance snapshot (TPS, players, CPU, RAM, world size)",
@@ -16930,6 +17072,27 @@
         "required": [
           "running"
         ]
+      },
+      "HostMemoryDTO": {
+        "type": "object",
+        "required": [
+          "usedBytes",
+          "totalBytes"
+        ],
+        "properties": {
+          "usedBytes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "nullable": true
+          },
+          "totalBytes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "nullable": true
+          }
+        }
       },
       "PerformanceSnapshotDTO": {
         "type": "object",

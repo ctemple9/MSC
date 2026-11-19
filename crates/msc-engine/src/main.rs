@@ -547,6 +547,7 @@ fn build_app_with_auth_and_worlds(
         .merge(bedrock)
         .route("/capabilities", get(routes::capabilities::capabilities))
         .route("/me", get(routes::capabilities::me))
+        .route("/host/memory", get(routes::performance::host_memory))
         .merge(operations)
         .merge(operation_progress)
         .merge(console)

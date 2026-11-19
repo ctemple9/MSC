@@ -355,8 +355,11 @@
           bindings.targetServerId === null
             ? undefined
             : (bindings.targetServerId ?? (selectedServerId || undefined));
+        const serverThumbnail =
+          purpose === 'world-thumbnail' && typeof bindings.targetServerId === 'string';
         const current = () =>
-          client?.host === host && (!targetServerId || selectedServerId === targetServerId);
+          client?.host === host &&
+          (serverThumbnail || !targetServerId || selectedServerId === targetServerId);
         const scoped = guardUploadApi(createScreenApi(initiatingClient), current);
         const caps = await scoped.get<Schema['CapabilitiesDTO']>('/v1/capabilities');
         if (

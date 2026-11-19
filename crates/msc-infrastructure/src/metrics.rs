@@ -205,3 +205,11 @@ fn directory_size_bytes(path: &Path) -> io::Result<u64> {
     }
     Ok(total)
 }
+
+/// Whole-computer memory, independent of the selected Minecraft process.
+pub fn host_memory_bytes() -> Option<(u64, u64)> {
+    let mut system = sysinfo::System::new();
+    system.refresh_memory();
+    let total = system.total_memory();
+    (total > 0).then(|| (system.used_memory().min(total), total))
+}

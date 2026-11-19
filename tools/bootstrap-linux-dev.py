@@ -2,6 +2,7 @@
 """Provision the Linux development service helper without a release package."""
 
 import os
+import hashlib
 from pathlib import Path
 import stat
 import shutil
@@ -24,6 +25,13 @@ def protected(path, directory=False):
         raise RuntimeError(f"Expected a protected root-owned {'directory' if directory else 'file'}: {path}")
 
 
+def same_build(left, right):
+    def digest(path):
+        with path.open("rb") as stream:
+            return hashlib.file_digest(stream, "sha256").digest()
+    return digest(left) == digest(right)
+
+
 def main():
     source = Path(sys.argv[1]).resolve(strict=True)
     if os.geteuid() != 0:
@@ -35,8 +43,12 @@ def main():
                     protected(parent, directory=True)
                 if not os.access(candidate, os.X_OK):
                     raise RuntimeError(f"Service helper is not executable: {candidate}")
-                return 0
-        print("MSC development needs a one-time administrator authorization to install its service helper.", flush=True)
+                # Packaged helpers are maintained by the package manager. A
+                # development helper must track the build's privileged commands.
+                if candidate != DESTINATION or same_build(source, candidate):
+                    return 0
+                break
+        print("MSC development needs administrator authorization to install or update its service helper.", flush=True)
         print("This installs the locally built helper only. Use Install/Repair in the app to register the Background Service.", flush=True)
         return subprocess.call(["pkexec", sys.executable, "-I", str(Path(__file__).resolve()), str(source)])
 
@@ -53,7 +65,8 @@ def main():
         protected(directory, directory=True)
     if DESTINATION.exists() or DESTINATION.is_symlink():
         protected(DESTINATION)
-        return 0
+        if same_build(source, DESTINATION):
+            return 0
     with source.open("rb") as stream:
         metadata = os.fstat(stream.fileno())
         if not stat.S_ISREG(metadata.st_mode) or metadata.st_uid != int(os.environ["PKEXEC_UID"]):

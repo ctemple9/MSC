@@ -2339,6 +2339,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "msc-desktop-web"
+version = "0.1.48"
+dependencies = [
+ "ed25519-dalek",
+ "fs2",
+ "futures-util",
+ "libc",
+ "msc-api",
+ "msc-application",
+ "msc-infrastructure",
+ "msc-platform-linux",
+ "msc-platform-macos",
+ "msc-platform-windows",
+ "rand 0.8.7",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-notification",
+ "tokio",
+ "uuid",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "msc-domain"
 version = "0.1.0"
 dependencies = [
@@ -2405,35 +2434,6 @@ version = "0.1.0"
 dependencies = [
  "msc-infrastructure",
  "tokio",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "msc-desktop-web"
-version = "0.1.48"
-dependencies = [
- "ed25519-dalek",
- "fs2",
- "futures-util",
- "libc",
- "msc-api",
- "msc-application",
- "msc-infrastructure",
- "msc-platform-linux",
- "msc-platform-macos",
- "msc-platform-windows",
- "rand 0.8.7",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-notification",
- "tokio",
- "uuid",
  "windows-sys 0.61.2",
 ]
 

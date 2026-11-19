@@ -1,5 +1,5 @@
 // Generated from docs/msc/api-contract/openapi.json. Do not edit by hand.
-// Contract SHA-256: f8a703fa65b97bfcf261abb4c16a673041bcb15aeccdd6bb376b51122629fb43
+// Contract SHA-256: 219f327e6a7a1b1665b2d80a9aa4e73eb90b83166f125450cbbe9825b3c895cc
 
 export interface paths {
   '/v1/active-server': {
@@ -2852,6 +2852,42 @@ export interface paths {
           };
           content: {
             'application/json': components['schemas']['HelpCatalogDTO'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/host/memory': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Whole-computer RAM usage, independent of the selected server */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description RAM used and total in bytes; null when unavailable */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['HostMemoryDTO'];
           };
         };
       };
@@ -5910,6 +5946,24 @@ export interface paths {
     get: operations['discoverContentUpdates'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/servers/{server_id}/thumbnail': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read the server's active-world thumbnail */
+    get: operations['getServerThumbnail'];
+    put?: never;
+    /** Set the server's active-world thumbnail without selecting it */
+    post: operations['setServerThumbnail'];
     delete?: never;
     options?: never;
     head?: never;
@@ -9550,6 +9604,14 @@ export interface components {
       message: string;
       profileId?: string;
       success: boolean;
+    } & {
+      [key: string]: unknown;
+    };
+    HostMemoryDTO: {
+      /** Format: int64 */
+      totalBytes: number | null;
+      /** Format: int64 */
+      usedBytes: number | null;
     } & {
       [key: string]: unknown;
     };
@@ -14337,6 +14399,99 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  getServerThumbnail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        server_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Thumbnail image bytes */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/jpeg': string;
+        };
+      };
+      /** @description slot_not_found / backup_not_found / staged_upload_not_found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorDTO'];
+        };
+      };
+    };
+  };
+  setServerThumbnail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        server_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WorldThumbnailUploadRequestDTO'];
+      };
+    };
+    responses: {
+      /** @description Mutation applied */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['WorldMutationResultDTO'];
+        };
+      };
+      /** @description missing_body / invalid_json / invalid_body */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorDTO'];
+        };
+      };
+      /** @description slot_not_found / staged_upload_not_found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorDTO'];
+        };
+      };
+      /** @description no_active_server / world_reconciliation_degraded */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorDTO'];
+        };
+      };
+      /** @description internal error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorDTO'];
+        };
       };
     };
   };
