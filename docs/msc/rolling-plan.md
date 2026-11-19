@@ -1827,3 +1827,25 @@ starts the app walkthrough.
 Checks: touched Svelte formatting and `git diff --check` passed. Frontend
 `npm run check` passed with 0 errors and existing CSS warnings. No tests added
 or run. Existing desktop lockfile ordering is excluded.
+
+### P26.46 — explain world packs before backups
+
+**Status:** Implemented; owner walkthrough verification pending.
+
+**Files:** Onboarding guide; this plan.
+
+**What:** Swap the World packs and World backups cards so the walkthrough
+follows World slots → World packs → World backups → View your world. Renumber
+the two order fields; retain card IDs, copy, anchors and conditional behavior.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Repair engine to load the
+updated guide, then Help → Onboard → Explore MSC; confirm World packs precedes
+World backups and Back follows the reverse order.
+
+**Batch:** Requested two-card order swap only.
+
+**Commit:** `P26.46: explain world packs before backups`
+
+Checks: guide JSON parsed, resulting order inspected, and `git diff --check`
+passed. No tests added or run; no frontend or Rust implementation changed.
+Existing desktop lockfile ordering remains excluded.

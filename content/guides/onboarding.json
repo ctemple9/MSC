@@ -336,18 +336,18 @@
     },
     {
       "order": 38,
-      "id": "backups",
-      "title": "World backups",
-      "body": "Backups belong to the selected world slot. Create a backup before an important change, and use this area to review backups or restore an earlier copy.",
-      "anchor": "ob_tour_backups",
-      "requiresUserAction": false
-    },
-    {
-      "order": 39,
       "id": "world-packs-detail",
       "title": "World packs",
       "body": "Datapacks change features and behavior in this world. Browse or import packs here, then manage the packs attached to the selected world slot.",
       "anchor": "ob_tour_world_packs",
+      "requiresUserAction": false
+    },
+    {
+      "order": 39,
+      "id": "backups",
+      "title": "World backups",
+      "body": "Backups belong to the selected world slot. Create a backup before an important change, and use this area to review backups or restore an earlier copy.",
+      "anchor": "ob_tour_backups",
       "requiresUserAction": false
     },
     {
