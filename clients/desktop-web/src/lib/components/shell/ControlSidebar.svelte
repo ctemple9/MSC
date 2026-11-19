@@ -202,12 +202,15 @@
 
   let maintenanceNotice = '';
 
-  async function revealFolder(path: string): Promise<void> {
+  async function revealFolder(path: string, logs = false): Promise<void> {
     maintenanceNotice = '';
     try {
       await (await getPlatform()).revealInFileManager(path);
-    } catch {
-      maintenanceNotice = 'Could not open this folder.';
+    } catch (error) {
+      maintenanceNotice =
+        logs && String(error).includes('That path no longer exists')
+          ? 'No saved logs yet. Start the server to create its logs folder.'
+          : 'Could not open this folder.';
     }
   }
 
@@ -218,7 +221,7 @@
 
   function openLogsDirectory(): void {
     if (!activeServer) return;
-    void revealFolder(`${activeServer.directory}/logs`);
+    void revealFolder(`${activeServer.directory}/logs`, true);
   }
 
   function startOrInitiate(): void {

@@ -4,6 +4,8 @@
 //! here means HTTP handlers only report the selected result; they do not need
 //! to know how a native process or a macOS sidecar is built.
 
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -173,6 +175,7 @@ pub struct BedrockRuntimeSelection {
     runtime: Arc<Mutex<BedrockRuntimeHandle>>,
     bound_server_dir: Arc<Mutex<Option<PathBuf>>>,
     latest_metrics: Arc<Mutex<Option<BedrockRuntimeMetrics>>>,
+    console_log: Arc<Mutex<Option<File>>>,
 }
 
 impl BedrockRuntimeSelection {
@@ -512,7 +515,18 @@ impl BedrockRuntimeSelection {
 
     pub fn start(&self, request: BedrockStartRequest) -> Result<(), BedrockRuntimeError> {
         *self.latest_metrics.lock().unwrap() = None;
-        self.runtime.lock().unwrap().start(request)
+        let mut runtime = self.runtime.lock().unwrap();
+        runtime.start(request)?;
+        // Native BDS does not write the Java-style logs folder itself.
+        if self.backend() == Some(BedrockRuntimeBackend::Native) {
+            let directory = self.bound_server_dir.lock().unwrap().clone();
+            *self.console_log.lock().unwrap() = directory.and_then(|directory| {
+                open_native_console_log(&directory)
+                    .map_err(|error| eprintln!("Could not save Bedrock console log: {error}"))
+                    .ok()
+            });
+        }
+        Ok(())
     }
 
     pub fn stop(&self) -> Result<(), BedrockRuntimeError> {
@@ -526,10 +540,20 @@ impl BedrockRuntimeSelection {
     pub fn poll_event(&self) -> Result<Option<BedrockRuntimeEvent>, BedrockRuntimeError> {
         let event = self.runtime.lock().unwrap().poll_event()?;
         match &event {
+            Some(BedrockRuntimeEvent::ConsoleLine(line)) => {
+                let mut log = self.console_log.lock().unwrap();
+                if let Some(file) = log.as_mut()
+                    && let Err(error) = writeln!(file, "{line}")
+                {
+                    eprintln!("Could not save Bedrock console log: {error}");
+                    *log = None;
+                }
+            }
             Some(BedrockRuntimeEvent::Metrics(metrics)) => {
                 *self.latest_metrics.lock().unwrap() = Some(metrics.clone());
             }
             Some(BedrockRuntimeEvent::Terminated { .. }) => {
+                *self.console_log.lock().unwrap() = None;
                 *self.latest_metrics.lock().unwrap() = None;
             }
             _ => {}
@@ -551,6 +575,7 @@ impl BedrockRuntimeSelection {
             runtime: Arc::new(Mutex::new(runtime)),
             bound_server_dir: Arc::new(Mutex::new(None)),
             latest_metrics: Arc::new(Mutex::new(None)),
+            console_log: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -663,4 +688,27 @@ fn sidecar_resources() -> Option<BedrockSidecarResources> {
 #[cfg(not(target_os = "macos"))]
 fn sidecar_resources() -> Option<BedrockSidecarResources> {
     None
+}
+
+fn open_native_console_log(directory: &Path) -> std::io::Result<File> {
+    let logs = directory.join("logs");
+    fs::create_dir_all(&logs)?;
+    let latest = logs.join("latest.log");
+    // Keep the preceding run without letting repeated starts accumulate files.
+    let previous = logs.join("previous.log");
+    if latest.try_exists()? {
+        match fs::remove_file(&previous) {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error),
+        }
+    }
+    match fs::rename(&latest, previous) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error),
+    }
+    let mut file = File::create(latest)?;
+    writeln!(file, "=== MSC Bedrock console log ===")?;
+    Ok(file)
 }

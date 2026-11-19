@@ -2004,3 +2004,33 @@ Help/Handbook/Router/App preferences steps.
 Checks: frontend type check passed with 0 errors and 10 existing CSS warnings;
 touched frontend formatting and diff whitespace check passed. No tests added or
 run. Existing desktop lockfile ordering excluded.
+
+### P26.53 — save native Bedrock console logs
+
+**Status:** Implemented; owner verification pending.
+
+**Files:** Bedrock runtime composition; ControlSidebar; this plan.
+
+**What:** The Logs shortcut correctly targets the server's logs directory, but
+native Bedrock had only live console output and never created that directory.
+Save native Linux/Windows Bedrock console events to logs/latest.log, preserving
+the preceding run as previous.log. Close the log on termination; report disk
+write failures in engine diagnostics without stopping a running server. Retain
+the sidecar's existing logging. If Logs is clicked before a folder exists, show
+“No saved logs yet” with a start-server instruction instead of a generic failure.
+Existing live output cannot be recovered retroactively.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — rebuild/repair the
+background service, start and stop a Bedrock server, then Maintenance → Logs.
+Confirm the folder opens and latest.log contains its console output. Start/stop
+again and confirm previous.log preserves the preceding run. Before the first
+logged run, a missing folder should show the clear no-logs message.
+
+**Batch:** Native Bedrock log persistence and missing-log-folder feedback only.
+
+**Commit:** `P26.53: persist native bedrock console logs`
+
+Checks: cargo fmt and cargo clippy -p msc-engine --no-deps passed with existing
+warnings; npm run check passed with 0 errors and 10 existing CSS warnings.
+Frontend formatting and git diff --check passed. No tests added or run. Restored
+root lockfile ordering caused by cargo; existing desktop lockfile excluded.
