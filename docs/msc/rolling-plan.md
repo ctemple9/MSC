@@ -2387,3 +2387,26 @@ notice, and local Directory/Logs still open the native file manager.
 Frontend type check passed with 0 errors and 10 existing warnings; touched
 frontend formatting and diff whitespace checks passed. No tests run; owner manual
 verification pending.
+
+### P26.57 — prepare and launch the 0.1.49 beta release
+
+**Status:** Release prepared; owner authorized publication and explicitly asked
+not to monitor the workflow. Build/publication result remains unverified.
+**Files:** Engine/desktop version manifests, lockfiles and bundle identity;
+v0.1.49 release notes; this plan.
+**What:** Synchronize release identity at 0.1.49 and publish a new immutable tag
+through the existing build-only workflow. Include P26.32–P26.56 welcome,
+onboarding, initiation progress, native Bedrock logging, computer profile redesign
+and remote folder fixes. Preserve all nine packages, checksums and signed update
+metadata; no workflow changes or tests. The prior published release is v0.1.48;
+v0.1.49 did not exist remotely before preparation. Expected hosted build cost is
+approximately 36–40 minutes; downstream packaging/notarization remains uncertain.
+**Verify:** `gh release view v0.1.49` — after workflow completion, owner checks
+publication and complete packages/checksums/signed update metadata.
+**Batch:** Prepare and start this release only; do not monitor, rerun or move tags.
+**Commit:** P26.57: prepare 0.1.49 beta release
+
+Validation: inspect and parse all release version declarations, check the
+workflow's bundle-version extraction, and pass diff whitespace checks before
+commit/tag/push. README retains the last confirmed published build until the
+owner requests or confirms a later update. No tests run.
