@@ -2414,7 +2414,7 @@ owner requests or confirms a later update. No tests run.
 
 ### P26.58 — fill the macOS installer window with its background
 
-**Status:** Implemented; local Intel DMG built; owner visual verification pending.
+**Status:** Owner accepted the local Intel DMG appearance on 2026-11-19 ("Looks good").
 **Files:** `clients/desktop-web/src-tauri/dmg-background.png`; this plan.
 **What:** Cameron reported white right and bottom margins in the Intel installer.
 The 640 × 360 image carried 96 DPI metadata, giving Finder a 480 × 270 point
@@ -2438,3 +2438,28 @@ macOS. Candidate: `~/Downloads/MSC-0.1.49-intel-dmg-background.dmg` (unsigned,
 not published). Mounted the built DMG read-only and confirmed its embedded
 background is 640 × 360 at 72 DPI. Physical Finder appearance remains for Cameron
 to verify. Existing frontend build warnings do not prevent packaging.
+
+
+### P26.59 — prepare and launch the 0.1.50 beta release
+
+**Status:** Release prepared; owner authorized version increment and GitHub publication.
+Hosted build/publication and owner verification remain pending.
+**Files:** Engine/desktop version manifests, lockfiles and bundle identity;
+`docs/msc/release/v0.1.50.md`; this plan.
+**What:** Synchronize release identity at 0.1.50 and publish a new immutable tag
+through the existing build-only workflow, including P26.58's owner-accepted DMG
+background correction. The prior published beta is v0.1.49 with all nine packages,
+checksums and signed update metadata present. Preserve that complete artifact
+contract and existing signing/notarization. No workflow changes or tests.
+Expected hosted build cost is approximately 36–40 minutes; remote packaging and
+notarization remain uncertain. Do not move tags or automatically retry failures.
+**Verify:** `gh release view v0.1.50` — after workflow completion, owner confirms
+publication, all nine packages, checksums and signed update metadata, and the
+published Intel DMG's appearance.
+**Batch:** Prepare and launch this release only; publication runs asynchronously.
+**Commit:** P26.59: prepare 0.1.50 beta release
+
+Validation: parse and compare all release version declarations, confirm lockfile
+package identities and release notes, inspect existing workflow version extraction
+and complete-artifact publication, and check diff whitespace before commit/tag/push.
+No Rust source changes or tests. README retains its previously confirmed release.
