@@ -18,6 +18,7 @@
   import { getPlatform } from '../../platform';
   import { JAVA_FLAVOR_CATALOG, crossPlayUnavailable } from '../../sections/fleet/wizard/model';
   import type { JavaCategory, JavaFlavor } from '../../sections/fleet/wizard/model';
+  import { LOCAL_HOST_ID } from '../../hosts/types';
   import type { HostId, HostRecord } from '../../hosts/types';
   import type { Schema, ScreenApi } from '../../sections/shared/types';
 
@@ -65,6 +66,7 @@
   export let onDiscardInitiation: () => void = () => undefined;
   export let discardingInitiation = false;
   export let onManage: () => void;
+  export let onOpenFiles: (path: '' | 'logs') => void = () => undefined;
   export let addressesVisible = false;
   export let onToggleAddresses: () => void = () => undefined;
 
@@ -216,11 +218,21 @@
 
   function openServerDirectory(): void {
     if (!activeServer) return;
+    maintenanceNotice = '';
+    if (activeHostId !== LOCAL_HOST_ID) {
+      onOpenFiles('');
+      return;
+    }
     void revealFolder(activeServer.directory);
   }
 
   function openLogsDirectory(): void {
     if (!activeServer) return;
+    maintenanceNotice = '';
+    if (activeHostId !== LOCAL_HOST_ID) {
+      onOpenFiles('logs');
+      return;
+    }
     void revealFolder(`${activeServer.directory}/logs`, true);
   }
 

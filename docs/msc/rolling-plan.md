@@ -2367,3 +2367,23 @@ zero servers, then one with servers; only the empty state aligns left.
 
 Validation: inspected flex layout and passed diff whitespace check. No tests run;
 no build/type check needed for a single CSS margin declaration.
+
+### P26.56 — open remote sidebar folders through MSC Files
+
+**Status:** Implemented; owner verification pending.
+**Files:** App; ApplicationShell; ControlSidebar; FilesSection; this plan.
+**What:** Remote Directory opens Files at server root; remote Logs opens logs via
+the existing connected-engine file API. Local actions retain native file-manager
+reveal. Explicit host/server-bound directory requests work when Files is already
+mounted and reset file previews; generation/client guards discard stale listings
+when host/server/request changes. Older remote engines need no new endpoint.
+**Verify:** `cd clients/desktop-web && npx tauri dev` — connect to remote host,
+click sidebar Directory and Logs, then browse elsewhere in Files and repeat.
+Confirm remote log files preview inside MSC, missing remote logs show an API
+notice, and local Directory/Logs still open the native file manager.
+**Batch:** This bounded remote-sidebar folder fix only.
+**Commit:** P26.56: open remote sidebar folders in files
+
+Frontend type check passed with 0 errors and 10 existing warnings; touched
+frontend formatting and diff whitespace checks passed. No tests run; owner manual
+verification pending.

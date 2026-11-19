@@ -30,6 +30,8 @@
   export let api: ScreenProps['api'] = undefined;
   export let hostId = 'local-agent';
   export let serverId = 'survival';
+  export let directoryRequest: { hostId: string; serverId: string; path: '' | 'logs' } | undefined =
+    undefined;
 
   let servers: Schema['ServerDTO'][] = [];
   let currentPath = '';
@@ -53,24 +55,41 @@
     servers = await call(api, servers, '/v1/servers');
   }
 
+  let listingGeneration = 0;
   async function load(path: string): Promise<void> {
+    const generation = ++listingGeneration;
+    const client = api;
     loading = true;
     error = undefined;
     revealNotice = undefined;
     try {
-      listing = api ? await browseDirectory(api, path) : undefined;
+      const result = client ? await browseDirectory(client, path) : undefined;
+      if (generation !== listingGeneration || client !== api) return;
+      listing = result;
       currentPath = listing?.path ?? path;
     } catch (err) {
-      error = errorMessage(err);
+      if (generation === listingGeneration && client === api) error = errorMessage(err);
     } finally {
-      loading = false;
+      if (generation === listingGeneration && client === api) loading = false;
     }
   }
 
-  let loadedForServerId: string | undefined;
-  $: if (serverId !== loadedForServerId) {
-    loadedForServerId = serverId;
-    void load('');
+  let loadedContext = '';
+  let loadedApi: typeof api;
+  let appliedRequest: typeof directoryRequest;
+  $: {
+    const context = `${hostId}:${serverId}`;
+    const request =
+      directoryRequest?.hostId === hostId && directoryRequest.serverId === serverId
+        ? directoryRequest
+        : undefined;
+    if (context !== loadedContext || request !== appliedRequest || loadedApi !== api) {
+      loadedApi = api;
+      loadedContext = context;
+      appliedRequest = request;
+      previewingPath = undefined;
+      void load(request?.path ?? '');
+    }
   }
 
   function openEntry(entry: Schema['ServerFileItemDTO']): void {

@@ -56,6 +56,7 @@
   export let discardingInitiation = false;
   export let onOpenEngineSetup: () => void;
   export let onManage: () => void;
+  export let onOpenFiles: (path: '' | 'logs') => void = () => undefined;
   export let onHelp: (() => void) | undefined = undefined;
   export let onSettings: (() => void) | undefined = undefined;
   export let onRefresh: (() => void) | undefined = undefined;
@@ -177,6 +178,7 @@
         {onDiscardInitiation}
         {discardingInitiation}
         {onManage}
+        {onOpenFiles}
         {addressesVisible}
         {onToggleAddresses}
       />

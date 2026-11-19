@@ -464,6 +464,12 @@
   const screenApi: ScreenApi = createScreenApi();
 
   let activeSection = '';
+  let directoryRequest: { hostId: string; serverId: string; path: '' | 'logs' } | undefined;
+  function openServerFiles(path: '' | 'logs'): void {
+    if (!selectedServerId) return;
+    directoryRequest = { hostId, serverId: selectedServerId, path };
+    void selectSection('files');
+  }
   let sectionRequest = 0;
   // Keep visited tab instances alive for this server so their lightweight UI
   // state and loaded responses are available immediately on return. The list
@@ -1457,6 +1463,7 @@
   {discardingInitiation}
   onOpenEngineSetup={openEngineSetup}
   onManage={() => (manageOpen = true)}
+  onOpenFiles={openServerFiles}
   {addressesVisible}
   onToggleAddresses={toggleAddresses}
   onHelp={() => void selectSection('handbook')}
@@ -1491,6 +1498,7 @@
           {isDesktopShell}
           isLocalHost={hostId === localEngineHostId}
           serverId={selectedServerId}
+          {directoryRequest}
           active={loaded.id === activeSection}
           {permissions}
           readiness={engineReadiness}
