@@ -1849,3 +1849,32 @@ World backups and Back follows the reverse order.
 Checks: guide JSON parsed, resulting order inspected, and `git diff --check`
 passed. No tests added or run; no frontend or Rust implementation changed.
 Existing desktop lockfile ordering remains excluded.
+
+### P26.47 — keep the map visible during its onboarding explanation
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** AppTour, TourOverlay, tour anchors, WorldMapViewer; this plan.
+
+**What:** When View Map is opened during its explanation, retarget the spotlight
+from the now-unmounted View Map button to the live map surface. Keep the map and
+its central saved-terrain/status message visible and undimmed. Place this card at
+the upper left, using the sidebar space and narrowing to fit beside the map when
+available, rather than falling back to a centered blocking card. Bound its height
+to the window. Retain the normal button spotlight before the viewer is opened,
+and existing Back/Next/X behavior. No map rendering or terrain-generation changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Explore MSC → View your
+world; click View Map. Confirm the tour card moves to the upper-left sidebar area,
+the map remains highlighted, and the empty-terrain message in the center is fully
+readable. Check Next/Back, closing the viewer, and resizing the app window.
+
+**Batch:** Map onboarding placement and live target only.
+
+**Commit:** `P26.47: keep map onboarding clear of terrain status`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+formatting and `git diff --check` passed. Preserved the map viewer's existing
+formatting outside its two anchor edits. No tests added or run for this visual
+correction. No live map/server operations or engine changes. Pre-existing desktop
+lockfile ordering is excluded.

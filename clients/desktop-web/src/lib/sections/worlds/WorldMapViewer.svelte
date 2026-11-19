@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { onboardingAnchor } from '../../help/tourAnchors';
   import Select from '../../components/base/Select.svelte';
   import { isTauri } from '@tauri-apps/api/core';
   import { getCurrentWindow, LogicalPosition } from '@tauri-apps/api/window';
@@ -908,7 +909,7 @@
   });
 </script>
 
-<section class="map-shell" aria-label={`Saved terrain for ${worldName}`}>
+<section class="map-shell" use:onboardingAnchor={'ob_tour_map_view'} aria-label={`Saved terrain for ${worldName}`}>
   <header class="map-header">
     <div class="map-title">
       <button type="button" class="back" onclick={onClose}>← Worlds</button>

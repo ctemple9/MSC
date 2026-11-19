@@ -245,8 +245,16 @@
     return { left, top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
   })();
 
+  $: mapViewCard =
+    appWalkthrough && step?.id === 'world-map' && spotlightAnchor === 'ob_tour_map_view';
+  $: cardWidth =
+    mapViewCard && spot && spot.left >= 200
+      ? Math.min(CARD_WIDTH, spot.left - MARGIN * 2)
+      : CARD_WIDTH;
   $: cardPos = (() => {
     if (!spot) return null;
+    // Keep the map and its central status readable after View Map replaces its button.
+    if (mapViewCard) return { top: MARGIN, left: MARGIN };
     const spaceBelow = viewportH - (spot.top + spot.height + MARGIN);
     const spaceAbove = spot.top - MARGIN;
     const placeBelow = spaceBelow >= Math.min(CARD_EST_HEIGHT, spaceAbove);
@@ -305,7 +313,7 @@
         class={`walkthrough-card ${hasAnchor && cardPos ? 'anchored-card' : 'bookend-card'}`}
         use:focusWalkthrough
         style={hasAnchor && cardPos
-          ? `top:${cardPos.top}px; left:${cardPos.left}px; width:${CARD_WIDTH}px;`
+          ? `top:${cardPos.top}px; left:${cardPos.left}px; width:${cardWidth}px; max-height:${viewportH - cardPos.top - MARGIN}px;`
           : undefined}
       >
         {#if skipLabel === 'Finish tour'}

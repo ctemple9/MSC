@@ -34,7 +34,15 @@
   $: steps = guide.steps.slice(guide.steps.findIndex((step) => step.id === 'created-done'));
   $: index = steps.findIndex((step) => step.id === checkpoint.step);
   $: sourceStep = steps[index];
-  $: step = sourceStep ? adapt(sourceStep, server, guide.variants ?? {}) : undefined;
+  $: step = sourceStep
+    ? {
+        ...adapt(sourceStep, server, guide.variants ?? {}),
+        anchor:
+          sourceStep.id === 'world-map' && $anchorFrames.ob_tour_map_view
+            ? 'ob_tour_map_view'
+            : sourceStep.anchor,
+      }
+    : undefined;
   $: paused = checkpoint.step === 'waiting-initiation' || !sameServer || initiationVisible;
   $: if (paused) {
     prepared = '';
