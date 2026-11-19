@@ -2410,3 +2410,31 @@ Validation: inspect and parse all release version declarations, check the
 workflow's bundle-version extraction, and pass diff whitespace checks before
 commit/tag/push. README retains the last confirmed published build until the
 owner requests or confirms a later update. No tests run.
+
+
+### P26.58 — fill the macOS installer window with its background
+
+**Status:** Implemented; local Intel DMG built; owner visual verification pending.
+**Files:** `clients/desktop-web/src-tauri/dmg-background.png`; this plan.
+**What:** Cameron reported white right and bottom margins in the Intel installer.
+The 640 × 360 image carried 96 DPI metadata, giving Finder a 480 × 270 point
+background inside the configured 640 × 360 point window. Change only the PNG
+resolution chunk to 72 DPI (2835 pixels/metre), matching the window's dimensions.
+All other PNG chunks, including compressed pixel data, remain byte-identical.
+The shared background applies to both macOS architectures. No application,
+workflow, version, or release changes. Owner requested a local Intel DMG to inspect.
+**Verify:** `open "$HOME/Downloads/MSC-0.1.49-intel-dmg-background.dmg"` —
+confirm the dark background fills the initial Finder content area without white
+right/bottom margins and both installation icons remain visible.
+**Batch:** This reported installer fix and local candidate only; stop for owner review.
+**Commit:** P26.58: match dmg background resolution to finder window
+
+Validation: inspected PNG dimensions and resolution with `sips`; compared every
+non-resolution PNG chunk byte-for-byte before and after the edit. No tests added
+or run. Rust formatting/lint checks are inapplicable to this PNG metadata change.
+
+Local build: `npm exec tauri build -- --bundles dmg --no-sign` passed on Intel
+macOS. Candidate: `~/Downloads/MSC-0.1.49-intel-dmg-background.dmg` (unsigned,
+not published). Mounted the built DMG read-only and confirmed its embedded
+background is 640 × 360 at 72 DPI. Physical Finder appearance remains for Cameron
+to verify. Existing frontend build warnings do not prevent packaging.
