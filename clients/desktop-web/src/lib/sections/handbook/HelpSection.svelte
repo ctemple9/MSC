@@ -172,11 +172,6 @@
           onchange={(value) => selectView(value as View)}
         />
       </div>
-      <Button
-        size="sm"
-        variant="secondary"
-        onclick={() => window.dispatchEvent(new CustomEvent('msc:explore-app'))}>Explore MSC</Button
-      >
       <Card padding="18px">
         {#if activeView === 'handbook'}
           <HandbookBrowser
@@ -229,6 +224,12 @@
                 Restart server creation below, or choose Explore MSC for the app walkthrough.
               </p>
               <Button size="sm" variant="secondary" onclick={restartTour}>Restart the guide</Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onclick={() => window.dispatchEvent(new CustomEvent('msc:explore-app'))}
+                >Explore MSC</Button
+              >
             {/if}
           </div>
         {:else}

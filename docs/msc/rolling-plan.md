@@ -1805,3 +1805,25 @@ Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. No tests added or run for these
 small navigation changes; no live server/world operations performed. Pre-existing
 desktop lockfile ordering is excluded.
+
+### P26.45 — place Explore MSC below the guide restart action
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** HelpSection; this plan.
+
+**What:** Move Explore MSC from above the guides content into the completed
+Onboarding card, directly beneath Restart the guide. Reuse the existing vertical
+layout, button styling and exploration action.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Help → Onboard; confirm
+Explore MSC is immediately below Restart the guide inside the card and still
+starts the app walkthrough.
+
+**Batch:** Requested button relocation only.
+
+**Commit:** `P26.45: place explore msc beneath guide restart`
+
+Checks: touched Svelte formatting and `git diff --check` passed. Frontend
+`npm run check` passed with 0 errors and existing CSS warnings. No tests added
+or run. Existing desktop lockfile ordering is excluded.
