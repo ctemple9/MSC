@@ -28,6 +28,7 @@
   // here (`actionMenu`) rather than one per card.
   import { ApiError } from '../../api/client';
   import { onDestroy, onMount } from 'svelte';
+  import { appTourStep } from '../../help/appTour';
   import { onboardingAnchor } from '../../help/tourAnchors';
   import Icon from '../../components/base/Icon.svelte';
   import Button from '../../components/base/Button.svelte';
@@ -88,6 +89,9 @@
 
   let selectedSlotId: string | undefined;
   let mapOpen = false;
+  // A cached map view must not replace the Worlds surface being explained.
+  $: if (['worlds', 'backups', 'world-packs-detail', 'world-map'].includes($appTourStep ?? ''))
+    mapOpen = false;
   let confirming: { slotId: string; kind: 'activate' | 'delete' | 'duplicate' } | undefined;
   let confirmingBackupDeleteId: string | undefined;
   let packProvider: 'modrinth' | 'curseforge' = 'modrinth';

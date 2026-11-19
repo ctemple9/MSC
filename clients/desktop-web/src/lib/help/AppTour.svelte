@@ -101,7 +101,7 @@
     if (previous && previous.id !== 'initiate' && previous.id !== 'created-done') move(previous.id);
   }
   function finish(): void {
-    // Returning through Help resumes exploration rather than requiring creation again.
+    // Keep the optional entry available without requiring server creation again.
     if (index < steps.findIndex((step) => step.id === 'console') || checkpoint.step === 'done')
       onCheckpoint({ ...checkpoint, step: 'console' });
     appTourStep.set(null);

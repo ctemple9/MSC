@@ -1775,3 +1775,33 @@ Checks: Rust formatting and engine Clippy passed with existing unused-variable/
 mut warnings; `git diff --check` passed. No tests or live server/map operations
 run. Clippy's package-order-only root lockfile change was restored; pre-existing
 desktop lockfile ordering remains excluded.
+
+### P26.44 — restart explicit exploration and open the main Worlds page
+
+**Status:** Implemented; owner walkthrough verification pending.
+
+**Files:** FirstLaunchGate, AppTour comment, WorldsSection; this plan.
+
+**What:** Owner amendment: clicking Explore MSC now always starts at Console,
+the beginning of the optional app walkthrough, rather than restoring the saved
+card. Continue saving checkpoints for an unfinished session reopened with the
+app, and keep full creation-guide restart separate. Reset the cached Worlds
+map view when the walkthrough enters Worlds, backups, world packs or the map
+introduction, so those cards highlight the main Worlds page and its controls
+instead of the last-open map viewer. Do not change the selected world, regenerate
+terrain, or invoke map rendering as part of navigation.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — start Explore MSC, advance
+several cards, finish, then click Explore MSC again: it must begin at Console.
+Open a world's map, navigate away, then start Explore MSC and advance to Worlds:
+confirm the main slots/backups/packs page appears instead of the map. Check Next
+and Back across the Worlds cards and the View Map introduction.
+
+**Batch:** These two owner-requested exploration entry/navigation corrections only.
+
+**Commit:** `P26.44: restart app exploration and reset its worlds view`
+
+Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
+Svelte formatting and `git diff --check` passed. No tests added or run for these
+small navigation changes; no live server/world operations performed. Pre-existing
+desktop lockfile ordering is excluded.

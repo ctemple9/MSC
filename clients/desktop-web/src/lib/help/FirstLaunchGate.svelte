@@ -177,17 +177,9 @@
       if (!server) return;
       explorationRequested = true;
       continuationError = '';
-      const saved = readAppTour();
-      const consoleIndex = onboarding?.steps.findIndex((step) => step.id === 'console') ?? -1;
-      const explorationIds =
-        consoleIndex >= 0 ? onboarding!.steps.slice(consoleIndex).map((step) => step.id) : [];
-      const canResume =
-        saved &&
-        saved.hostId === hostId &&
-        saved.serverId === server.id &&
-        explorationIds.includes(saved.step) &&
-        saved.step !== 'done';
-      checkpoint(canResume ? saved : { hostId, serverId: server.id, step: 'console' });
+      // An explicit Explore action starts a fresh app tour; saved checkpoints
+      // remain for reopening an unfinished session, not for this button.
+      checkpoint({ hostId, serverId: server.id, step: 'console' });
       writeState({ setupComplete: true, tourComplete: false });
       if (!onboarding?.steps.some((step) => step.id === 'created-done')) {
         continuationError = 'Restart or repair the engine to load the expanded tour, then retry.';
