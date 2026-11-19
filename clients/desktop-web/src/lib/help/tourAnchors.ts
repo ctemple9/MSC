@@ -18,6 +18,7 @@ export const KNOWN_TOUR_ANCHOR_IDS: ReadonlySet<string> = new Set([
   'ob_tour_maintenance',
   'ob_tour_quick_commands',
   'ob_tour_content',
+  'ob_tour_tabs',
   'ob_tour_world_slots',
   'ob_tour_backups',
   'ob_tour_world_packs',

@@ -1878,3 +1878,29 @@ formatting and `git diff --check` passed. Preserved the map viewer's existing
 formatting outside its two anchor edits. No tests added or run for this visual
 correction. No live map/server operations or engine changes. Pre-existing desktop
 lockfile ordering is excluded.
+
+### P26.48 — include tab navigation in walkthrough highlights
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** ApplicationShell; TourOverlay; tour anchors; this plan.
+
+**What:** Add an anchor for the primary tab bar and combine its visible bounds
+with the explained content during Overview, Players, Worlds and its substeps,
+Performance, Components, Settings and Files cards. The highlight now includes
+the selected tab and surrounding navigation so users can identify the screen.
+Retain viewport border clamping and the map card's sidebar placement. Sidebar,
+header, guide and creation cards keep their existing target bounds.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Help → Onboard → Explore
+MSC; check each tab's explanation includes both its tab bar and content inside
+the highlight. Check Worlds substeps, the open map, and window resizing.
+
+**Batch:** Tab-navigation inclusion in the existing walkthrough outline only.
+
+**Commit:** `P26.48: include tabs in app walkthrough highlights`
+
+Checks: touched Svelte formatting and `git diff --check` passed; frontend
+`npm run check` passed with 0 errors and existing CSS warnings. No tests added
+or run for this presentation change. Existing desktop lockfile ordering is
+excluded.

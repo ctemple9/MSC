@@ -57,6 +57,18 @@
     'world-review': 'ob_wizard_continue',
     'add-ons': 'ob_wizard_continue',
   };
+  const TAB_WALKTHROUGH_STEPS = new Set([
+    'overview',
+    'players',
+    'worlds',
+    'backups',
+    'world-packs-detail',
+    'world-map',
+    'performance',
+    'components',
+    'settings',
+    'files',
+  ]);
   const REVIEW_STEP_IDS = new Set(['server-settings', 'world-review', 'add-ons', 'create']);
   const WORLD_FORM_STEP_IDS = new Set([
     'world-essentials',
@@ -229,7 +241,21 @@
         ? null
         : step?.anchor;
   $: hasAnchor = spotlightAnchor !== null && spotlightAnchor !== undefined;
-  $: anchorRect = hasAnchor && spotlightAnchor ? $anchorFrames[spotlightAnchor] : undefined;
+  $: anchorRect = (() => {
+    const target = hasAnchor && spotlightAnchor ? $anchorFrames[spotlightAnchor] : undefined;
+    const tabs = $anchorFrames.ob_tour_tabs;
+    if (!target || !tabs || !appWalkthrough || !TAB_WALKTHROUGH_STEPS.has(step?.id ?? ''))
+      return target;
+    // Include the navigation that identifies the screen, alongside its explained content.
+    const left = Math.min(target.left, tabs.left);
+    const top = Math.min(target.top, tabs.top);
+    return {
+      left,
+      top,
+      width: Math.max(target.left + target.width, tabs.left + tabs.width) - left,
+      height: Math.max(target.top + target.height, tabs.top + tabs.height) - top,
+    };
+  })();
   $: resolved = hasAnchor && !!anchorRect;
   $: blocking = !hasAnchor || !resolved;
   $: totalSteps = steps.length;

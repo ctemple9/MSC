@@ -192,7 +192,7 @@
         {onEditServer}
       />
 
-      <div class="tabs-row">
+      <div class="tabs-row" use:onboardingAnchor={'ob_tour_tabs'}>
         <TabStrip {tabs} activeId={activeSection} {bannerColor} onSelect={selectSection} />
       </div>
 
