@@ -171,6 +171,7 @@ struct RendererIdentity<'a> {
 struct Renderer {
     _staging: crate::map_staging::Staging,
     _cache_lock: std::fs::File,
+    edition: &'static str,
     server_id: String,
     world: PathBuf,
     dimension: String,
@@ -708,6 +709,48 @@ impl RendererStore {
     }
 }
 
+/// An initialized Bedrock world can contain level.dat and LevelDB metadata but no
+/// generated chunks. Detect that before launching a renderer that requires regions.
+fn has_saved_bedrock_regions(world: &Path, dimension: &str) -> Result<bool, TerrainError> {
+    let region = match dimension {
+        "minecraft:overworld" => world.join("region"),
+        "minecraft:the_nether" => world.join("DIM-1/region"),
+        "minecraft:the_end" => world.join("DIM1/region"),
+        _ => {
+            return Err(TerrainError::new(
+                "dimension_unknown",
+                "This Bedrock dimension is not supported.",
+            ));
+        }
+    };
+    let entries = match std::fs::read_dir(region) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => {
+            return Err(TerrainError::new(
+                "map_storage_failed",
+                format!("Saved Bedrock terrain could not be inspected: {error}"),
+            ));
+        }
+    };
+    for entry in entries {
+        let entry =
+            entry.map_err(|error| TerrainError::new("map_storage_failed", error.to_string()))?;
+        if entry
+            .path()
+            .extension()
+            .is_some_and(|extension| extension == "mca")
+            && entry
+                .file_type()
+                .map_err(|error| TerrainError::new("map_storage_failed", error.to_string()))?
+                .is_file()
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 impl Renderer {
     fn launch(
         server_id: &str,
@@ -718,6 +761,17 @@ impl Renderer {
         progress: &PreparationReporter<'_>,
         server_running: &(impl Fn() -> bool + Sync),
     ) -> Result<Self, TerrainError> {
+        let edition = if identity.edition_cache_key == BEDROCK_TILE_CACHE_KEY {
+            "Bedrock"
+        } else {
+            "Java"
+        };
+        if edition == "Bedrock" && !has_saved_bedrock_regions(world, dimension)? {
+            return Err(TerrainError::new(
+                "dimension_empty",
+                "No saved Bedrock terrain yet in this dimension. Start the server, join with Minecraft Bedrock, and explore to generate terrain. Then stop the server and reopen the map.",
+            ));
+        }
         let binary = dependencies::binary()?;
         progress.update("Checking and preparing Minecraft textures", None, None);
         let assets = dependencies::assets(world, identity.selected_version)?;
@@ -839,8 +893,8 @@ impl Renderer {
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|error| {
-                eprintln!("Java terrain renderer could not start: {error}");
-                TerrainError::new("renderer_start_failed", "The Java terrain renderer could not start. Repair MSC on the server host and check the engine logs for details.")
+                eprintln!("{edition} terrain renderer could not start: {error}");
+                TerrainError::new("renderer_start_failed", format!("The {edition} terrain renderer could not start. Repair MSC on the server host and check the engine logs for details."))
             })?;
         let diagnostics = Arc::new(Mutex::new(Vec::new()));
         let diagnostic_reader = child.stderr.take().map(|mut stderr| {
@@ -862,6 +916,7 @@ impl Renderer {
         });
         let started_at = Instant::now();
         let mut renderer = Self {
+            edition,
             server_id: server_id.to_string(),
             world: world.to_path_buf(),
             dimension: dimension.to_string(),
@@ -885,7 +940,9 @@ impl Renderer {
                 renderer.log_failure(&format!("exited with {status}"));
                 return Err(TerrainError::new(
                     "renderer_start_failed",
-                    "The Java terrain renderer exited during startup. See the engine logs on the server host for details.",
+                    format!(
+                        "The {edition} terrain renderer exited during startup. See the engine logs on the server host for details."
+                    ),
                 ));
             }
             let health = format!("http://127.0.0.1:{port}/v1/health");
@@ -903,7 +960,9 @@ impl Renderer {
         renderer.log_failure("did not become ready within 45 seconds");
         Err(TerrainError::new(
             "renderer_start_timeout",
-            "The Java terrain renderer did not become ready within 45 seconds. See the engine logs on the server host for details.",
+            format!(
+                "The {edition} terrain renderer did not become ready within 45 seconds. See the engine logs on the server host for details."
+            ),
         ))
     }
 
@@ -914,7 +973,8 @@ impl Renderer {
             .ok()
             .map(|bytes| String::from_utf8_lossy(&bytes).replace(&self.token, "[redacted]"));
         eprintln!(
-            "Java terrain renderer {reason} at {}: {}",
+            "{} terrain renderer {reason} at {}: {}",
+            self.edition,
             self._staging.path().display(),
             diagnostics.unwrap_or_default()
         );
@@ -928,4 +988,35 @@ fn http() -> ureq::Agent {
         .http_status_as_error(false)
         .build()
         .into()
+}
+
+#[cfg(test)]
+mod saved_bedrock_terrain_tests {
+    use super::*;
+
+    #[test]
+    fn missing_or_empty_dimension_is_distinct_from_saved_regions() {
+        struct World(PathBuf);
+        impl Drop for World {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        let world =
+            World(std::env::temp_dir().join(format!("msc-empty-terrain-{}", Uuid::new_v4())));
+        std::fs::create_dir(&world.0).unwrap();
+        assert!(!has_saved_bedrock_regions(&world.0, "minecraft:overworld").unwrap());
+        std::fs::create_dir(world.0.join("region")).unwrap();
+        std::fs::write(world.0.join("region/notes.txt"), b"not terrain").unwrap();
+        assert!(!has_saved_bedrock_regions(&world.0, "minecraft:overworld").unwrap());
+        std::fs::write(world.0.join("region/r.0.0.mca"), [0u8; 8192]).unwrap();
+        assert!(has_saved_bedrock_regions(&world.0, "minecraft:overworld").unwrap());
+        assert!(!has_saved_bedrock_regions(&world.0, "minecraft:the_nether").unwrap());
+        assert_eq!(
+            has_saved_bedrock_regions(&world.0, "unknown")
+                .unwrap_err()
+                .code,
+            "dimension_unknown"
+        );
+    }
 }

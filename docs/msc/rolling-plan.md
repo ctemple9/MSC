@@ -1730,3 +1730,48 @@ Checks: `npm run check` passed (0 errors, 10 existing CSS warnings); touched
 Svelte formatting and `git diff --check` passed. No tests added or run for this
 presentation-only correction. Owner visual verification remains pending.
 Pre-existing desktop lockfile ordering is excluded from this step.
+
+### P26.43 — identify Bedrock rendering and explain empty saved terrain
+
+**Status:** Implemented; owner empty-world/map verification pending.
+
+**Files:** Shared terrain renderer and Bedrock map route; this plan.
+
+**What:** Before launching the shared renderer for converted Bedrock terrain,
+inspect the requested dimension's region directory. Missing/empty region storage
+returns dimension_empty with: “No saved Bedrock terrain yet in this dimension.
+Start the server, join with Minecraft Bedrock, and explore to generate terrain.
+Then stop the server and reopen the map.” Check only that dimension; retain
+storage errors and unknown dimensions as distinct failures. Perform this check
+once at renderer startup rather than reading a conversion manifest per tile.
+The Bedrock route exposes this as HTTP 409/dimension_empty instead of a renderer
+startup failure, and the existing viewer shows the explanatory message.
+
+Select renderer edition from the existing edition identity: startup failures,
+timeouts and captured failure logs now identify Bedrock terrain renderer for
+Bedrock requests. Translate remaining shared dependency/artifact renderer errors
+at the Bedrock response boundary; Java requests keep Java wording. No world
+conversion, region generation or live server lifecycle behavior changes.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Repair engine to use the
+updated binary, then open a freshly initiated Bedrock world's map without saved
+chunks. Confirm the no-saved-terrain message and guidance instead of NoRegions /
+Java renderer failure. After deliberately joining/exploring and stopping the
+server, reopen the map and confirm saved terrain can render. An unvisited Nether
+must report empty even if Overworld terrain exists. Any genuine Bedrock renderer
+startup error must name Bedrock; Java failures retain Java wording.
+
+**Batch:** Bedrock renderer naming and empty-terrain handling only.
+
+**Commit:** `P26.43: explain empty bedrock terrain and identify its renderer`
+
+Essential regression rationale: one isolated temporary-directory case protects
+missing/empty regions, ignoring unrelated files, distinguishing a populated
+Overworld from an empty Nether, and preserving unknown-dimension errors. It uses
+unique local paths with cleanup, no servers/network/timers, and an 8 KiB region
+presence fixture; expected milliseconds. Added but not run.
+
+Checks: Rust formatting and engine Clippy passed with existing unused-variable/
+mut warnings; `git diff --check` passed. No tests or live server/map operations
+run. Clippy's package-order-only root lockfile change was restored; pre-existing
+desktop lockfile ordering remains excluded.

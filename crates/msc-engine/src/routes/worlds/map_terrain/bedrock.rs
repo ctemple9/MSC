@@ -553,10 +553,14 @@ pub(super) async fn artifact(
         Ok(Ok(_)) => error_response(
             StatusCode::BAD_GATEWAY,
             "renderer_unavailable",
-            "The Bedrock Vantage renderer could not supply this artifact.",
+            "The Bedrock terrain renderer could not supply this artifact.",
         ),
         Ok(Err(error)) => {
-            error_response(StatusCode::BAD_GATEWAY, "bedrock_map_unavailable", &error)
+            if let Some(message) = error.strip_prefix("dimension_empty: ") {
+                error_response(StatusCode::CONFLICT, "dimension_empty", message)
+            } else {
+                error_response(StatusCode::BAD_GATEWAY, "bedrock_map_unavailable", &error)
+            }
         }
         Err(_) => error_response(
             StatusCode::BAD_GATEWAY,
@@ -961,7 +965,15 @@ impl BedrockStore {
             .fetch_visible(server_id, world, dimension, artifact, Some("26.3"), &|| {
                 lifecycle.status_snapshot().running
             })
-            .map_err(|error| format!("{}: {}", error.code, error.message));
+            .map_err(|error| {
+                format!(
+                    "{}: {}",
+                    error.code,
+                    error
+                        .message
+                        .replace("Java terrain renderer", "Bedrock terrain renderer")
+                )
+            });
         renderer.preparation_finished(server_id);
         result
     }
