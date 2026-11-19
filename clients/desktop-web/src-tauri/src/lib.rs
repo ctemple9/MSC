@@ -13,6 +13,8 @@ use std::path::{Path, PathBuf};
 #[cfg(any(not(target_os = "linux"), debug_assertions, test))]
 use std::sync::Mutex;
 
+#[cfg(target_os = "macos")]
+mod desktop_window;
 mod engine_indicator;
 mod indicator_startup;
 mod native_transfer;
@@ -1886,10 +1888,24 @@ pub fn run() {
     ensure_ad_hoc_signed_or_reexec();
 
     #[cfg(target_os = "macos")]
+    let desktop_instance = match desktop_window::DesktopWindowInstance::acquire() {
+        Ok(Some(instance)) => instance,
+        Ok(None) => return,
+        Err(error) => {
+            eprintln!("{error}");
+            return;
+        }
+    };
+
+    #[cfg(target_os = "macos")]
     update::report_desktop_update_ready(false);
 
-    tauri::Builder::default()
-        .setup(|_| {
+    let desktop = tauri::Builder::default()
+        .setup(move |app| {
+            #[cfg(target_os = "macos")]
+            desktop_instance.attach(app);
+            #[cfg(not(target_os = "macos"))]
+            let _ = app;
             if let Err(error) = indicator_startup::install() {
                 eprintln!("MSC engine indicator: {error}");
             }
@@ -1966,8 +1982,16 @@ pub fn run() {
             ssh::ssh_tunnel_retry,
             ssh::ssh_tunnel_stop
         ])
-        .run(desktop_context())
-        .expect("error while running the MSC desktop shell");
+        .build(desktop_context())
+        .expect("error while building the MSC desktop shell");
+    desktop.run(|app, event| {
+        #[cfg(target_os = "macos")]
+        if matches!(event, tauri::RunEvent::Reopen { .. }) {
+            desktop_window::show(app);
+        }
+        #[cfg(not(target_os = "macos"))]
+        let _ = (app, event);
+    });
 }
 
 fn desktop_context() -> tauri::Context<tauri::Wry> {

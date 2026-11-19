@@ -207,10 +207,9 @@ pub(super) fn run(mut context: tauri::Context<tauri::Wry>) {
         return;
     }
     context.config_mut().app.windows.clear();
-    let app = tauri::Builder::default()
+    #[allow(unused_mut)]
+    let mut app = tauri::Builder::default()
         .setup(|app| {
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             let status = MenuItem::with_id(
                 app,
                 "status",
@@ -229,6 +228,9 @@ pub(super) fn run(mut context: tauri::Context<tauri::Wry>) {
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "quit" => app.exit(0),
                     "open" => {
+                        #[cfg(target_os = "macos")]
+                        super::desktop_window::open();
+                        #[cfg(not(target_os = "macos"))]
                         if let Ok(executable) = std::env::current_exe() {
                             let _ = std::process::Command::new(executable).spawn();
                         }
@@ -310,7 +312,28 @@ pub(super) fn run(mut context: tauri::Context<tauri::Wry>) {
         })
         .build(context)
         .expect("could not start the engine indicator");
-    app.run(|_, event| {
+    #[cfg(target_os = "macos")]
+    {
+        // Set the launch policy before the event loop applies its defaults.
+        app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+        app.set_dock_visibility(false);
+    }
+    app.run(|handle, event| {
+        #[cfg(target_os = "macos")]
+        match &event {
+            tauri::RunEvent::Ready => {
+                let _ = handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                let _ = handle.set_dock_visibility(false);
+            }
+            tauri::RunEvent::Reopen { .. } => {
+                let _ = handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                let _ = handle.set_dock_visibility(false);
+                super::desktop_window::open();
+            }
+            _ => {}
+        }
+        #[cfg(not(target_os = "macos"))]
+        let _ = handle;
         if let tauri::RunEvent::ExitRequested {
             api, code: None, ..
         } = event

@@ -2494,3 +2494,44 @@ Validation: Swift helper Release build passed; Svelte check passed with zero
 errors and ten existing warnings. Rust formatting and targeted Clippy passed
 (`cargo clippy --locked -p msc-engine -p msc-platform-macos -- -D warnings`). No tests added or run; no installed service changed, release or
 publication. Owner physical acceptance remains pending.
+
+
+### P26.61 — keep the menu bar indicator out of the Dock and reopen one window
+
+**Status:** Implemented; local Intel candidate built; owner verification pending.
+**Files:** Desktop shell entry point; engine_indicator; new macOS desktop_window
+module; this plan.
+**What:** Apply the indicator's accessory activation policy and hidden Dock state
+before the event loop starts, and reassert them at Ready/reopen. Indicator reopen
+requests now open the desktop just like its menu action. A separate per-user main
+window lock and loopback endpoint forward subsequent launches to the existing
+window, restoring/showing/focusing it rather than creating another desktop.
+The endpoint uses a random token in a mode-0600 file, bounded read/connection
+waits and lock-held cleanup. An indicator never owns the desktop lock. Normal
+macOS reopen requests also restore/focus the main window. Windows/Linux launch
+behavior is retained; helper/updater command modes bypass desktop arbitration.
+No app identity, version or service registration changes.
+**Verify:** `open "$HOME/Downloads/MSC-0.1.50-intel-startup-fixes.dmg"` — quit
+the old desktop and its menu-bar indicator (leave the Background Service alone),
+install the candidate and open MSC. Confirm one Dock icon plus a menu-bar icon;
+quit only the main app and reopen it from Finder, then use Open MSC repeatedly
+and while its window is minimized. Each action must show one main window and
+never leave an indicator icon in the Dock. Also verify P26.60 in this candidate;
+use the Background Service repair once to install the changed helper on this
+already-installed Mac, then verify startup again after reboot.
+**Batch:** Owner-requested Dock correction and local candidate only; no publication.
+**Commit:** P26.61: keep indicator out of dock and reopen one desktop window
+
+Validation: desktop Rust formatting passed. Desktop Clippy completed with three
+pre-existing warnings in updater cleanup and helper request return syntax; strict
+warnings-as-errors fails on those same unrelated lines. No warnings in the new
+window/indicator code. Engine/macOS service strict Clippy, Swift helper Release
+build and frontend type check passed in P26.60. No tests run and no live service
+restarts performed. Build and physical appearance remain pending below.
+
+Local candidate build passed: `npm exec tauri build -- --bundles dmg --no-sign`.
+Artifact: `~/Downloads/MSC-0.1.50-intel-startup-fixes.dmg`, containing both P26.60
+and P26.61. This is an unsigned local candidate at the existing version, not a
+published release. Owner must quit the old desktop and indicator before replacing
+the app, and repair once to stage the changed engine/helper on an existing install.
+Fresh installation follows the corrected helper-first readiness sequence.
