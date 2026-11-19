@@ -1904,3 +1904,30 @@ Checks: touched Svelte formatting and `git diff --check` passed; frontend
 `npm run check` passed with 0 errors and existing CSS warnings. No tests added
 or run for this presentation change. Existing desktop lockfile ordering is
 excluded.
+
+### P26.49 — scope Worlds substep highlights to their actual controls
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** TourOverlay; this plan.
+
+**What:** Exclude World packs, Backups and View Map from the tab-bar union.
+Their spotlights now use only their existing section/button anchors, rather than
+a bounding rectangle stretching across the Worlds page to include navigation.
+The main Worlds introduction and other primary-tab introductions still include
+the tab bar. If View Map opens the viewer, retain its separate live-map target
+and the sidebar card placement so the terrain message remains readable.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Explore MSC → Worlds;
+confirm World slots includes tab navigation, World packs highlights only packs,
+Backups only backups, and View your world only the View Map button before it
+is clicked. Open the map and confirm the unobstructed map explanation remains.
+
+**Batch:** The three owner-reported Worlds substep highlight boundaries only.
+
+**Commit:** `P26.49: narrow worlds substep tour highlights`
+
+Checks: inspected the three-entry removal and unchanged target anchors;
+touched Svelte formatting and `git diff --check` passed. No tests added or run
+for this bounded presentation-only change. Existing desktop lockfile ordering
+remains excluded.
