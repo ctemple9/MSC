@@ -17,6 +17,7 @@
   import OnboardingCard from './OnboardingCard.svelte';
   import {
     anchorFrames,
+    containsTourAnchor,
     ONBOARDING_ANCHOR_ACTION_EVENT,
     remeasureAll,
     scrollAnchorIntoView,
@@ -75,6 +76,7 @@
   ]);
 
   let cardHidden = false;
+  let surfaceOpen = false;
   let lastIndex = -1;
   let createCompletionHandled = false;
   function confirmTourExit(): void {
@@ -186,7 +188,7 @@
 
   $: activeTourStep.set(step?.id ?? null);
   $: hiddenTourActions.set(
-    cardHidden && step && !$tourExitRequest && !$tourJavaSelectionPending
+    cardHidden && !surfaceOpen && step && !$tourExitRequest && !$tourJavaSelectionPending
       ? { showTip: showTourTip, skip: onSkip, skipLabel }
       : null,
   );
@@ -210,7 +212,22 @@
   // this reveals and re-reads the active target each frame, including late mounts.
   onMount(() => {
     let frame = requestAnimationFrame(function tick() {
-      if (spotlightAnchor && !cardHidden && !$tourExitRequest && !$tourJavaSelectionPending)
+      // Keep unrelated dialogs and menus usable; steps anchored inside them stay visible.
+      const surfaces = [...document.querySelectorAll('[role="dialog"], [role="menu"]')].filter(
+        (node) =>
+          !node.closest('.tour-root') &&
+          node.getClientRects().length > 0 &&
+          getComputedStyle(node).visibility !== 'hidden',
+      );
+      const surface = surfaces.at(-1);
+      surfaceOpen = !!surface && !containsTourAnchor(surface, spotlightAnchor);
+      if (
+        spotlightAnchor &&
+        !surfaceOpen &&
+        !cardHidden &&
+        !$tourExitRequest &&
+        !$tourJavaSelectionPending
+      )
         scrollAnchorIntoView(spotlightAnchor);
       remeasureAll();
       frame = requestAnimationFrame(tick);
@@ -296,7 +313,7 @@
 <svelte:window on:resize={onResize} />
 
 <!-- World review waits for the wizard's Continue action without another popup. -->
-{#if step && ($tourExitRequest || (!$tourJavaSelectionPending && step.id !== 'world-review' && !(REVIEW_STEP_IDS.has(step.id) && cardHidden)))}
+{#if step && !surfaceOpen && ($tourExitRequest || (!$tourJavaSelectionPending && step.id !== 'world-review' && !(REVIEW_STEP_IDS.has(step.id) && cardHidden)))}
   <div
     class="tour-root"
     role={$tourExitRequest || !cardHidden ? 'dialog' : undefined}

@@ -432,14 +432,6 @@
     },
     {
       "order": 50,
-      "id": "preferences",
-      "title": "App preferences",
-      "body": "Preferences contains MSC’s app options, update controls, service settings, and storage tools. These are separate from a Minecraft server’s Settings tab.",
-      "anchor": "ob_tour_preferences",
-      "requiresUserAction": false
-    },
-    {
-      "order": 51,
       "id": "help",
       "title": "Help and guides",
       "body": "Use the question mark to open MSC’s Handbook, Router Guide, and onboarding guide whenever you need help.",
@@ -447,7 +439,7 @@
       "requiresUserAction": false
     },
     {
-      "order": 52,
+      "order": 51,
       "id": "handbook",
       "title": "Server Handbook",
       "body": "The Handbook explains Minecraft server concepts and MSC features. Browse the topics whenever you want more detail about something in the app.",
@@ -455,11 +447,19 @@
       "requiresUserAction": false
     },
     {
-      "order": 53,
+      "order": 52,
       "id": "router",
       "title": "Router Guide",
       "body": "The Router Guide explains how players outside your network can reach your server through port forwarding, and helps troubleshoot connection problems. A Playit tunnel is another option when you don’t have router access.",
       "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 53,
+      "id": "preferences",
+      "title": "App preferences",
+      "body": "Preferences contains MSC’s app options, update controls, service settings, and storage tools. These are separate from a Minecraft server’s Settings tab.",
+      "anchor": "ob_tour_preferences",
       "requiresUserAction": false
     },
     {

@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
+  import { get } from 'svelte/store';
+  import { appTourStep } from './lib/help/appTour';
   import {
     observeServerRun,
     forgetHostRuns,
@@ -1405,7 +1407,11 @@
     await selectSection(resolution.descriptor.id, false, generation);
   }
 
+  let browsingEngineDuringTour = false;
+  $: if (activeSection !== 'engine-setup') browsingEngineDuringTour = false;
+
   function openEngineSetup(): void {
+    browsingEngineDuringTour = get(appTourStep) !== null;
     void selectSection('engine-setup');
   }
 </script>
@@ -1684,7 +1690,7 @@
     {hostId}
     server={activeServer}
     {initiationVisible}
-    serverEditorVisible={!!headerEditingServer}
+    serverEditorVisible={!!headerEditingServer || browsingEngineDuringTour}
     onPrepareTourStep={prepareAppTour}
     onResetRecovery={() => {
       resetOpen = true;

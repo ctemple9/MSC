@@ -1976,3 +1976,31 @@ service to load the updated embedded guide order.
 
 Checks: frontend type check and diff whitespace check; no tests added or run.
 Existing desktop lockfile ordering excluded. Owner visual verification pending.
+
+### P26.52 — hide tour tips during unrelated menus and dialogs
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** App; TourOverlay; tourAnchors; onboarding guide; this plan.
+
+**What:** Hide tour presentation while a visible dialog or action menu is open
+unless that surface contains the current step's target. Resume on dismissal;
+retain tour steps for wizard surfaces containing their target. Suppress automatic
+anchor scrolling and hidden-tip controls during the interruption. Manually opening
+the Engine page during the walkthrough pauses it until leaving that page. Move
+Help and guides, Handbook and Router Guide before App preferences.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — During Explore MSC, open
+MSC Settings, the server editor, and a Worlds action menu: tips should disappear
+and return on dismissal. Open Engine from its header icon and leave via Open
+server: the same tour step should return. Confirm wizard steps still appear in
+their own sheets. Rebuild/repair the background service to load the reordered
+Help/Handbook/Router/App preferences steps.
+
+**Batch:** Tour interruptions and requested help/preferences ordering only.
+
+**Commit:** `P26.52: hide tour during unrelated menus and dialogs`
+
+Checks: frontend type check passed with 0 errors and 10 existing CSS warnings;
+touched frontend formatting and diff whitespace check passed. No tests added or
+run. Existing desktop lockfile ordering excluded.

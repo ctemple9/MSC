@@ -102,6 +102,12 @@ export const anchorFrames = writable<Record<string, AnchorRect>>({});
  */
 const elements = new Map<string, HTMLElement>();
 
+/** Whether a transient surface contains the current tour target. */
+export function containsTourAnchor(surface: Element, anchorId: string | null | undefined): boolean {
+  const target = anchorId ? elements.get(anchorId) : undefined;
+  return !!target && surface.contains(target);
+}
+
 function measure(node: HTMLElement): AnchorRect {
   const rect = node.getBoundingClientRect();
   return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
