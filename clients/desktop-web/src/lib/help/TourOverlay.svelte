@@ -241,8 +241,10 @@
   $: anchorRect = (() => {
     const target = hasAnchor && spotlightAnchor ? $anchorFrames[spotlightAnchor] : undefined;
     const tabs = $anchorFrames.ob_tour_tabs;
-    if (!target || !tabs || !appWalkthrough || !TAB_WALKTHROUGH_STEPS.has(step?.id ?? ''))
-      return target;
+    const includeTabs =
+      TAB_WALKTHROUGH_STEPS.has(step?.id ?? '') ||
+      (step?.id === 'world-map' && spotlightAnchor === 'ob_tour_map_view');
+    if (!target || !tabs || !appWalkthrough || !includeTabs) return target;
     // Include the navigation that identifies the screen, alongside its explained content.
     const left = Math.min(target.left, tabs.left);
     const top = Math.min(target.top, tabs.top);

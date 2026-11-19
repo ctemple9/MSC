@@ -1931,3 +1931,26 @@ Checks: inspected the three-entry removal and unchanged target anchors;
 touched Svelte formatting and `git diff --check` passed. No tests added or run
 for this bounded presentation-only change. Existing desktop lockfile ordering
 remains excluded.
+
+### P26.50 — include navigation in the opened map tour boundary
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** TourOverlay; this plan.
+
+**What:** Include the tab strip when View your world targets the opened map
+viewer. Before opening the viewer, keep the spotlight on only the View Map
+button. Preserve the sidebar explanation placement and section-only packs and
+backups highlights.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Explore MSC → View your
+world: confirm only View Map is highlighted initially; open it and confirm the
+boundary includes the tabs and viewer, with the terrain message unobstructed.
+
+**Batch:** Opened map navigation boundary only.
+
+**Commit:** `P26.50: include tabs in opened map tour highlight`
+
+Checks: inspected the conditional button/viewer distinction; touched Svelte
+formatting and `git diff --check` passed. No tests added or run. Existing desktop
+lockfile ordering remains excluded.
