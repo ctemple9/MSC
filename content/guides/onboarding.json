@@ -384,18 +384,18 @@
     },
     {
       "order": 44,
-      "id": "edit-server",
-      "title": "Edit the server setup",
-      "body": "Open the server editor from this header to change MSC’s server configuration, such as its name, connection options, and applicable runtime settings.",
-      "anchor": "ob_tour_edit_server",
-      "requiresUserAction": false
-    },
-    {
-      "order": 45,
       "id": "files",
       "title": "Server files",
       "body": "Browse the server’s folders and preview files here, including configuration files and logs. The files belong to the selected host, which may be another computer.",
       "anchor": "ob_tour_content",
+      "requiresUserAction": false
+    },
+    {
+      "order": 45,
+      "id": "edit-server",
+      "title": "Edit the server setup",
+      "body": "Open the server editor from this header to change MSC’s server configuration, such as its name, connection options, and applicable runtime settings.",
+      "anchor": "ob_tour_edit_server",
       "requiresUserAction": false
     },
     {

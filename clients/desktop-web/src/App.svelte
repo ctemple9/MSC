@@ -1684,6 +1684,7 @@
     {hostId}
     server={activeServer}
     {initiationVisible}
+    serverEditorVisible={!!headerEditingServer}
     onPrepareTourStep={prepareAppTour}
     onResetRecovery={() => {
       resetOpen = true;

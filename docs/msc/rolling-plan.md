@@ -1954,3 +1954,25 @@ boundary includes the tabs and viewer, with the terrain message unobstructed.
 Checks: inspected the conditional button/viewer distinction; touched Svelte
 formatting and `git diff --check` passed. No tests added or run. Existing desktop
 lockfile ordering remains excluded.
+
+### P26.51 — pause the walkthrough in the server editor
+
+**Status:** Implemented; owner visual verification pending.
+
+**Files:** App; FirstLaunchGate; AppTour; onboarding guide; this plan.
+
+**What:** Hide the walkthrough while the header's server editor is open, then
+resume the same step on closing it. Move Edit the server setup directly after
+Server files, retaining sequential guide order numbers.
+
+**Verify:** `cd clients/desktop-web && npx tauri dev` — Explore MSC: confirm Files
+precedes Edit the server setup. Click the server name; confirm the tour disappears
+while editing and returns on closing the sheet. Rebuild/repair the background
+service to load the updated embedded guide order.
+
+**Batch:** Server-editor pause and owner-requested guide ordering only.
+
+**Commit:** `P26.51: pause tour while editing server setup`
+
+Checks: frontend type check and diff whitespace check; no tests added or run.
+Existing desktop lockfile ordering excluded. Owner visual verification pending.

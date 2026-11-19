@@ -27,6 +27,7 @@
   export let hostId = '';
   export let server: Schema['ServerDTO'] | undefined = undefined;
   export let initiationVisible = false;
+  export let serverEditorVisible = false;
   export let onPrepareTourStep: (id: string) => Promise<boolean> = async () => true;
   let continuation: AppTourCheckpoint | null = null;
   let continuationLoading = false;
@@ -238,6 +239,7 @@
       {hostId}
       {server}
       {initiationVisible}
+      {serverEditorVisible}
       onPrepare={onPrepareTourStep}
       onCheckpoint={checkpoint}
       onFinish={completeTour}

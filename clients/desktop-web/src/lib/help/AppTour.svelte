@@ -20,6 +20,7 @@
   export let hostId: string;
   export let server: Schema['ServerDTO'] | undefined;
   export let initiationVisible = false;
+  export let serverEditorVisible = false;
   export let onPrepare: (id: string) => Promise<boolean>;
   export let onCheckpoint: (value: AppTourCheckpoint) => void;
   export let onFinish: () => void;
@@ -43,7 +44,11 @@
             : sourceStep.anchor,
       }
     : undefined;
-  $: paused = checkpoint.step === 'waiting-initiation' || !sameServer || initiationVisible;
+  $: paused =
+    checkpoint.step === 'waiting-initiation' ||
+    !sameServer ||
+    initiationVisible ||
+    serverEditorVisible;
   $: if (paused) {
     prepared = '';
     appTourStep.set(null);
