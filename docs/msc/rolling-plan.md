@@ -2353,3 +2353,17 @@ starts at Next, cycles within the dialog including expanded details, and restore
 on close. The uninstalled-profile inline explanation remains available.
 Verify: `npm --prefix clients/desktop-web run check`. Owner visual review pending
 for fresh welcome, Next, and manual reopening. No tests run. Still uncommitted.
+
+### P26.55 — left-align the empty computer server shelf
+
+**Status:** Implemented; owner visual verification pending.
+**Files:** EngineSetupSection.svelte; this plan.
+**What:** Give the empty-server message and Manage servers action the shelf's
+left edge. Existing server cards retain their centered arrangement.
+**Verify:** `cd clients/desktop-web && npx tauri dev` — inspect a computer with
+zero servers, then one with servers; only the empty state aligns left.
+**Batch:** This bounded owner-requested layout adjustment only.
+**Commit:** P26.55: left-align the empty server shelf
+
+Validation: inspected flex layout and passed diff whitespace check. No tests run;
+no build/type check needed for a single CSS margin declaration.

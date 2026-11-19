@@ -926,6 +926,7 @@
     font-size: 12px;
   }
   .empty-library {
+    margin-right: auto;
     padding: 22px 0 16px;
   }
   .empty-library p {
