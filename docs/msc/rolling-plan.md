@@ -2535,3 +2535,29 @@ and P26.61. This is an unsigned local candidate at the existing version, not a
 published release. Owner must quit the old desktop and indicator before replacing
 the app, and repair once to stage the changed engine/helper on an existing install.
 Fresh installation follows the corrected helper-first readiness sequence.
+
+
+### P26.62 ? prepare and launch the 0.1.51 beta release
+
+**Status:** Release prepared; owner requested the next build on 2026-11-19.
+Hosted build/publication and owner verification remain pending.
+**Files:** Engine/desktop version manifests, lockfiles and bundle identity;
+`docs/msc/release/v0.1.51.md`; this plan.
+**What:** Synchronize release identity at 0.1.51 and launch the existing build-only
+publication workflow with a new immutable tag, including P26.60 Bedrock setup
+recovery and P26.61 macOS indicator/window corrections. The prior v0.1.50 run
+succeeded and published all nine packages, checksums and signed update metadata.
+Preserve the complete artifact contract and signing/notarization. No workflow
+changes or tests. Recent hosted runs took 30?39 minutes; remote packaging and
+notarization remain uncertain. Do not move tags or automatically retry failures.
+Owner physical verification of the included fixes remains pending.
+**Verify:** `gh release view v0.1.51` ? after workflow completion, owner confirms
+all nine packages, checksums and signed update metadata, then checks Intel Mac
+Bedrock setup, one Dock icon and reopening a single desktop window.
+**Batch:** Prepare and launch this release only; publication runs asynchronously.
+**Commit:** P26.62: prepare 0.1.51 beta release
+
+Validation: parsed JSON/TOML manifests and lockfiles, compared release version
+identities, inspected release notes and existing workflow version/asset/signature
+requirements, and checked diff whitespace. No Rust source changes or tests;
+formatting and Clippy are unchanged by this metadata-only step.
