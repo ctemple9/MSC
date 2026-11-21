@@ -2668,3 +2668,24 @@ Validation: compare parsed JSON/TOML and lockfile package versions, inspect sour
 and tag identity, confirm unchanged build-only release workflow and check diff
 whitespace. The only executed test was the owner-authorized local Bedrock socket
 regression, which passed; it is not added to GitHub release execution.
+
+
+### P26.67 — refresh README release and download information
+
+**Status:** Updated; owner review pending.
+**Files:** `README.md`; this plan.
+**What:** Replace stale v0.1.48 download/update references with the confirmed
+published v0.1.51. Summarize recent onboarding, computer profiles, logging and
+window changes. Put the known Intel Mac Bedrock installation failure beside
+download instructions, distinguish the in-progress v0.1.52 correction from a
+published build, and explain the upcoming uninstall choices without claiming
+physical acceptance. Keep historical updater recovery guidance and platform limits.
+**Verify:** `git show --check --stat --oneline HEAD` — owner reviews the README
+against the linked release page, notes and workflow status.
+**Batch:** This README refresh only; no new release or test execution.
+**Commit:** P26.67: refresh readme releases and installation guidance
+
+Validation: GitHub confirms v0.1.51 with nine packages/checksums/update metadata;
+v0.1.52 workflow is in progress. Check README release references, local links and
+diff whitespace before commit. Documentation-only; Rust checks and tests are not
+applicable. No release workflow changes or physical acceptance claims.
