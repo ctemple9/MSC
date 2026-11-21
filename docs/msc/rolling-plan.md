@@ -2561,3 +2561,27 @@ Validation: parsed JSON/TOML manifests and lockfiles, compared release version
 identities, inspected release notes and existing workflow version/asset/signature
 requirements, and checked diff whitespace. No Rust source changes or tests;
 formatting and Clippy are unchanged by this metadata-only step.
+
+### P26.63 — correct the macOS helper readiness probe
+
+**Status:** Implemented; owner physical verification pending.
+**Files:** `crates/msc-platform-macos/src/service.rs`; this plan.
+**What:** Remove netcat's `-z` scan flag from the Unix-socket readiness check.
+Apple's implementation returns failure with `-z -U` even on a successful
+connection. Close stdin explicitly and retain the one-second probe timeout and
+bounded startup retries. Keep helper-first startup, rollback and actual connection
+checking. Label failures as administrator operation failures rather than falsely
+claiming authorization failed after the command already ran.
+**Verify:** `cargo test -p msc-platform-macos helper_readiness_accepts_a_listener_and_rejects_a_stale_socket` — owner runs this focused regression on macOS, then verifies first-time install from the next GitHub release.
+**Batch:** This fix, the reported uninstall follow-up, then owner-authorized release.
+**Commit:** P26.63: correct macos bedrock helper socket readiness
+
+Essential regression: the production probe must accept a real private Unix listener
+and reject the same socket after close and removal. No administrator privileges,
+live services, global environment changes, sleeps or timing assertions; netcat's
+one-second read timeout bounds expected runtime to about one second. This test
+would fail with the released `-z` command. Added and compiled, not run: repository
+policy still requires owner authorization of the specific test command.
+Validation: Rust formatting, diff whitespace and strict targeted all-targets
+Clippy passed. Apple netcat source and local logs establish the false-negative
+probe and ensuing rollback. No release workflow change or live service mutation.

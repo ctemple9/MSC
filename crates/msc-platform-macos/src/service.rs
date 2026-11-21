@@ -643,13 +643,19 @@ pub(crate) fn run_as_administrator(command: &str) -> Result<(), ServiceError> {
     }
     let detail = String::from_utf8_lossy(&output.stderr).trim().to_string();
     Err(ServiceError::Platform(if detail.is_empty() {
-        format!(
-            "macOS administrator authorization failed: {}",
-            output.status
-        )
+        format!("macOS administrator operation failed: {}", output.status)
     } else {
-        format!("macOS administrator authorization failed: {detail}")
+        format!("macOS administrator operation failed: {detail}")
     }))
+}
+
+// Apple's nc returns failure for -z with Unix sockets even after connecting.
+// EOF on stdin closes this probe without sending a helper protocol request.
+fn helper_socket_probe_command(path: &Path) -> String {
+    format!(
+        "/usr/bin/nc -w 1 -U {} </dev/null",
+        shell_quote(&path.display().to_string())
+    )
 }
 
 fn shell_quote(value: &str) -> String {
@@ -797,7 +803,7 @@ if [ -e {engine_plist} ]; then /bin/launchctl bootout system {engine_plist} >/de
 /usr/bin/install -o root -g wheel -m 644 {temporary_engine} {engine_plist}; \
 /bin/launchctl enable {helper_target}; /bin/launchctl enable {engine_target}; \
 /bin/launchctl bootstrap system {helper_plist}; \
-attempt=0; until [ -S {helper_socket} ] && /usr/bin/nc -z -w 1 -U {helper_socket} >/dev/null 2>&1; do attempt=$((attempt + 1)); if [ \"$attempt\" -ge 40 ]; then echo 'MSC could not start the Bedrock helper. Installation is incomplete; retry setup.' >&2; exit 1; fi; /bin/sleep 0.25; done; \
+attempt=0; until [ -S {helper_socket} ] && {helper_probe} >/dev/null 2>&1; do attempt=$((attempt + 1)); if [ \"$attempt\" -ge 40 ]; then echo 'MSC could not start the Bedrock helper. Installation is incomplete; retry setup.' >&2; exit 1; fi; /bin/sleep 0.25; done; \
 /bin/launchctl bootstrap system {engine_plist}; \
 /bin/launchctl print {helper_target} >/dev/null",
             binary = shell_quote(&binary),
@@ -811,6 +817,7 @@ attempt=0; until [ -S {helper_socket} ] && /usr/bin/nc -z -w 1 -U {helper_socket
             helper_root_parent = shell_quote("/Library/Application Support/MSC 2"),
             runtime_root = shell_quote(BEDROCK_HELPER_RUNTIME_ROOT),
             helper_socket = shell_quote(BEDROCK_HELPER_SOCKET_PATH),
+            helper_probe = helper_socket_probe_command(Path::new(BEDROCK_HELPER_SOCKET_PATH)),
             helper_target = shell_quote(&format!("system/{BEDROCK_HELPER_SERVICE_NAME}")),
             engine_target = shell_quote(&format!("system/{}", request.service_name.as_str())),
         )
@@ -881,6 +888,46 @@ fn inspect_bedrock_helper_artifacts() -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn helper_readiness_accepts_a_listener_and_rejects_a_stale_socket() {
+        use std::os::unix::net::UnixListener;
+        // A private, short path avoids Darwin's Unix socket path-length limit.
+        let directory = PathBuf::from(format!(
+            "/tmp/msc-probe-{}-{:016x}",
+            std::process::id(),
+            rand::random::<u64>()
+        ));
+        fs::create_dir(&directory).unwrap();
+        struct Cleanup(PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = fs::remove_dir_all(&self.0);
+            }
+        }
+        let _cleanup = Cleanup(directory.clone());
+        let path = directory.join("helper.sock");
+        let listener = UnixListener::bind(&path).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        // nc can finish on its bounded timeout: no worker, sleep, live helper,
+        // administrator prompt or machine-wide service is involved.
+        let probe = || {
+            Command::new("/bin/sh")
+                .args(["-c", &helper_socket_probe_command(&path)])
+                .output()
+                .unwrap()
+        };
+        let ready = probe();
+        assert!(
+            ready.status.success(),
+            "listening helper rejected: {}",
+            String::from_utf8_lossy(&ready.stderr)
+        );
+        drop(listener);
+        assert!(!probe().status.success(), "stale socket was accepted");
+        fs::remove_file(&path).unwrap();
+        assert!(!probe().status.success(), "missing socket was accepted");
+    }
 
     #[test]
     fn elevated_stop_uses_the_bare_launchd_label() {
