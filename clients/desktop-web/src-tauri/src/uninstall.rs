@@ -13,6 +13,10 @@ pub struct UninstallRequest {
     fingerprint: String,
     installers: Vec<PathBuf>,
     keep_report: bool,
+    #[serde(default)]
+    remove_anyway: Vec<PathBuf>,
+    #[serde(default)]
+    keep_paths: Vec<PathBuf>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -102,6 +106,12 @@ pub async fn uninstall_local(request: UninstallRequest) -> Result<Scheduled, Str
             "--wait-pid",
             &std::process::id().to_string(),
         ]);
+        for path in &request.remove_anyway {
+            command.arg("--remove-anyway").arg(path);
+        }
+        for path in &request.keep_paths {
+            command.arg("--keep-path").arg(path);
+        }
         if request.keep_report {
             let timestamp = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)

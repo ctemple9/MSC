@@ -183,3 +183,67 @@ fn preview_has_no_remote_targets_and_does_not_modify_input_files() {
     );
     assert!(!result.fingerprint.is_empty());
 }
+
+#[test]
+fn uninstall_choices_remove_the_app_and_respect_kept_or_confirmed_uncertain_data() {
+    use msc_infrastructure::uninstall::native::{self, Installation, LocalServices, Preview};
+    use std::cell::RefCell;
+    struct Operations(RefCell<Vec<PathBuf>>, RefCell<Vec<Installation>>);
+    impl LocalServices for Operations {
+        fn inspect(&self) -> Result<Vec<ServiceStatusReport>, String> {
+            Ok(vec![ServiceStatusReport::not_installed(
+                "com.ctemple.msc2.agent",
+            )])
+        }
+        fn remove(&self) -> Result<(), String> {
+            Ok(())
+        }
+        fn clear_credentials(&self) -> Result<(), String> {
+            Ok(())
+        }
+        fn remove_data(&self, path: &Path) -> Result<(), String> {
+            self.0.borrow_mut().push(path.into());
+            Ok(())
+        }
+        fn remove_installation(&self, installation: &Installation) -> Result<(), String> {
+            self.1.borrow_mut().push(installation.clone());
+            Ok(())
+        }
+    }
+    let root = PathBuf::from("/home/player/uncertain-msc-data");
+    for keep in [false, true] {
+        let fs = FakeFileSystem::new().with_dir(root.clone());
+        let mut req = request();
+        req.overrides.data_dir = Some(root.clone());
+        let inventory = uninstall::inventory(&fs, &req);
+        assert!(inventory.is_blocked());
+        let app = Installation::MacBundle {
+            path: PathBuf::from("/Applications/MSC fixture.app"),
+        };
+        let preview = Preview {
+            inventory,
+            request: req,
+            installations: vec![app.clone()],
+            engine_data_dir: root.clone(),
+            engine_running: false,
+        };
+        let operations = Operations(RefCell::new(vec![]), RefCell::new(vec![]));
+        let selected = vec![root.clone()];
+        let (remove_anyway, keep_paths) = if keep {
+            (&[][..], selected.as_slice())
+        } else {
+            (selected.as_slice(), &[][..])
+        };
+        let result = native::remove_confirmed(
+            &operations,
+            preview,
+            uninstall::CONFIRMATION,
+            remove_anyway,
+            keep_paths,
+        )
+        .unwrap();
+        assert_eq!(*operations.1.borrow(), vec![app]);
+        assert_eq!(operations.0.borrow().contains(&root), !keep);
+        assert_eq!(result.state, "uninstalled");
+    }
+}

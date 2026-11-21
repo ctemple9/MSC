@@ -161,6 +161,8 @@ export interface UninstallInventory {
 }
 
 export interface LocalUninstallRequest {
+  readonly removeAnyway?: readonly string[];
+  readonly keepPaths?: readonly string[];
   readonly confirmation: string;
   readonly fingerprint: string;
   readonly installers: readonly string[];

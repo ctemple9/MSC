@@ -500,17 +500,71 @@ pub fn remove(
     preview: Preview,
     confirmation: &str,
 ) -> Result<RemovalResult, String> {
+    remove_confirmed(services, preview, confirmation, &[], &[])
+}
+
+pub fn remove_confirmed(
+    services: &dyn LocalServices,
+    preview: Preview,
+    confirmation: &str,
+    remove_anyway: &[PathBuf],
+    keep_paths: &[PathBuf],
+) -> Result<RemovalResult, String> {
     if confirmation != CONFIRMATION {
         return Err("Exact UNINSTALL MSC confirmation is required.".into());
     }
-    if preview.inventory.is_blocked() {
-        return Err("Uninstall inventory contains blocked targets; nothing was removed.".into());
+    for path in remove_anyway.iter().chain(keep_paths) {
+        if !path.is_absolute()
+            || !preview
+                .inventory
+                .entries
+                .iter()
+                .any(|entry| entry.path.as_ref() == Some(path))
+        {
+            return Err(format!(
+                "The explicitly selected removal path was not in the reviewed inventory: {}",
+                path.display()
+            ));
+        }
     }
+    let keep = |path: &Path| {
+        keep_paths
+            .iter()
+            .any(|kept| path.starts_with(kept) || kept.starts_with(path))
+    };
     let mut result = RemovalResult {
         state: "uninstalled",
         removed: Vec::new(),
-        remaining: Vec::new(),
+        remaining: preview
+            .inventory
+            .entries
+            .iter()
+            .filter(|entry| {
+                entry.state == EntryState::Blocked
+                    && !entry.path.as_ref().is_some_and(|path| {
+                        remove_anyway
+                            .iter()
+                            .any(|selected| path.starts_with(selected))
+                    })
+            })
+            .map(|entry| {
+                format!(
+                    "{}: retained — {}",
+                    entry.identity,
+                    entry
+                        .problem
+                        .as_deref()
+                        .unwrap_or("not selected for removal")
+                )
+            })
+            .collect(),
     };
+    result.remaining.extend(
+        keep_paths
+            .iter()
+            .map(|path| format!("{}: kept by your choice", path.display())),
+    );
+    let mut failed = false;
     // A failed stop/unregistration must never be followed by data deletion.
     services.remove()?;
     if services
@@ -526,7 +580,12 @@ pub fn remove(
         .entries
         .iter()
         .filter(|entry| {
-            entry.state == EntryState::Present
+            (entry.state == EntryState::Present
+                || (entry.state == EntryState::Blocked
+                    && entry
+                        .path
+                        .as_ref()
+                        .is_some_and(|path| remove_anyway.contains(path))))
                 && matches!(
                     entry.kind,
                     EntryKind::DataTree
@@ -535,8 +594,15 @@ pub fn remove(
                         | EntryKind::ClientState
                         | EntryKind::Installer
                 )
+                || (entry.state == EntryState::Blocked
+                    && entry.kind == EntryKind::Installation
+                    && entry
+                        .path
+                        .as_ref()
+                        .is_some_and(|path| remove_anyway.contains(path)))
         })
         .filter_map(|entry| entry.path.clone())
+        .filter(|path| !keep(path))
         .collect();
     paths.sort_by_key(|path| path.components().count());
     paths.dedup();
@@ -548,27 +614,36 @@ pub fn remove(
         if path.is_dir() {
             covered.push(path.clone());
         }
+        let explicitly_selected = remove_anyway.contains(&path);
         if let Some(candidate) = preview
             .request
             .installer_candidates
             .iter()
             .find(|candidate| candidate.path == path)
+            .filter(|_| !explicitly_selected)
         {
-            let bytes = fs::read(&path).map_err(|error| error.to_string())?;
-            let expected = candidate
-                .verified_sha256
-                .as_ref()
-                .ok_or("Installer verification disappeared.")?;
-            if !hex(&Sha256::digest(bytes)).eq_ignore_ascii_case(expected) {
-                return Err(format!(
-                    "Installer changed after review: {}",
+            let verified = fs::read(&path)
+                .ok()
+                .zip(candidate.verified_sha256.as_ref())
+                .is_some_and(|(bytes, expected)| {
+                    hex(&Sha256::digest(bytes)).eq_ignore_ascii_case(expected)
+                });
+            if !verified {
+                failed = true;
+                result.remaining.push(format!(
+                    "{}: installer changed or could not be verified",
                     path.display()
                 ));
+                continue;
             }
         }
-        if let Err(error) = validate_target(&StdFileSystem, &preview.request, &path)
-            .and_then(|_| services.remove_data(&path))
-        {
+        let validation = if explicitly_selected {
+            Ok(())
+        } else {
+            validate_target(&StdFileSystem, &preview.request, &path)
+        };
+        if let Err(error) = validation.and_then(|_| services.remove_data(&path)) {
+            failed = true;
             result
                 .remaining
                 .push(format!("{}: {error}", path.display()));
@@ -576,18 +651,25 @@ pub fn remove(
             result.removed.push(path.display().to_string());
         }
     }
-    // Preserve the installed command/app if any data remains, so the operator
-    // has a recovery tool rather than an apparently successful partial purge.
-    if result.remaining.is_empty() {
-        for installation in &preview.installations {
-            if let Err(error) = services.remove_installation(installation) {
-                result.remaining.push(format!("{installation:?}: {error}"));
-                break;
-            }
+    // Retained or failed data targets must not trap the user in the app.
+    for installation in &preview.installations {
+        let path = match installation {
+            Installation::MacBundle { path }
+            | Installation::MarkedArchive { path }
+            | Installation::LinuxArchive { path } => Some(path),
+            _ => None,
+        };
+        if path.is_some_and(|path| keep(path)) {
+            continue;
+        }
+        if let Err(error) = services.remove_installation(installation) {
+            failed = true;
+            result.remaining.push(format!("{installation:?}: {error}"));
+        } else {
             result.removed.push(format!("{installation:?}"));
         }
     }
-    if !result.remaining.is_empty() {
+    if failed {
         result.state = "partial";
     }
     Ok(result)

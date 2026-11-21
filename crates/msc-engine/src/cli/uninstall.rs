@@ -28,6 +28,12 @@ pub struct UninstallArgs {
     /// Additional installer to verify against a locally staged signed release.
     #[arg(long = "installer")]
     installers: Vec<PathBuf>,
+    /// Explicitly delete a listed uncertain path and all its contents anyway.
+    #[arg(long = "remove-anyway")]
+    remove_anyway: Vec<PathBuf>,
+    /// Keep a listed path and retain ancestors needed to preserve it.
+    #[arg(long = "keep-path")]
+    keep_paths: Vec<PathBuf>,
     /// Keep a removal result outside the directories being removed.
     #[arg(long)]
     report: Option<PathBuf>,
@@ -43,6 +49,10 @@ pub struct UninstallArgs {
 #[serde(rename_all = "camelCase")]
 struct Job {
     options: Options,
+    #[serde(default)]
+    remove_anyway: Vec<PathBuf>,
+    #[serde(default)]
+    keep_paths: Vec<PathBuf>,
     fingerprint: String,
     parent_pid: u32,
     desktop_pid: Option<u32>,
@@ -96,14 +106,6 @@ pub async fn run(common: CommonArgs, args: UninstallArgs) -> Result<(), CliError
         }
         print_preview(&preview.inventory);
         return Ok(());
-    }
-    if preview.inventory.is_blocked() {
-        if !common.json {
-            print_preview(&preview.inventory);
-        }
-        return Err(CliError::usage(
-            "Uninstall is blocked by one or more inventory findings. Review --dry-run; nothing was removed.",
-        ));
     }
     if args
         .fingerprint
@@ -168,6 +170,8 @@ pub async fn run(common: CommonArgs, args: UninstallArgs) -> Result<(), CliError
     let scheduled = schedule(
         Job {
             options,
+            remove_anyway: args.remove_anyway,
+            keep_paths: args.keep_paths,
             fingerprint: preview.inventory.fingerprint,
             parent_pid: std::process::id(),
             desktop_pid: args.wait_pid,
@@ -422,7 +426,7 @@ async fn execute_job(job: &Job) -> Result<RemovalResult, CliError> {
         option_env!("MSC2_RELEASE_PUBLIC_KEY_HEX"),
     )
     .map_err(CliError::internal)?;
-    if preview.inventory.fingerprint != job.fingerprint || preview.inventory.is_blocked() {
+    if preview.inventory.fingerprint != job.fingerprint {
         return Err(CliError::usage(
             "The local inventory changed after confirmation; nothing was removed. Review and confirm again.",
         ));
@@ -456,7 +460,14 @@ async fn execute_job(job: &Job) -> Result<RemovalResult, CliError> {
             "An engine is running outside the inspected service. Stop that process before uninstalling; data was retained.",
         ));
     }
-    native::remove(services.as_ref(), preview, CONFIRMATION).map_err(CliError::internal)
+    native::remove_confirmed(
+        services.as_ref(),
+        preview,
+        CONFIRMATION,
+        &job.remove_anyway,
+        &job.keep_paths,
+    )
+    .map_err(CliError::internal)
 }
 
 async fn wait_for_exit(pid: u32) -> Result<(), CliError> {

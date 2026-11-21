@@ -2613,3 +2613,35 @@ chunker/conversion_resources/storage; those unrelated files remain unchanged.
 Owner explicitly authorized P26.63's Bedrock readiness regression on 2026-11-21.
 Local execution passed: one test, zero failures, 1.04 seconds; all other tests
 filtered out. Release workflow has no test commands and is unchanged.
+
+
+### P26.65 — make uninstall removal choices belong to the user
+
+**Status:** Implemented; owner physical verification pending.
+**Files:** Native removal worker; CLI uninstall options/job; desktop uninstall
+command, request types and sheet; focused regression fixture; this plan.
+**What:** Owner explicitly replaced the whole-operation ownership veto: list the
+existing targets, default them to removal, and let users uncheck paths to keep.
+Uncertain listed paths can be removed under the same final explicit confirmation.
+Pass selected uncertain paths and kept paths through the staged job to the worker;
+never infer additional paths from these options. Kept paths preserve enclosing
+removal roots as needed. Ownership warnings do not stop app removal, and a failed
+individual data deletion no longer keeps the app installed. Reports distinguish
+intentional retention from failed removals. Existing OS authorization, reviewed
+inventory fingerprint and Minecraft shutdown checks remain.
+**Verify:** `cd clients/desktop-web && npx tauri dev` — review Uninstall MSC with
+and without an installed engine. All listed paths start selected. Uncheck a data
+folder and confirm it stays while the installed app can be removed. An ownership
+warning must not disable the uninstall button after normal confirmation. User
+confirmation applies to exact selected paths and their contents; never perform
+this destructive physical verification against wanted data.
+**Batch:** This owner-requested behavior change, then publish v0.1.52.
+**Commit:** P26.65: honor user removal choices without ownership vetoes
+
+Validation: strict engine/infrastructure Clippy, desktop Clippy (existing baseline
+warnings only), Rust/frontend formatting and frontend type check passed. Added an
+essential in-memory removal-operations fixture proving an uncertain target can be
+removed or kept while app removal proceeds; no actual deletion, service calls or
+timing assumptions, expected milliseconds. Fixture type-checked, not executed;
+only the owner-authorized Bedrock regression ran. No workflow changes or tests
+added to release execution. No live uninstall performed.
