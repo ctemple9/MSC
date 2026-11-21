@@ -2645,3 +2645,26 @@ removed or kept while app removal proceeds; no actual deletion, service calls or
 timing assumptions, expected milliseconds. Fixture type-checked, not executed;
 only the owner-authorized Bedrock regression ran. No workflow changes or tests
 added to release execution. No live uninstall performed.
+
+
+### P26.66 — prepare and launch the 0.1.52 beta release
+
+**Status:** Prepared; owner explicitly authorized immediate correction and next
+GitHub release. Hosted publication and owner physical verification pending.
+**Files:** Engine/desktop manifests, lockfiles and bundle identity; v0.1.52
+release notes; this plan.
+**What:** Publish P26.63–P26.65 through the unchanged build-only workflow with a
+new immutable v0.1.52 tag. Prior v0.1.51 publication succeeded but its helper
+readiness check failed owner fresh-install acceptance. Preserve all nine packages,
+checksums, signing/notarization and signed update metadata. No test/CI gates,
+workflow modifications, tag moves or automatic retries. Hosted builds recently
+required about 30–40 minutes; platform packaging/notarization remains uncertain.
+**Verify:** `gh release view v0.1.52` — owner confirms packages/checksums/update
+metadata, first-time Intel Mac installation and uninstall without an engine.
+**Batch:** Prepare and launch this authorized release; report the GitHub run link.
+**Commit:** P26.66: prepare 0.1.52 beta release
+
+Validation: compare parsed JSON/TOML and lockfile package versions, inspect source
+and tag identity, confirm unchanged build-only release workflow and check diff
+whitespace. The only executed test was the owner-authorized local Bedrock socket
+regression, which passed; it is not added to GitHub release execution.
