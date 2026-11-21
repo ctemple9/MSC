@@ -20,16 +20,14 @@ The terminal options are the scriptable `msc` commands and the keyboard-driven
 in an SSH session to that computer; it does not connect directly to another
 host.
 
+![MSC displaying a village and coastline in its 3D world map, with player markers and Fly/Follow controls](docs/msc/screenshots/world-map-3d.png)
+
+*Explore saved terrain and locate players from inside MSC.*
+
 ## Download and install
 
-Download [MSC v0.1.51](https://github.com/ctemple9/MSC/releases/tag/v0.1.51)
+Download [MSC v0.1.52](https://github.com/ctemple9/MSC/releases/tag/v0.1.52)
 and choose the file for your computer. The desktop app includes the engine.
-
-**Intel Mac Bedrock installation:** v0.1.51 has a helper readiness bug that can
-cause engine installation to time out and roll back. The correction is in
-v0.1.52, whose [GitHub release build](https://github.com/ctemple9/MSC/actions/runs/44877594666)
-is in progress. See the [v0.1.52 notes](docs/msc/release/v0.1.52.md) for the
-Bedrock installation and uninstall corrections; this build is not yet published.
 
 - **Mac:** Open the `.dmg` and drag MSC to Applications.
 - **Windows:** Open the `.msi` and follow the installer.
@@ -39,11 +37,11 @@ Bedrock installation and uninstall corrections; this build is not yet published.
 
 Update the macOS or Windows desktop app from its built-in updater. Update Linux
 packages with `apt` or `dnf`. For a headless install, run `msc update check`,
-then `msc update install --release-id 0.1.51`.
+then `msc update install --release-id 0.1.52`.
 
 ### What is in the download?
 
-The v0.1.51 download includes the desktop app, host-local CLI and full-screen
+The v0.1.52 download includes the desktop app, host-local CLI and full-screen
 `msc tui`, saved-terrain maps, and the server-management features below.
 The TUI runs locally on the engine host or through an SSH login to it.
 
@@ -74,6 +72,13 @@ section into view. On a headless host, use the local `msc` commands or `msc tui`
 For a first Java server, **Paper** is a good default. For a first Bedrock
 server, choose **Bedrock Dedicated Server**.
 
+<details>
+<summary>See the guided server creation screen</summary>
+
+![Add Server wizard reviewing a Bedrock server, memory allocation, playit.gg connectivity and first-world settings](docs/msc/screenshots/create-server.png)
+
+</details>
+
 ## What MSC does
 
 ### Manages Java and Bedrock servers
@@ -87,6 +92,10 @@ Minecraft server editions:
 MSC manages the server, not the Minecraft game installed on each player's
 device. A player can join from a computer, Xbox, PlayStation 5, Nintendo
 Switch, or mobile device when the server and connection method support it.
+
+![MSC Overview showing a running Paper server, Java and Bedrock connection cards, CPU/RAM/TPS, an online player and chat](docs/msc/screenshots/overview.png)
+
+*The desktop overview brings server controls, connection details, players and live statistics together.*
 
 ### Supports mixed Java and Bedrock groups
 
@@ -124,6 +133,8 @@ Backups can run manually, on a schedule, or before risky changes. MSC does
 not call a backup successful until it has finished writing and passed its
 verification checks. Restores are handled as carefully as possible too.
 
+![Worlds tab showing three named world slots, the active world, and a saved backup with Restore controls](docs/msc/screenshots/worlds-and-backups.png)
+
 ### Lets you explore your world from the app
 
 Open a world from the Worlds tab to see its saved terrain in 2D or 3D. You
@@ -147,6 +158,8 @@ The current release accepts both legacy `pack_format` metadata and modern
 `min_format`/`max_format` ranges, including Tectonic 3.0.29 for Minecraft 26.3.
 Adding a terrain-generation datapack affects newly generated chunks; it does
 not rebuild terrain already saved in the world.
+
+![Components tab showing an imported All the Mods 10 modpack, 455 installed mods and component management actions](docs/msc/screenshots/components.png)
 
 ### Learn how players can connect
 
@@ -177,6 +190,13 @@ that server. Use the visibility toggle to show or hide addresses.
 MSC does not automatically make every network setup work. It explains the
 pieces involved and helps you understand what still needs to be configured.
 
+<details>
+<summary>See the built-in Router Guide</summary>
+
+![Router Guide showing provider and router search, supported gateways and a generic guide option](docs/msc/screenshots/router-guide.png)
+
+</details>
+
 ### Explains problems in plain language
 
 When a server does not start, MSC tries to identify the useful problem
@@ -192,6 +212,8 @@ MSC watches the numbers that matter to a Minecraft server, including CPU,
 memory, disk space, player activity, and tick rate and warns when the computer 
 is running out of room for Minecraft.
 
+![Performance tab showing TPS averages, CPU and memory usage, time-series charts and server status](docs/msc/screenshots/performance.png)
+
 ## How it works
 
 The background service, also called the engine, starts Minecraft and manages
@@ -204,10 +226,21 @@ and see what is happening. It is separate from the engine and can control one on
 this computer or another one. Open **Engine** using the square **E** in the top
 right to manage the service or connect to another host.
 
+![Engine page showing local and remote computer profiles, with the remote host connected](docs/msc/screenshots/computers.png)
+
+<details>
+<summary>See a connected computer and its server shelf</summary>
+
+![Connected remote computer details showing available RAM, Background Service status and a shelf of Java and Bedrock servers](docs/msc/screenshots/computer-details.png)
+
+</details>
+
 The terminal offers two other ways to control the same engine: scriptable
 `msc` commands and the keyboard-driven `msc tui` interface. Both run on the
 engine host, either in a local terminal or through SSH, and authenticate as the
 installing OS account. Use the desktop app to connect directly to another host.
+
+![MSC full-screen terminal interface showing keyboard shortcuts, server overview, connection information, world and console](docs/msc/screenshots/terminal-overview.png)
 
 Closing the desktop window leaves the engine and your Minecraft servers running,
 like putting away a TV remote while the TV stays on. To stop a Minecraft server,
@@ -309,7 +342,7 @@ Swift is used for the macOS Bedrock runtime.
 
 ## Current release and support
 
-The latest published build is [MSC v0.1.51](https://github.com/ctemple9/MSC/releases/tag/v0.1.51),
+The latest published build is [MSC v0.1.52](https://github.com/ctemple9/MSC/releases/tag/v0.1.52),
 a prerelease. There is no stable release yet. Download the
 platform-specific installer or archive from that release page and verify its
 entry in `SHA256SUMS` before installing. The Phase 16 acceptance record
@@ -321,19 +354,16 @@ setup and an app walkthrough, server-card world thumbnails, native Bedrock
 console logs, and remote Directory/Logs browsing inside MSC. v0.1.51 also includes
 macOS Dock indicator and window-reopening corrections.
 
-Read the [v0.1.51 release notes](docs/msc/release/v0.1.51.md) and the
-[release history](docs/msc/release/) for details. **v0.1.51 does not resolve the
-Intel Mac Bedrock installation failure:** its readiness check can reject a
-running helper and roll back installation. v0.1.52 corrects that check and changes
-uninstall to list targets selected for removal by default, let users uncheck
-paths to keep, and show ownership uncertainty without blocking the operation.
-The [v0.1.52 release build](https://github.com/ctemple9/MSC/actions/runs/44877594666)
-is in progress; publication and physical verification of those packages remain
-pending. Existing root-owned Bedrock data still requires a one-time ownership
-repair.
+Read the [v0.1.52 release notes](docs/msc/release/v0.1.52.md) and the
+[release history](docs/msc/release/) for details. This release corrects the
+Intel Mac Bedrock helper readiness check that caused v0.1.51 installation to
+roll back. Uninstall lists targets selected for removal by default, lets users
+uncheck paths to keep, and shows ownership uncertainty without blocking the
+operation. Full physical release acceptance remains pending. Existing root-owned
+Bedrock data still requires a one-time ownership repair.
 
 **Windows 0.1.43/0.1.44:** if the built-in updater reports that it requires a
-machine-protected desktop directory, download the v0.1.51 MSI and install it
+machine-protected desktop directory, download the v0.1.52 MSI and install it
 manually. The correction must be in the desktop performing the update; the
 older updater cannot acquire it by retrying the same blocked update. Releases
 from 0.1.45 also fix error 33 when checking an already-running background indicator.

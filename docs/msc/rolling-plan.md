@@ -2689,3 +2689,25 @@ Validation: GitHub confirms v0.1.51 with nine packages/checksums/update metadata
 v0.1.52 workflow is in progress. Check README release references, local links and
 diff whitespace before commit. Documentation-only; Rust checks and tests are not
 applicable. No release workflow changes or physical acceptance claims.
+
+
+### P26.68 — illustrate the README with owner screenshots
+
+**Status:** Implemented; owner visual review pending.
+**Files:** `README.md`; ten PNGs in `docs/msc/screenshots`; this plan.
+**What:** Review and copy Cameron's ten screenshots without changing pixels or
+source files. Use the 3D map as the opening image; place Overview, Worlds/backups,
+Components, Performance, computer profiles and TUI beside their explanations.
+Put creation, Router Guide and computer-detail captures in expandable sections.
+Add descriptive alt text and concise captions. Confirm v0.1.52 is published with
+all nine packages, checksums and update metadata; update stale download references
+and remove the obsolete build-in-progress notice without claiming full acceptance.
+**Verify:** `git show --check --stat --oneline HEAD` — owner then reviews README
+rendering on GitHub, expands all three screenshot sections and opens full-size PNGs.
+**Batch:** README/screenshots only; no application, workflow or release changes.
+**Commit:** P26.68: illustrate readme with application screenshots
+
+Validation: visually inspect the supplied captures, compare copied asset hashes
+against originals, check all relative README links/image signatures, match all ten
+assets to README references and check diff whitespace. No tests or Rust checks;
+this step changes documentation and copies existing image assets only.
