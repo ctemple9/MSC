@@ -72,6 +72,27 @@ fn corrupt_config_blocks_its_parent_data_deletion() {
 }
 
 #[test]
+fn macos_default_data_override_without_engine_config_does_not_block_uninstall() {
+    let root = "/home/player/Library/Application Support/MSC 2";
+    let fs = FakeFileSystem::new().with_dir(root);
+    let mut req = request();
+    req.platform = Platform::Macos;
+    req.overrides.data_dir = Some(PathBuf::from(root));
+    let result = uninstall::inventory(&fs, &req);
+    let entries: Vec<_> = result
+        .entries
+        .iter()
+        .filter(|entry| entry.path.as_deref() == Some(Path::new(root)))
+        .collect();
+    assert!(!entries.is_empty());
+    assert!(
+        entries
+            .iter()
+            .all(|entry| entry.state != EntryState::Blocked)
+    );
+}
+
+#[test]
 fn custom_missing_config_does_not_authorize_unrelated_directory_deletion() {
     let fs = FakeFileSystem::new().with_dir("/home/player/other");
     let mut req = request();

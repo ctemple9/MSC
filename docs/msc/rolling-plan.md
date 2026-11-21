@@ -2585,3 +2585,31 @@ policy still requires owner authorization of the specific test command.
 Validation: Rust formatting, diff whitespace and strict targeted all-targets
 Clippy passed. Apple netcat source and local logs establish the false-negative
 probe and ensuing rollback. No release workflow change or live service mutation.
+
+
+### P26.64 — allow uninstall before engine configuration exists
+
+**Status:** Implemented; owner physical verification pending.
+**Files:** `crates/msc-infrastructure/src/uninstall.rs`; focused uninstall
+regression fixture; this plan.
+**What:** Use the inventory's existing platform-default data roots when deciding
+whether an explicit data override is custom. The macOS desktop passes the standard
+MSC data path and creates client/lock files before an engine install; absence of
+engine configuration there must not block uninstall. Arbitrary custom roots,
+corrupt configurations, symlinks and protected ancestors retain existing checks.
+No live removal performed.
+**Verify:** `cargo test -p msc-infrastructure --test uninstall macos_default_data_override_without_engine_config_does_not_block_uninstall` — owner runs the focused fixture, then opens Uninstall MSC before engine installation and confirms the standard data root no longer blocks the preview.
+**Batch:** This uninstall correction, then publish the authorized next beta.
+**Commit:** P26.64: allow uninstall without engine configuration in default data roots
+
+Essential fixture: in-memory macOS default data override, absent engine/config,
+and leftover directory must not block cleanup. No real files/services/timers;
+expected runtime milliseconds. Existing custom-directory/corrupt-config rejection
+fixtures remain. Fixture compiled, not run; only Bedrock regression was authorized.
+Production strict library Clippy and uninstall-fixture type-check passed. An
+all-targets strict Clippy attempt found existing test-module-order warnings in
+chunker/conversion_resources/storage; those unrelated files remain unchanged.
+
+Owner explicitly authorized P26.63's Bedrock readiness regression on 2026-11-21.
+Local execution passed: one test, zero failures, 1.04 seconds; all other tests
+filtered out. Release workflow has no test commands and is unchanged.

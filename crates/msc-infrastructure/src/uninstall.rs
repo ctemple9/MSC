@@ -151,20 +151,7 @@ pub fn inventory(fs: &dyn FileSystem, request: &Request) -> Inventory {
         finish(&mut result);
         return result;
     }
-    let default_roots = match request.platform {
-        Platform::Macos => vec![
-            home.join("Library/Application Support/MSC 2"),
-            home.join("Library/Application Support/MSC2"),
-        ],
-        Platform::Windows => vec![
-            home.join("AppData/Roaming/MSC2"),
-            home.join("AppData/Local/MSC2"),
-        ],
-        Platform::Linux => vec![
-            home.join(".local/share/msc2"),
-            PathBuf::from("/var/lib/msc2"),
-        ],
-    };
+    let default_roots = default_data_roots(request);
     let mut roots: Vec<(PathBuf, Overrides)> = default_roots
         .into_iter()
         .map(|path| (path, Overrides::default()))
@@ -303,6 +290,23 @@ pub fn inventory(fs: &dyn FileSystem, request: &Request) -> Inventory {
     result
 }
 
+fn default_data_roots(request: &Request) -> Vec<PathBuf> {
+    match request.platform {
+        Platform::Macos => vec![
+            request.home.join("Library/Application Support/MSC 2"),
+            request.home.join("Library/Application Support/MSC2"),
+        ],
+        Platform::Windows => vec![
+            request.home.join("AppData/Roaming/MSC2"),
+            request.home.join("AppData/Local/MSC2"),
+        ],
+        Platform::Linux => vec![
+            request.home.join(".local/share/msc2"),
+            PathBuf::from("/var/lib/msc2"),
+        ],
+    }
+}
+
 fn add_service_roots(definition: &ServiceInstallRequest, roots: &mut Vec<(PathBuf, Overrides)>) {
     let overrides = Overrides::from_environment(&definition.environment);
     let root = overrides
@@ -346,14 +350,10 @@ fn add_data(
     let bytes = match fs.read_bounded(&config, 8 * 1024 * 1024) {
         Ok(bytes) => bytes,
         Err(error) if error.kind() == io::ErrorKind::NotFound => {
-            // Windows service metadata can name a standard MSC directory that
-            // only holds staged binaries/logs. It is already an owned default;
-            // arbitrary custom directories still require configuration proof.
-            let windows_default = request.platform == Platform::Windows
-                && ["AppData/Roaming/MSC2", "AppData/Local/MSC2"]
-                    .iter()
-                    .any(|relative| root == request.home.join(relative));
-            if overrides.data_dir.is_some() && !windows_default && fs.stat(root).is_ok() {
+            // Explicitly naming a standard MSC root does not make it custom.
+            // The desktop creates client/lock state there before engine install.
+            let owned_default = default_data_roots(request).iter().any(|path| path == root);
+            if overrides.data_dir.is_some() && !owned_default && fs.stat(root).is_ok() {
                 result.entries.push(blocked(EntryKind::DataTree, root, "Custom local data path", "Custom data directory has no readable MSC configuration; ownership is ambiguous."));
             }
             if let Some(server_root) = &overrides.servers_root {
